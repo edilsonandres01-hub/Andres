@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: qa-guardian-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: CORS_ORIGINS
+        value: '["*"]'
+    healthCheckPath: /health
+  - type: web
+    name: qa-guardian-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free

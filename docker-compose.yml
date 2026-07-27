@@ -1,0 +1,53 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8081:8081"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://qa:password@postgres:5432/qa_guardian
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=production
+      - CORS_ORIGINS=["*"]
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - qa-net
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - qa-net
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=qa
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=qa_guardian
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - qa-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    networks:
+      - qa-net
+    restart: unless-stopped
+
+networks:
+  qa-net:
+
+volumes:
+  pgdata:
+  redisdata:
