@@ -27,3 +27,5 @@ Thumbs.db
 
 # Bootstrap temps
 _bootstrap*.py
+
+payload.json
