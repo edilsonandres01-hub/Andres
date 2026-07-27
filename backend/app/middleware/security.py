@@ -16,5 +16,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "style-src 'self' 'unsafe-inline'"
         )
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-        response.headers.pop("Server", None)
+        if "server" in response.headers:
+            del response.headers["server"]
         return response
