@@ -34,7 +34,7 @@
     --ink:   #0F1117;
     --ink-2: #3A3F50;
     --ink-3: #6B7080;
-    --ink-4: #9EA4B0;
+    --ink-4: #7D8593;
 
     /* — Semáforo de estado — */
     --ok:       #1A6B4A;
@@ -93,7 +93,7 @@
       --ink:   #E6E9F0;
       --ink-2: #A8AEBA;
       --ink-3: #70778A;
-      --ink-4: #4E5468;
+      --ink-4: #8B92A8;
 
       --ok:       #3DC48A;
       --ok-soft:  #0D2419;
@@ -128,7 +128,7 @@
     --ink:   #E6E9F0;
     --ink-2: #A8AEBA;
     --ink-3: #70778A;
-    --ink-4: #4E5468;
+    --ink-4: #8B92A8;
     --ok:       #3DC48A;
     --ok-soft:  #0D2419;
     --info:     #7AAAE0;
@@ -1464,6 +1464,20 @@
     .dv-n { display: none; }
     .hero { padding: 1.25rem 1rem 0; }
   }
+
+  /* ==================== RESPONSIVE MÓVIL ==================== */
+  @media (max-width: 768px) {
+    .app { grid-template-columns: 1fr; }
+    .side { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; z-index: 999; transform: translateX(-100%); transition: transform var(--t-base); }
+    .side.on { transform: translateX(0); }
+    .app.menu-on .side { transform: translateX(0); }
+    .app.menu-on::after { content: ''; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 998; }
+    .menu-btn { display: flex; cursor: pointer; width: 40px; height: 40px; align-items: center; justify-content: center; margin-right: auto; }
+    .menu-btn span { display: block; width: 20px; height: 2px; background: currentColor; position: relative; }
+    .menu-btn span::before, .menu-btn span::after { content: ''; position: absolute; width: 100%; height: 2px; background: currentColor; }
+    .menu-btn span::before { top: -6px; }
+    .menu-btn span::after { top: 6px; }
+  }
 </style>
 
 </head>
@@ -1488,6 +1502,7 @@
 
   <main class="main">
     <div class="topbar">
+      <div class="menu-btn" id="menuBtn" style="display:none"><span></span></div>
       <div class="crumb" id="crumb">Campus</div>
       <button class="btn btn-s" id="exportBtn">Exportar JSON</button>
       <button class="btn btn-s" id="themeBtn">Tema</button>
@@ -4697,17 +4712,24 @@
 
   function renderNav() {
     var nav = document.getElementById("nav");
+    var campusNav = '<div style="padding:.6rem .8rem;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:.3rem">' +
+      '<button class="cnav" style="' + (state.activeId ? '' : 'background:var(--accent-soft)') + ';text-align:left;padding:.5rem .6rem;border-radius:var(--r-sm);border:none;cursor:pointer;color:inherit;font-family:inherit;font-size:inherit;margin:0" onclick="state.activeId=null;render()">' +
+      '<div class="cnav-code" style="font-size:.65rem">HOME</div>' +
+      '<div class="cnav-t" style="font-size:.9rem;font-weight:500">Inicio</div>' +
+      '</button>' +
+      '</div>';
+
     var q = state.query.toLowerCase();
     var list = state.courses.filter(function (c) {
       return !q || (c.title + " " + c.code + " " + c.area).toLowerCase().indexOf(q) > -1;
     });
     document.getElementById("ccount").textContent = state.courses.length;
     if (!list.length) {
-      nav.innerHTML = '<div class="side-note" style="padding:.6rem">' +
+      nav.innerHTML = campusNav + '<div class="side-note" style="padding:.6rem">' +
         (state.courses.length ? "Ningún programa coincide." : "Todavía no hay programas.") + "</div>";
       return;
     }
-    nav.innerHTML = list.map(function (c) {
+    nav.innerHTML = campusNav + list.map(function (c) {
       var p = courseProgress(c);
       return '<button class="cnav' + (c.id === state.activeId ? " on" : "") + '" data-course="' + esc(c.id) + '">' +
         '<div class="cnav-code">' + esc(c.code) + '</div>' +
@@ -4943,9 +4965,26 @@
     var c = active();
     if (!c) {
       document.getElementById("crumb").innerHTML = "Campus";
-      view.innerHTML = '<div class="empty"><h2>Ningún programa seleccionado</h2>' +
-        "<p>Crea un programa nuevo desde la barra lateral o selecciona uno existente. Cada programa admite asignaturas, y cada asignatura admite recursos de estudio: cursos, vídeos, libros con resumen, lecturas, normas, datasets y herramientas.</p>" +
-        '<button class="btn btn-p" id="empNew">+ Nuevo programa</button></div>';
+      var progStats = "";
+      if (state.courses.length > 0) {
+        var totalProg = state.courses.reduce(function(sum, co) { return sum + courseProgress(co).total; }, 0);
+        var completeProg = state.courses.reduce(function(sum, co) { return sum + courseProgress(co).done; }, 0);
+        var pct = totalProg ? Math.round(completeProg * 100 / totalProg) : 0;
+        progStats = '<div class="stats" style="margin-top:2rem">' +
+          stat("Programas activos", state.courses.length) +
+          stat("Recursos totales", totalProg) +
+          stat("Completados", completeProg) +
+          '</div><div class="pbar" style="margin-top:1.5rem"><i style="width:' + pct + '%"></i></div>' +
+          '<div class="pline" style="margin-top:.5rem">' + pct + '% del programa completado</div>';
+      }
+      view.innerHTML = '<div class="body"><div class="body-in" style="max-width:600px">' +
+        '<h1 style="font-size:2.2rem;margin-bottom:1rem">Bienvenido al Campus</h1>' +
+        '<p style="font-size:1.1rem;color:var(--ink-2);margin-bottom:2rem">Tu plataforma de aprendizaje personalizado. Selecciona un programa de la barra lateral para comenzar.</p>' +
+        (state.courses.length ? '<div style="background:var(--surface-2);padding:1.5rem;border-radius:var(--r-lg);margin-bottom:2rem">' +
+          '<h2 style="font-size:1.2rem;margin-bottom:1rem">Tu progreso</h2>' + progStats + '</div>' : '') +
+        '<div class="actions"><button class="btn btn-p" id="empNew">+ Nuevo programa</button>' +
+        '<button class="btn" id="learnBtn" style="margin-left:.5rem">Conocer plataforma</button></div>' +
+        '</div></div>';
       var e = document.getElementById("empNew");
       if (e) e.addEventListener("click", openCourseDialog);
       return;
@@ -4963,7 +5002,7 @@
 
     var p = courseProgress(c);
     document.getElementById("crumb").innerHTML = "Campus / <b>" + esc(c.code) + "</b>";
-    var tabs = [["plan", "Plan de estudios", c.modules.length], ["lib", "Biblioteca", allRes(c).length], ["dev", "Entregables", ""], ["set", "Ajustes", ""]];
+    var tabs = [["pres", "Presentación", ""], ["obj", "Objetivos", ""], ["plan", "Contenidos", c.modules.length], ["act", "Actividades", ""], ["caso", "Caso práctico", ""], ["eval", "Evaluación", ""], ["lib", "Biblioteca", allRes(c).length], ["set", "Ajustes", ""]];
     view.innerHTML =
       '<div class="hero"><div class="hero-in">' +
         '<div class="chiprow"><span class="chip brand">' + esc(c.code) + "</span>" +
@@ -4986,9 +5025,13 @@
         }).join("") + "</div>" +
       "</div></div>" +
       '<div class="body"><div class="body-in">' +
-        (state.tab === "plan" ? renderPlan(c) :
-         state.tab === "lib" ? renderLib(c) :
-         state.tab === "dev" ? renderDeliv(c) : renderSettings(c)) +
+        (state.tab === "pres" ? '<div class="box"><h2>Descripción del programa</h2><p>' + esc(c.subtitle || "Descripción no disponible") + '</p></div>' :
+         state.tab === "obj" ? '<div class="box"><h2>Objetivos del programa</h2><ul><li>Dominar los conceptos fundamentales de ' + esc(c.title) + '</li><li>Aplicar metodologías en casos reales</li><li>Desarrollar criterio para decisiones en la disciplina</li></ul></div>' :
+         state.tab === "plan" ? renderPlan(c) :
+         state.tab === "act" ? '<div class="box"><h2>Actividades</h2><p>Consulta la pestaña de Contenidos para ver las prácticas, ejercicios y entregas de cada asignatura.</p></div>' :
+         state.tab === "caso" ? '<div class="box"><h2>Caso práctico</h2><p>Se desarrolla a lo largo del programa. Selecciona una asignatura en Contenidos para ver sus detalles.</p></div>' :
+         state.tab === "eval" ? '<div class="box"><h2>Evaluación</h2><p>Cada asignatura incluye criterios de dominio. Consulta la pestaña de Contenidos para verlos.</p></div>' :
+         state.tab === "lib" ? renderLib(c) : renderSettings(c)) +
       "</div></div>";
     wireSettings(c);
   }
@@ -5696,6 +5739,30 @@
         toast("Catálogo copiado al portapapeles");
       }, function () { toast("No se pudo copiar"); });
     } else { toast("Portapapeles no disponible"); }
+  });
+
+  /* ==================== MENÚ MÓVIL ==================== */
+  var menuBtn = document.getElementById("menuBtn");
+  var app = document.querySelector(".app");
+  var side = document.querySelector(".side");
+
+  function updateMenuVisibility() {
+    if (window.innerWidth <= 768) { menuBtn.style.display = "flex"; }
+    else { menuBtn.style.display = "none"; app.classList.remove("menu-on"); }
+  }
+
+  updateMenuVisibility();
+  window.addEventListener("resize", updateMenuVisibility);
+
+  menuBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    app.classList.toggle("menu-on");
+  });
+
+  document.addEventListener("click", function (e) {
+    if (app.classList.contains("menu-on") && !side.contains(e.target) && e.target !== menuBtn) {
+      app.classList.remove("menu-on");
+    }
   });
 
   /* ==========================================================
