@@ -4788,6 +4788,83 @@
       "</div>";
   }
 
+  function renderPresentation(c) {
+    return '<div class="body-intro">' +
+      '<h2 style="font-size:1.4rem;margin-bottom:1rem">Acerca del programa</h2>' +
+      '<p style="font-size:1rem;line-height:1.8;margin-bottom:2rem;color:var(--ink-2)">' + esc(c.subtitle || "Descripción del programa") + '</p>' +
+      (c.modules.length ? '<div style="margin-top:2rem"><h3 style="font-size:1.1rem;margin-bottom:1rem">Temas principales</h3><ul style="list-style:none;padding:0">' +
+        c.modules.map(function(m) { return '<li style="padding:.5rem 0;border-bottom:1px solid var(--border)"><strong>' + esc(m.numeral + '. ' + m.title) + '</strong><br/><small style="color:var(--ink-3)">' + esc(m.weeks || '') + (m.hours ? ' · ' + m.hours + ' h' : '') + '</small></li>'; }).join('') +
+        '</ul></div>' : '') +
+      '</div>';
+  }
+
+  function renderObjectives(c) {
+    return '<div class="body-intro">' +
+      '<h2 style="font-size:1.4rem;margin-bottom:2rem">Objetivos por asignatura</h2>' +
+      (c.modules.length ? c.modules.map(function(m) {
+        return '<div style="margin-bottom:2rem;padding:1.5rem;background:var(--surface-2);border-radius:var(--r-lg)">' +
+          '<h3 style="font-size:1.1rem;margin-bottom:.5rem">' + esc(m.numeral + '. ' + m.title) + '</h3>' +
+          (m.objective ? '<p style="color:var(--ink-2);margin:0">' + esc(m.objective) + '</p>' : '<p style="color:var(--ink-4)">Sin objetivo definido</p>') +
+          '</div>';
+      }).join('') : '<p>Sin asignaturas aún.</p>') +
+      '</div>';
+  }
+
+  function renderActivities(c) {
+    var activities = [];
+    c.modules.forEach(function(m) {
+      if (m.practice) activities.push({ mod: m, type: 'Práctica', text: m.practice });
+    });
+    return '<div class="body-intro">' +
+      '<h2 style="font-size:1.4rem;margin-bottom:2rem">Actividades y ejercicios</h2>' +
+      (activities.length ? activities.map(function(a) {
+        return '<div style="margin-bottom:2rem;padding:1.5rem;background:var(--surface-2);border-radius:var(--r-lg)">' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem">' +
+            '<h3 style="font-size:1rem;margin:0">' + esc(a.mod.numeral + '. ' + a.mod.title) + '</h3>' +
+            '<span style="background:var(--ok-soft);color:var(--ok);padding:.25rem .5rem;border-radius:var(--r-sm);font-size:.8rem;font-weight:500">' + a.type + '</span>' +
+          '</div>' +
+          '<p style="color:var(--ink-2);margin:0">' + esc(a.text) + '</p>' +
+          '</div>';
+      }).join('') : '<p>Sin actividades definidas aún.</p>') +
+      '</div>';
+  }
+
+  function renderCasePractice(c) {
+    var cases = [];
+    c.modules.forEach(function(m) {
+      if (m.example) cases.push({ mod: m, text: m.example.text });
+    });
+    return '<div class="body-intro">' +
+      '<h2 style="font-size:1.4rem;margin-bottom:2rem">Casos prácticos</h2>' +
+      (cases.length ? cases.map(function(cs) {
+        return '<div style="margin-bottom:2rem;padding:1.5rem;background:var(--surface-2);border-radius:var(--r-lg)">' +
+          '<h3 style="font-size:1rem;margin-bottom:.5rem">' + esc(cs.mod.numeral + '. ' + cs.mod.title) + '</h3>' +
+          '<p style="color:var(--ink-2);margin:0">' + esc(cs.text) + '</p>' +
+          '</div>';
+      }).join('') : '<p>Se desarrollan a lo largo del programa. Consulta la pestaña Contenidos para ver los detalles de cada asignatura.</p>') +
+      '</div>';
+  }
+
+  function renderEvaluation(c) {
+    return '<div class="body-intro">' +
+      '<h2 style="font-size:1.4rem;margin-bottom:2rem">Criterios de evaluación</h2>' +
+      (c.modules.length ? c.modules.map(function(m) {
+        var evals = [];
+        if (m.deliverable) evals.push({ label: 'Entregable', text: m.deliverable });
+        if (m.mastery) evals.push({ label: 'Criterio de dominio', text: m.mastery });
+        return '<div style="margin-bottom:2rem;padding:1.5rem;background:var(--surface-2);border-radius:var(--r-lg)">' +
+          '<h3 style="font-size:1rem;margin-bottom:1rem">' + esc(m.numeral + '. ' + m.title) + '</h3>' +
+          (evals.length ? evals.map(function(e) {
+            return '<div style="margin-bottom:1rem">' +
+              '<strong style="color:var(--accent);font-size:.9rem">' + e.label + '</strong>' +
+              '<p style="color:var(--ink-2);margin:.3rem 0 0">' + esc(e.text) + '</p>' +
+              '</div>';
+          }).join('') : '<p style="color:var(--ink-4)">Sin criterios definidos</p>') +
+          '</div>';
+      }).join('') : '<p>Sin asignaturas aún.</p>') +
+      '</div>';
+  }
+
   function renderPlan(c) {
     return c.modules.map(function (m) {
       var p = modProgress(m);
@@ -5025,12 +5102,12 @@
         }).join("") + "</div>" +
       "</div></div>" +
       '<div class="body"><div class="body-in">' +
-        (state.tab === "pres" ? '<div class="box"><h2>Descripción del programa</h2><p>' + esc(c.subtitle || "Descripción no disponible") + '</p></div>' :
-         state.tab === "obj" ? '<div class="box"><h2>Objetivos del programa</h2><ul><li>Dominar los conceptos fundamentales de ' + esc(c.title) + '</li><li>Aplicar metodologías en casos reales</li><li>Desarrollar criterio para decisiones en la disciplina</li></ul></div>' :
+        (state.tab === "pres" ? renderPresentation(c) :
+         state.tab === "obj" ? renderObjectives(c) :
          state.tab === "plan" ? renderPlan(c) :
-         state.tab === "act" ? '<div class="box"><h2>Actividades</h2><p>Consulta la pestaña de Contenidos para ver las prácticas, ejercicios y entregas de cada asignatura.</p></div>' :
-         state.tab === "caso" ? '<div class="box"><h2>Caso práctico</h2><p>Se desarrolla a lo largo del programa. Selecciona una asignatura en Contenidos para ver sus detalles.</p></div>' :
-         state.tab === "eval" ? '<div class="box"><h2>Evaluación</h2><p>Cada asignatura incluye criterios de dominio. Consulta la pestaña de Contenidos para verlos.</p></div>' :
+         state.tab === "act" ? renderActivities(c) :
+         state.tab === "caso" ? renderCasePractice(c) :
+         state.tab === "eval" ? renderEvaluation(c) :
          state.tab === "lib" ? renderLib(c) : renderSettings(c)) +
       "</div></div>";
     wireSettings(c);
