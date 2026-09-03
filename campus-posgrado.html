@@ -4713,7 +4713,7 @@
   function renderNav() {
     var nav = document.getElementById("nav");
     var campusNav = '<div style="padding:.6rem .8rem;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:.3rem">' +
-      '<button class="cnav" style="' + (state.activeId ? '' : 'background:var(--accent-soft)') + ';text-align:left;padding:.5rem .6rem;border-radius:var(--r-sm);border:none;cursor:pointer;color:inherit;font-family:inherit;font-size:inherit;margin:0" onclick="state.activeId=null;render()">' +
+      '<button class="cnav" data-course="__home__" style="' + (state.activeId ? '' : 'background:var(--accent-soft)') + ';text-align:left;padding:.5rem .6rem;border-radius:var(--r-sm);border:none;cursor:pointer;color:inherit;font-family:inherit;font-size:inherit;margin:0">' +
       '<div class="cnav-code" style="font-size:.65rem">HOME</div>' +
       '<div class="cnav-t" style="font-size:.9rem;font-weight:500">Inicio</div>' +
       '</button>' +
@@ -5625,7 +5625,7 @@
       persistGrade(el.dataset.ungrade); render(); toast("Calificación borrada"); return;
     }
     if (el.dataset.close) { closeDialog(); return; }
-    if (el.dataset.course) { state.activeId = el.dataset.course; state.tab = "plan"; render(); return; }
+    if (el.dataset.course) { state.activeId = el.dataset.course === "__home__" ? null : el.dataset.course; state.tab = "plan"; render(); return; }
     if (el.dataset.tab) { state.tab = el.dataset.tab; render(); return; }
     if (el.dataset.f) { state.filter = el.dataset.f; render(); return; }
     if (el.dataset.toggle) {
