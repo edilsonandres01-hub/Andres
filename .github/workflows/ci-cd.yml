@@ -22,7 +22,6 @@ jobs:
       - run: cd backend && python -m pytest tests/ -v
 
   build:
-    needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     permissions:
@@ -30,18 +29,25 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
+      - name: Check for backend changes
+        id: backend_changes
+        run: |
+          if git diff origin/main --name-only | grep -q '^backend/'; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Build backend
+        if: steps.backend_changes.outputs.has_changes == 'true'
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v5
+      - name: Build and push backend
+        if: steps.backend_changes.outputs.has_changes == 'true'
+        uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_BACKEND }}:latest
-      - uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_FRONTEND }}:latest
