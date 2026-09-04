@@ -1,0 +1,1370 @@
+[
+  {
+    "title": "Inicio",
+    "can": "blog.vista",
+    "action": "mdi-home",
+    "items": [
+      {
+        "title": "Manuales",
+        "to": "/inicio/manual",
+        "can": "blog.vista"
+      },
+      {
+        "title": "Gestión de Contenido",
+        "to": "/inicio/gestionContenido",
+        "can": "inicio.gestionContenido"
+      }
+    ]
+  },
+  {
+    "title": "Agendamiento",
+    "can": "agendamiento.medico",
+    "action": "mdi-calendar",
+    "items": [
+      {
+        "title": "Agendar",
+        "to": "/agendamiento/medico",
+        "can": "agendamiento.medico.vista"
+      },
+      {
+        "title": "Programación",
+        "to": "/agendamiento/registro",
+        "can": "agendamiento.medico.programacion"
+      },
+      {
+        "title": "Histórico cambios agenda",
+        "to": "/agendamiento/historicoCambios",
+        "can": "blog.vista"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/agendamiento/parametrizacion",
+        "can": "agendamiento.parametrizacion.vista"
+      }
+    ]
+  },
+  {
+    "title": "Citas",
+    "can": "cita.afiliados",
+    "action": "mdi-calendar-cursor",
+    "items": [
+      {
+        "title": "Agendar",
+        "to": "/cita/agendamiento",
+        "can": "cita.agendamiento.vista"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/cita/parametrizacion",
+        "can": "cita.parametrizacion.vista"
+      }
+    ]
+  },
+  {
+    "title": "Gestión de sucesos",
+    "can": "eventoAdverso.menu",
+    "action": "mdi-alert-plus-outline",
+    "items": [
+      {
+        "title": "Gestión",
+        "to": "/evento/analisisEvento",
+        "can": "eventoAdverso.gestion"
+      },
+      {
+        "title": "Informe",
+        "to": "/evento/informeEvento",
+        "can": "eventoAdverso.gestion"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/evento/parametrizacion",
+        "can": "eventoAdverso.parametrizacion"
+      }
+    ]
+  },
+  {
+    "title": "Aseguramiento",
+    "can": "asegurador.menu",
+    "action": "mdi-shield-account",
+    "items": [
+      {
+        "title": "Verificación",
+        "to": "/aseguramiento/verificacion",
+        "can": "asegurador.verificacion"
+      },
+      {
+        "title": "Traslados (Portabilidad)",
+        "to": "/aseguramiento/portabilidad",
+        "can": "asegurador.menu.portabilidad"
+      },
+      {
+        "title": "Gestor de Afiliados",
+        "to": "/aseguramiento/gestorAfiliados",
+        "can": "asegurador.afiliados"
+      },
+      {
+        "title": "Barreras de acceso",
+        "to": "/aseguramiento/barreraAcceso",
+        "can": "asegurador.menu.barreraAcceso"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/aseguramiento/parametrizacionAseguramiento",
+        "can": "asegurador.parametrizacion"
+      }
+    ]
+  },
+  {
+    "title": "Contratos",
+    "action": "mdi-notebook-edit",
+    "can": "contrato.menu",
+    "items": [
+      {
+        "title": "Contratos",
+        "to": "/contrato/contratos",
+        "can": "contrato.contrato.vista"
+      },
+      {
+        "title": "Familias",
+        "to": "/contrato/familia",
+        "can": "contrato.familias.vista"
+      },
+      {
+        "title": "Prestadores",
+        "to": "/contrato/prestador",
+        "can": "contrato.prestadores.vista"
+      },
+      {
+        "title": "Servicios",
+        "to": "/contrato/cups",
+        "can": "contrato.servicios.vista"
+      }
+    ]
+  },
+  {
+    "title": "Farmacia",
+    "can": "farmacia.menu.vista",
+    "action": "mdi-pill",
+    "items": [
+      {
+        "title": "Reposición inventario",
+        "to": "/farmacia/reposicionInventario",
+        "can": "farmacia.solicitudes"
+      },
+      {
+        "title": "Dispensación",
+        "to": "/farmacia/dispensacion",
+        "can": "farmacia.dispensacion"
+      },
+      {
+        "title": "Panel de Seguimiento",
+        "to": "/historico/medicamentosParciales",
+        "can": "historico.red.medicamentos"
+      },
+      {
+        "title": "Contratos",
+        "to": "/farmacia/contratos",
+        "can": "farmacia.contratos"
+      },
+      {
+        "title": "Solicitudes Bodega",
+        "to": "/farmacia/solicitudesBodegas",
+        "can": "farmacia.solicitudes"
+      },
+      {
+        "title": "Auditoria Solicitudes",
+        "to": "/farmacia/auditoriaSolicitudes",
+        "can": "farmacia.auditorias"
+      },
+      {
+        "title": "Movimiento Solicitudes",
+        "to": "/farmacia/movimientosSolicitudes",
+        "can": "farmacia.movimientos"
+      },
+      {
+        "title": "Existencia",
+        "to": "/farmacia/existencias",
+        "can": "farmacia.movimientos"
+      },
+      {
+        "title": "Kardex",
+        "to": "/farmacia/kardex",
+        "can": "farmacia.movimientos"
+      },
+      {
+        "title": "Dispensado",
+        "to": "/farmacia/dispensado",
+        "can": "farmacia.movimientos"
+      },
+      {
+        "title": "Codigos lasa",
+        "to": "/farmacia/codigosLasa",
+        "can": "farmacia.movimientos"
+      },
+      {
+        "title": "Inventario",
+        "to": "/farmacia/inventario",
+        "can": "farmacia.movimientos"
+      },
+      {
+        "title": "Farmacovigilancia",
+        "to": "/farmacia/Farmacovigilancia",
+        "can": "farmacia.Farmacovigilancia"
+      },
+      {
+        "title": "Bodega medicamentos",
+        "to": "/farmacia/bodegaMedicamentos",
+        "can": "farmacia.bodegaMedicamentos"
+      },
+      {
+        "title": "Bodegas",
+        "to": "/farmacia/bodegas",
+        "can": "farmacia.bodegas"
+      },
+      {
+        "title": "Productos",
+        "to": "/codigosSumi/codigoSumi",
+        "can": "farmacia.codigoSumi"
+      },
+      {
+        "title": "Parametrizacion",
+        "to": "/farmacia/parametrizacionProgramas",
+        "can": "farmacia.programa"
+      },
+      {
+        "title": "Parametrizacion Contratos Medicamentos",
+        "to": "/farmacia/parametrizacionContratoMedicamentos",
+        "can": "farmacia.parametrizacionContratoMedicamentos"
+      }
+    ]
+  },
+  {
+    "title": "Panel Médico",
+    "can": "panelmedico.atenciones",
+    "action": "mdi-stethoscope",
+    "items": [
+      {
+        "title": "Atención médica",
+        "to": "/panelMedico/atencion",
+        "can": "panelmedico.atenciones.vista"
+      },
+      {
+        "title": "Asistencia educativa",
+        "to": "/panelMedico/asistenciaEducativa",
+        "can": "panelmedico.asistenciaeducativa.vista"
+      },
+      {
+        "title": "Demanda inducida",
+        "to": "/panelMedico/demandaInducida",
+        "can": "demandaInducida.vista"
+      },
+      {
+        "title": "Parametrizacion",
+        "to": "/panelMedico/parametrizacion",
+        "can": "panelmedico.parametrizacion.vista"
+      }
+    ]
+  },
+  {
+    "title": "Gestión de Red",
+    "can": "autorizacion.menu",
+    "action": "mdi-gavel",
+    "items": [
+      {
+        "title": "Medicamentos",
+        "to": "/autorizacion/medicamentos",
+        "can": "autorizacion.medicamentos"
+      },
+      {
+        "title": "Servicios",
+        "to": "/autorizacion/servicios",
+        "can": "autorizacion.servicios"
+      },
+      {
+        "title": "Cirugía",
+        "to": "/autorizacion/serviciosCirugia",
+        "can": "autorizacion.servicios"
+      },
+      {
+        "title": "Oncología",
+        "to": "/autorizacion/oncologia",
+        "can": "autorizacion.oncologia"
+      },
+      {
+        "title": "Otros Servicios",
+        "to": "/autorizacion/otrosServicios",
+        "can": "autorizacion.servicios"
+      }
+    ]
+  },
+  {
+    "title": "Transcripciones",
+    "can": "transcripcion.menu",
+    "action": "mdi-text-box-multiple-outline",
+    "items": [
+      {
+        "title": "Externa",
+        "to": "/transcripcion/transcripcion",
+        "can": "transcripcion.listar"
+      },
+      {
+        "title": "Interna",
+        "to": "/transcripcion/transcripcionInterna",
+        "can": "transcripcionInterna.listar"
+      }
+    ]
+  },
+  {
+    "title": "SISCAC",
+    "can": "siscac.vista",
+    "action": "mdi-heart-pulse",
+    "items": [
+      {
+        "title": "Cargues",
+        "to": "/siscac/cargue",
+        "can": "siscac.cargar"
+      },
+      {
+        "title": "Auditoria",
+        "to": "/siscac/auditoria",
+        "can": "siscac.auditoria"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/siscac/parametrizacion2",
+        "can": "siscac.parametrizacion"
+      }
+    ]
+  },
+  {
+    "title": "Históricos",
+    "can": "historico.atenciones",
+    "action": "mdi-archive-clock",
+    "items": [
+      {
+        "title": "Consultas",
+        "to": "/historico/consultas",
+        "can": "historico.atenciones.consultas"
+      },
+      {
+        "title": "Interoperabilidad Historias CLinicas",
+        "to": "/historico/interoperabilidadHc",
+        "can": "historico.interoperabilidad.hc"
+      },
+      {
+        "title": "Repositorio Historias",
+        "to": "/historico/repositorio",
+        "can": "historico.repositorio.historias"
+      },
+      {
+        "title": "Ordenes",
+        "to": "/historico/historico-ordenes",
+        "can": "historico.atenciones.ordenes"
+      },
+      {
+        "title": "Incapacidades",
+        "to": "/historico/incapacidades",
+        "can": "historico.atenciones.incapacidades"
+      },
+      {
+        "title": "Laboratorios",
+        "to": "/historico/laboratorios",
+        "can": "historico.atenciones.laboratorios"
+      }
+    ]
+  },
+  {
+    "title": "Prestadores",
+    "can": "prestadores.atenciones.prestadores",
+    "action": "mdi-message-plus",
+    "items": [
+      {
+        "title": "Prestadores",
+        "to": "/prestadores/prestadores",
+        "can": "historico.atenciones.prestadores"
+      },
+      {
+        "title": "Toma Procedimientos",
+        "to": "/prestadores/tomaProcedimientos",
+        "can": "historico.atenciones.procedimientos"
+      },
+      {
+        "title": "Dispensación Medicamentos",
+        "to": "/prestadores/historicoMedicamentos",
+        "can": "prestadores.historicoDispensacionMedicamentos"
+      }
+    ]
+  },
+  {
+    "title": "Caracterización",
+    "can": "caracterizacion.menu",
+    "action": "mdi-card-account-details-star-outline ",
+    "items": [
+      {
+        "title": "Registro",
+        "to": "/Caracterizacion/caracterizacion",
+        "can": "caracterizacion.registro"
+      },
+      {
+        "title": "ECIS",
+        "to": "/Caracterizacion/caracterizacionEcis",
+        "can": "caracterizacion.ecis"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Marcación Masiva Afiliados",
+        "to": "/rias/marcacionMasivaAfiliados",
+        "can": "rias.seguimiento"
+      }
+    ]
+  },
+  {
+    "action": "mdi-shield-alert-outline",
+    "items": [
+      {
+        "title": "Asistencia Educativa",
+        "to": "/gestionRiesgo/asistenciaPrincipal",
+        "can": "asistenciaEducativa.enter"
+      },
+      {
+        "title": "Demanda Inducida",
+        "to": "/demandaInducida/demandaInducida",
+        "can": "asistenciaEducativa.demandaInducida"
+      },
+      {
+        "title": "Admin Demanda Inducida",
+        "to": "/demandaInducida/administracionDemandaInducida",
+        "can": "asistenciaEducativa.administracionDemandaInducida"
+      }
+    ],
+    "title": "Gestión Riesgo",
+    "can": "asistenciaEducativa.gestionRiesgo"
+  },
+  {
+    "action": "mdi-account-network",
+    "items": [
+      {
+        "title": "Registro",
+        "to": "/empalme/RegistroEmpalme",
+        "can": "empalme.listarFerrocarriles"
+      }
+    ],
+    "title": "Empalme",
+    "can": "empalme.listarFerrocarriles"
+  },
+  {
+    "action": "mdi-account-group",
+    "items": [
+      {
+        "title": "Ingreso Manual",
+        "to": "/concurrencia/ingreso",
+        "can": "concurrencia.ingreso"
+      },
+      {
+        "title": "Aux de auditoria concurrente",
+        "to": "/concurrencia/auxiliarEnfermeria",
+        "can": "concurrencia.auxiliarEnfermeria"
+      },
+      {
+        "title": "Enfermeria concurrente",
+        "to": "/concurrencia/enfermeria",
+        "can": "concurrencia.enfermeria"
+      },
+      {
+        "title": "Medico Concurrente",
+        "to": "/concurrencia/medicinaGeneral",
+        "can": "concurrencia.medicinaGeneral"
+      },
+      {
+        "title": "Seguimiento",
+        "to": "/concurrencia/seguimiento",
+        "can": "concurrencia.seguimiento"
+      },
+      {
+        "title": "Alta",
+        "to": "/concurrencia/alta",
+        "can": "concurrencia.alta"
+      },
+      {
+        "title": "Parametrizacion",
+        "to": "/concurrencia/parametrizacion",
+        "can": "concurrencia.parametrizacion"
+      }
+    ],
+    "title": "Audimedf",
+    "can": "concurrencia.menu"
+  },
+  {
+    "action": "mdi-bell-plus",
+    "items": [
+      {
+        "action": "mdi-post-outline",
+        "title": "Radicar solicitud",
+        "to": "/mesaAyuda/radicarSolicitud",
+        "can": "mesaAyuda.menu"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Mis solicitudes",
+        "to": "/mesaAyuda/misSolicitudes",
+        "can": "mesaAyuda.menu"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Mis asignadas",
+        "to": "/mesaAyuda/misAsignadas",
+        "can": "mesaAyuda.asignadas"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Solucionadas",
+        "to": "/mesaAyuda/solucionadas",
+        "can": "mesaAyuda.solucionadas"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Parametrización",
+        "to": "/mesaAyuda/parametrizacion",
+        "can": "mesaAyuda.parametrizacion"
+      }
+    ],
+    "title": "Mesa ayuda",
+    "can": "mesaAyuda.menu"
+  },
+  {
+    "title": "Oncologia",
+    "can": "oncologia.enter",
+    "action": "mdi-heart-pulse",
+    "items": [
+      {
+        "title": "Toma Procedimientos",
+        "to": "/oncologia/tomaProcedimientos",
+        "can": "oncologia.tomaProcedimientos"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Resultados Oncologícos",
+        "to": "/oncologia/solicitudesPrestadores",
+        "can": "oncologia.soliictudPrestadores"
+      },
+      {
+        "title": "Prestadores",
+        "to": "/oncologia/prestadores",
+        "can": "oncologia.prestadores"
+      },
+      {
+        "title": "Esquemas",
+        "to": "/oncologia/esquemas",
+        "can": "oncologia.esquemas"
+      },
+      {
+        "title": "Enfermeria",
+        "to": "/oncologia/enfermeriaOncologia",
+        "can": "oncologia.enfermeria"
+      }
+    ]
+  },
+  {
+    "action": "mdi-clipboard-check",
+    "items": [
+      {
+        "title": "Registro",
+        "to": "/referencia/registro",
+        "can": "referencia.crear"
+      },
+      {
+        "title": "Seguimientos",
+        "to": "/referencia/seguimientos",
+        "can": "referencia.seguimiento"
+      },
+      {
+        "title": "Procesado",
+        "to": "/referencia/procesado",
+        "can": "referencia.procesado"
+      },
+      {
+        "title": "Tarifa VS Prestadores",
+        "to": "/referencia/tarifaVsPrestadores",
+        "can": "TarifaVsPrestadores.seguimiento"
+      },
+      {
+        "title": "Logs Concurrencia",
+        "to": "/referencia/logs",
+        "can": "referencia.menu"
+      }
+    ],
+    "title": "Centro Regulador",
+    "can": "referencia.menu"
+  },
+  {
+    "action": "mdi-folder-arrow-up-down-outline",
+    "items": [
+      {
+        "action": "mdi-post-outline",
+        "title": "Banco de proveedores",
+        "to": "/rips/banco",
+        "can": "rips.validador"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Radicacion (JSON)",
+        "to": "/rips/radicacion",
+        "can": "rips.validador.json"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Validación rips",
+        "to": "/rips/validadorRips",
+        "can": "rips.validador"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Técnicos de radicación",
+        "to": "/rips/TecnicosRadicacion",
+        "can": "rips.tecnico.radicacion"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Validación de soportes administrativos",
+        "to": "/rips/validacionSoportes",
+        "can": "rips.validador.soportes"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Recepción",
+        "to": "/rips/radicados",
+        "can": "rips.radicados"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Registro de cargue 3374",
+        "to": "/rips/registroCargues",
+        "can": "rips.registro"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Registro de cargue 2275",
+        "to": "/rips/registroCarguesJson",
+        "can": "rips.registro"
+      }
+    ],
+    "title": "Rips",
+    "can": "rips.menu"
+  },
+  {
+    "action": "mdi-doctor",
+    "items": [
+      {
+        "action": "mdi-post-outline",
+        "title": "Rutas",
+        "to": "/rias/rutasRias",
+        "can": "rias.parametrizacion"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Seguimiento",
+        "to": "/rias/seguimientoRias",
+        "can": "rias.seguimiento"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Cargues masivos",
+        "to": "/rias/carguesMasivosRias",
+        "can": "rias.seguimiento"
+      },
+      {
+        "action": "mdi-post-outline",
+        "title": "Marcación Masiva Afiliados",
+        "to": "/rias/marcacionMasivaAfiliados",
+        "can": "rias.seguimiento"
+      }
+    ],
+    "title": "RIAS",
+    "can": "rias.menu"
+  },
+  {
+    "action": "mdi-cloud-arrow-down",
+    "items": [
+      {
+        "title": "Descarga",
+        "to": "/fias/descargaFias",
+        "can": "fias.descarga"
+      }
+    ],
+    "title": "Fias",
+    "can": "fias.menu"
+  },
+  {
+    "action": "mdi-bank",
+    "items": [
+      {
+        "title": "Administración",
+        "to": "/cuentasMedicas/adminCuentasMedicas",
+        "can": "cuentasMedicas.administracion"
+      },
+      {
+        "title": "Facturas pendientes de asignar",
+        "to": "/cuentasMedicas/facturasPendientes",
+        "can": "cuentasMedicas.asignacion"
+      },
+      {
+        "title": "Reasignacion de Facturas",
+        "to": "/cuentasMedicas/reasignarFacturas",
+        "can": "cuentasMedicas.asignacion"
+      },
+      {
+        "title": "Auditoria",
+        "to": "/cuentasMedicas/auditoria",
+        "can": "cuentasMedicas.auditoria"
+      },
+      {
+        "title": "Reporte auditores",
+        "to": "/cuentasMedicas/reporteAuditores",
+        "can": "cuentasMedicas.reporteAuditores"
+      },
+      {
+        "title": "Informe",
+        "to": "/cuentasMedicas/informeCuentasMedicas",
+        "can": "cuentasMedicas.tesoreria"
+      },
+      {
+        "title": "Informe prestador",
+        "to": "/cuentasMedicas/informePrestador",
+        "can": "cuentasMedicas.informePrestador"
+      }
+    ],
+    "title": "Cuentas medicas",
+    "can": "cuentasMedicas.vista"
+  },
+  {
+    "action": "mdi-account-tie",
+    "items": [
+      {
+        "title": "Asignada",
+        "to": "/tutela/tutelaAsignada",
+        "can": "tutelas.asignada"
+      },
+      {
+        "title": "Gestión",
+        "to": "/tutela/tutelaGestion",
+        "can": "tutelas.gestion"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/tutela/tutelaParametrizacion",
+        "can": "tutelas.parametrizacion"
+      }
+    ],
+    "title": "Acción Constitucional",
+    "can": "tutelas.menu"
+  },
+  {
+    "action": "mdi-remote-desktop",
+    "items": [
+      {
+        "title": "Parametrización",
+        "to": "/telesalud/parametrizacion",
+        "can": "teleapoyo.parametrizacion"
+      },
+      {
+        "title": "Crear Telesalud",
+        "to": "/telesalud/crearTelesalud",
+        "can": "teleapoyo.crear"
+      },
+      {
+        "title": "Pendientes",
+        "to": "/telesalud/pendientes",
+        "can": "teleapoyo.pendientes"
+      },
+      {
+        "title": "Junta profesionales",
+        "to": "/telesalud/juntaProfesionales",
+        "can": "teleapoyo.conceptosGirs"
+      },
+      {
+        "title": "Solucionados",
+        "to": "/telesalud/solucionados",
+        "can": "teleapoyo.solucionados"
+      }
+    ],
+    "title": "Telesalud",
+    "can": "teleapoyo.vista"
+  },
+  {
+    "title": "Salud Ocupacional",
+    "can": "saludOcupacional.menu",
+    "action": "mdi-account-hard-hat",
+    "items": [
+      {
+        "action": "mdi-post-outline",
+        "title": "Histórico",
+        "to": "/saludOcupacional/historicoOcupacional",
+        "can": "saludOcupacional.historico"
+      }
+    ]
+  },
+  {
+    "action": "mdi-ambulance",
+    "items": [
+      {
+        "title": "Ingreso",
+        "to": "/domiciliaria/ingresoDomiciliario",
+        "can": "domiciliaria.ingreso"
+      },
+      {
+        "title": "Censo Domiciliario",
+        "to": "/domiciliaria/censoDomiciliario",
+        "can": "domiciliaria.censo"
+      }
+    ],
+    "title": "Domiciliaria",
+    "can": "domiciliaria.menu"
+  },
+  {
+    "action": "mdi-frequently-asked-questions",
+    "items": [
+      {
+        "title": "Formulario",
+        "to": "/gestionPqrsf/formulario",
+        "can": "pqrsf.formulario"
+      },
+      {
+        "title": "Gestión",
+        "to": "/gestionPqrsf/gestion/gestion",
+        "can": "pqrsf.gestion"
+      },
+      {
+        "title": "Gestión Interna",
+        "to": "/gestionPqrsf/gestionInterna/gestionInterna",
+        "can": "pqrsf.gestionInterna"
+      },
+      {
+        "title": "Gestión Externa",
+        "to": "/gestionPqrsf/gestionExterna/gestionExterna",
+        "can": "pqrsf.gestionExterna"
+      },
+      {
+        "title": "Central PQRS",
+        "to": "/gestionPqrsf/centralPqrf/centralPqrf",
+        "can": "pqrsf.central"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/gestionPqrsf/parametrizacion",
+        "can": "pqrsf.parametrizacion"
+      }
+    ],
+    "title": "PQRS",
+    "can": "pqrsf.menu"
+  },
+  {
+    "action": "mdi-human-male-female",
+    "items": [
+      {
+        "title": "Empleados",
+        "to": "/talentoHumano/empleados",
+        "can": "empleado.menu"
+      },
+      {
+        "title": "Cierre de mes",
+        "to": "/talentoHumano/cierreMes",
+        "can": "contratoEmpleado.cierreMes"
+      },
+      {
+        "title": "Inducción específica",
+        "to": "/talentoHumano/induccionEspecifica",
+        "can": ""
+      },
+      {
+        "title": "Incidentes laborales",
+        "to": "/talentoHumano/incidentes",
+        "can": "incidente.listar"
+      },
+      {
+        "title": "Evaluación desempeño",
+        "to": "/talentoHumano/evaluacionDesempeno",
+        "can": "evaluacionDesempeno.listar"
+      },
+      {
+        "title": "Plan seguimiento individual",
+        "to": "/talentoHumano/planSeguimiento",
+        "can": "planSeguimientoIndividual.listar"
+      },
+      {
+        "title": "Beneficios laborales",
+        "to": "/talentoHumano/beneficios",
+        "can": "beneficioEmpleado.listar"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/talentoHumano/parametrizacion",
+        "can": "talentoHumano.parametrizacion"
+      }
+    ],
+    "title": "Talento Humano",
+    "can": "talentoHumano.menua"
+  },
+  {
+    "action": "mdi-hand-back-right-outline",
+    "items": [
+      {
+        "title": "Radicar",
+        "to": "/solicitudes/radicarSolicitud",
+        "can": "solicitudes.radicar"
+      },
+      {
+        "title": "Gestión",
+        "to": "/solicitudes/gestion",
+        "can": "solicitudes.gestion"
+      },
+      {
+        "title": "Asignadas",
+        "to": "/solicitudes/asignadas",
+        "can": "solicitudes.asignadas"
+      },
+      {
+        "title": "Admin",
+        "to": "/solicitudes/Admin",
+        "can": "solicitudes.admin"
+      },
+      {
+        "title": "Informe",
+        "to": "/solicitudes/informe",
+        "can": "solicitudes.informe"
+      }
+    ],
+    "title": "Solicitudes",
+    "can": "solicitudes.menu"
+  },
+  {
+    "title": "Estadísticas",
+    "can": "estadistica.listar",
+    "action": "mdi-chart-line ",
+    "items": [
+      {
+        "title": "Estadisticas",
+        "to": "/estadistica/estadistica",
+        "can": "estadistica.listar"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/estadistica/parametrizacion",
+        "can": "estadistica.parametrizacion"
+      },
+      {
+        "title": "Usuario en línea",
+        "to": "/estadistica/usuarios-en-linea",
+        "can": "estadistica.listar"
+      }
+    ]
+  },
+  {
+    "title": "Indicadores",
+    "can": "indicador.listar",
+    "action": "mdi-chart-bar",
+    "items": [
+      {
+        "title": "Indicadores",
+        "to": "/indicador/indicadores",
+        "can": "indicador.indicadores"
+      }
+    ]
+  },
+  {
+    "action": "mdi-calendar-clock",
+    "items": [
+      {
+        "title": "Turnos",
+        "to": "/turno/listar",
+        "can": "turnos.vista"
+      },
+      {
+        "title": "Tablero",
+        "to": "/turno/tablero",
+        "can": "tablero.vista"
+      },
+      {
+        "title": "Llamado",
+        "to": "/turno/llamado",
+        "can": "llamado.vista"
+      },
+      {
+        "title": "Taquilla",
+        "to": "/taquilla/taquilla",
+        "can": "taquilla.vista"
+      },
+      {
+        "title": "Areas clinica",
+        "to": "/areaClinica/areaClinica",
+        "can": "area.vista"
+      }
+    ],
+    "title": "Turno"
+  },
+  {
+    "action": "mdi-account-check",
+    "items": [
+      {
+        "title": "Certificado de Afiliación",
+        "to": "/autogestion/certificadoAfiliacion",
+        "can": "autogestion.certificado"
+      },
+      {
+        "title": "Solicitudes",
+        "to": "/autogestion/radicarAutogestion",
+        "can": "autogestion.radicar"
+      },
+      {
+        "title": "Órdenes",
+        "to": "/autogestion/ordenesAutogestion",
+        "can": "autogestion.ordenes"
+      },
+      {
+        "title": "PQRSDF",
+        "to": "/autogestion/pqrsfAutogestion",
+        "can": "autogestion.pqr"
+      },
+      {
+        "title": "Agendamiento de citas",
+        "to": "/autogestion/citasAutogestion",
+        "can": "autogestion.citas"
+      }
+    ],
+    "title": "Autogestión",
+    "can": "autogestion.menu"
+  },
+  {
+    "action": "mdi-home-floor-1",
+    "title": "Libre elección",
+    "can": "autogestion.menu",
+    "items": [
+      {
+        "title": "Formulario Libre Elección",
+        "to": "/autogestion/ips-seleccionada",
+        "can": "autogestion.menu"
+      }
+    ]
+  },
+  {
+    "action": "mdi-cash-remove",
+    "items": [
+      {
+        "title": "Formulario",
+        "to": "/sarlaft/formularioSarlaft",
+        "can": "estados.vista"
+      },
+      {
+        "title": "Revisión sarlaft",
+        "to": "/sarlaft/revisionSarlaft",
+        "can": "estados.vista"
+      }
+    ],
+    "title": "Sarlaft",
+    "can": "sarlaft.vista"
+  },
+  {
+    "title": "Evaluación Médica Ocupacional",
+    "can": "medicinaLaboral.vista",
+    "action": "mdi-stethoscope",
+    "items": [
+      {
+        "title": "Solicitudes EMO",
+        "to": "/medicinaLaboral/emo/formularioSolicitudes",
+        "can": "medicinaLaboral.formularioSolicitudes"
+      },
+      {
+        "title": "Gestión Solicitudes EMO",
+        "to": "/medicinaLaboral/emo/gestionSolicitudes",
+        "can": "medicinaLaboral.gestionSolicitudes"
+      },
+      {
+        "title": "Parametrización Sedes EMO",
+        "to": "/medicinaLaboral/emo/parametrizacionSedesOcupacionales",
+        "can": "medicinaLaboral.gestionSolicitudes"
+      }
+    ]
+  },
+  {
+    "title": "SST",
+    "can": "Sst.modulo",
+    "action": "mdi-account-hard-hat",
+    "items": [
+      {
+        "title": "FURAT",
+        "to": "/furat/registro",
+        "can": "Sst.registro.furat"
+      },
+      {
+        "title": "FUREL",
+        "to": "/furel/registroFurel",
+        "can": "sst.furelDiligenciamiento"
+      },
+      {
+        "title": "Gestión Investigaciones",
+        "to": "/Sst/historicos",
+        "can": "Sst.historico.investigaciones"
+      },
+      {
+        "title": "Firma Investigaciones",
+        "to": "/sst/firmaInvestigaciones",
+        "can": "Sst.pedientes.firma.investigacion"
+      },
+      {
+        "title": "Determinacion Origen",
+        "to": "/Sst/determinacion-origen",
+        "can": "Sst.determinacion.origen"
+      },
+      {
+        "title": "Junta Regional de Calificacion",
+        "to": "/sst/junta-regional-calificacion",
+        "can": "Sst.junta.regional"
+      },
+      {
+        "title": "Informe",
+        "to": "/furat/reporte",
+        "can": "Sst.informe.furat"
+      },
+      {
+        "title": "Parametrizacion ETC",
+        "to": "/furat/parametrizacion",
+        "can": "Sst.parametrizacion.etc"
+      },
+      {
+        "title": "Parametrizacion Adjuntos",
+        "to": "/Sst/parametrizacionAdjuntos",
+        "can": "Sst.parametrizacion.adjuntos"
+      }
+    ]
+  },
+  {
+    "title": "Reportes",
+    "can": "reportes.vista",
+    "action": "mdi-file-chart",
+    "items": [
+      {
+        "title": "Generación de Reportes",
+        "to": "/reportes/reportes",
+        "can": "reportes.vista"
+      },
+      {
+        "title": "Mis Reportes",
+        "to": "/reportes/mis-reportes",
+        "can": "reportes.vista"
+      },
+      {
+        "title": "Parametrización",
+        "to": "/reportes/parametrizacion",
+        "can": "reportes.parametrizacion"
+      },
+      {
+        "title": "VADEMECUM",
+        "to": "/farmacia/vademecum",
+        "can": "vademecum.vista"
+      }
+    ]
+  },
+  {
+    "title": "Reportes - Prestadores",
+    "can": "reportesPrestadores.menu",
+    "action": "mdi-chart-box",
+    "items": [
+      {
+        "title": "202",
+        "to": "/reportesPrestadores/reporte202",
+        "can": "reportesPrestadores.reporte202"
+      }
+    ]
+  },
+  {
+    "action": "mdi-account-key",
+    "items": [
+      {
+        "title": "Permisos",
+        "to": "/desarrollo/permiso",
+        "can": "permisos.vista"
+      },
+      {
+        "title": "Estados",
+        "to": "/desarrollo/estado",
+        "can": "estados.vista"
+      }
+    ],
+    "title": "Desarrollo",
+    "can": "modulo.permisos"
+  },
+  {
+    "title": "API",
+    "can": "api.vista",
+    "action": "mdi-api",
+    "items": [
+      {
+        "title": "Clientes",
+        "to": "/api/clientes",
+        "can": "api.cliente.vista"
+      },
+      {
+        "title": "Rutas",
+        "to": "/api/rutas",
+        "can": "api.ruta.vista"
+      },
+      {
+        "title": "Auditoría - Interoperabilidad",
+        "to": "/api/auditoriaInteroperabilidad",
+        "can": "api.auditoria.interoperabilidad.vista"
+      },
+      {
+        "title": "Configuración - Interoperabilidad",
+        "to": "/api/configuracionInteroperabilidad",
+        "can": "api.configuracion.interoperabilidad.vista"
+      },
+      {
+        "title": "Logs",
+        "to": "/api/logsInteroperabilidades",
+        "can": "blog.vista"
+      }
+    ]
+  },
+  {
+    "title": "Log Interoperabilidad",
+    "can": "logInteroperabilidad.vista",
+    "action": "mdi-sitemap",
+    "items": [
+      {
+        "title": "Auditoria",
+        "to": "/logInteroperabilidad/auditoriaInteroperabilidad",
+        "can": "logInteroperabilidad.vista"
+      },
+      {
+        "title": "Notificacion de Despacho",
+        "to": "/logInteroperabilidad/notificacionDespacho",
+        "can": "notificacionDespacho.vista"
+      },
+      {
+        "title": "Manuales",
+        "to": "/logInteroperabilidad/manuales",
+        "can": "notificacionDespacho.manuales.vista"
+      }
+    ]
+  },
+  {
+    "action": "mdi-file-document-plus-outline",
+    "title": "Interoperabilidad - Historias Clinicas",
+    "can": "interoperabilidad.historiasClinicas",
+    "items": [
+      {
+        "title": "Registrar - Clientes",
+        "to": "/logInteroperabilidad/registroInteroperabilidades",
+        "can": "clientes.historiasClinicas"
+      },
+      {
+        "title": "Historias Clinicas - Interoperabilidad",
+        "to": "/Interoperabilidad/historiasClinicasInteroperabilidad",
+        "can": "listar.historiasClinicas"
+      }
+    ]
+  },
+  {
+    "action": "mdi-table-network",
+    "title": "Gestion Documental",
+    "can": "gestionDocumental.enter",
+    "items": [
+      {
+        "title": "Gestion Documental",
+        "to": "/intranet/documentos",
+        "can": "gestionDocumental.enter"
+      }
+    ]
+  },
+  {
+    "title": "Admin",
+    "can": "admin.enter",
+    "action": "mdi-cog",
+    "items": [
+      {
+        "title": "Auditoria",
+        "to": "/admin/auditoria",
+        "can": "auditoria.tablas.vista"
+      },
+      {
+        "title": "Auditoria Logueos",
+        "to": "/admin/auditoria-logueos",
+        "can": "auditoria.logueos.vista"
+      },
+      {
+        "title": "Central Notificaciones",
+        "to": "/admin/central-notificaciones",
+        "can": "notificaciones.central.vista"
+      },
+      {
+        "title": "Roles",
+        "to": "/admin/roles",
+        "can": "roles.vista"
+      },
+      {
+        "title": "Cargos",
+        "to": "/admin/cargos",
+        "can": "cargos.vista"
+      },
+      {
+        "title": "Usuarios",
+        "to": "/admin/usuarios",
+        "can": "usuarios.vista"
+      },
+      {
+        "title": "Especialidades",
+        "to": "/admin/especialidades",
+        "can": "especialidades.vista"
+      },
+      {
+        "title": "Entidades",
+        "to": "/admin/entidades",
+        "can": "entidades.vista"
+      },
+      {
+        "title": "Citas",
+        "to": "/admin/citas",
+        "can": "citas.vista"
+      },
+      {
+        "title": "Sedes",
+        "to": "/admin/sedes",
+        "can": "sedes.vista"
+      },
+      {
+        "title": "Colegios",
+        "to": "/admin/colegios",
+        "can": "colegio.vista"
+      },
+      {
+        "title": "Tipo de test",
+        "to": "/admin/tipoTest",
+        "can": "tipoTest.vista"
+      },
+      {
+        "title": "Consentimientos informados",
+        "to": "/admin/consentimientosInformados",
+        "can": "consentimientosInformados.menu"
+      },
+      {
+        "title": "Parametrizacion cups rips",
+        "to": "/admin/parametrizacionCupRips",
+        "can": "blog.vista"
+      },
+      {
+        "title": "Parametrizacion remision a programas",
+        "to": "/admin/parametrizacionProgramas",
+        "can": "blog.vista"
+      },
+      {
+        "title": "Empresas",
+        "to": "/admin/empresas",
+        "can": "empresas.vista"
+      },
+      {
+        "title": "Envio - Correos",
+        "to": "/admin/envioCorreos",
+        "can": "envioCorreos.vista"
+      }
+    ]
+  }
+]

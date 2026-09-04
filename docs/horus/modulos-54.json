@@ -1,0 +1,283 @@
+{
+  "software": "HORUS HEALTH Versión 2.0",
+  "alias": [
+    "SUIM-HORUS",
+    "Horus 2",
+    "Horus-health"
+  ],
+  "url": "https://horus2.horus-health.com/",
+  "fecha": "2026-09-04",
+  "total": 54,
+  "modulos": [
+    {
+      "n": 1,
+      "titulo": "Inicio",
+      "origen": "menu"
+    },
+    {
+      "n": 2,
+      "titulo": "Agendamiento",
+      "origen": "menu"
+    },
+    {
+      "n": 3,
+      "titulo": "Citas",
+      "origen": "menu"
+    },
+    {
+      "n": 4,
+      "titulo": "Gestión de sucesos",
+      "origen": "menu"
+    },
+    {
+      "n": 5,
+      "titulo": "Aseguramiento",
+      "origen": "menu"
+    },
+    {
+      "n": 6,
+      "titulo": "Contratos",
+      "origen": "menu"
+    },
+    {
+      "n": 7,
+      "titulo": "Farmacia",
+      "origen": "menu"
+    },
+    {
+      "n": 8,
+      "titulo": "Panel Médico",
+      "origen": "menu"
+    },
+    {
+      "n": 9,
+      "titulo": "Gestión de Red",
+      "origen": "menu"
+    },
+    {
+      "n": 10,
+      "titulo": "Transcripciones",
+      "origen": "menu"
+    },
+    {
+      "n": 11,
+      "titulo": "SISCAC",
+      "origen": "menu"
+    },
+    {
+      "n": 12,
+      "titulo": "Históricos",
+      "origen": "menu"
+    },
+    {
+      "n": 13,
+      "titulo": "Prestadores",
+      "origen": "menu"
+    },
+    {
+      "n": 14,
+      "titulo": "Caracterización",
+      "origen": "menu"
+    },
+    {
+      "n": 15,
+      "titulo": "Gestión Riesgo",
+      "origen": "menu"
+    },
+    {
+      "n": 16,
+      "titulo": "Empalme",
+      "origen": "menu"
+    },
+    {
+      "n": 17,
+      "titulo": "Audimedf",
+      "origen": "menu"
+    },
+    {
+      "n": 18,
+      "titulo": "Mesa ayuda",
+      "origen": "menu"
+    },
+    {
+      "n": 19,
+      "titulo": "Oncologia",
+      "origen": "menu"
+    },
+    {
+      "n": 20,
+      "titulo": "Centro Regulador",
+      "origen": "menu"
+    },
+    {
+      "n": 21,
+      "titulo": "Rips",
+      "origen": "menu"
+    },
+    {
+      "n": 22,
+      "titulo": "RIAS",
+      "origen": "menu"
+    },
+    {
+      "n": 23,
+      "titulo": "Fias",
+      "origen": "menu"
+    },
+    {
+      "n": 24,
+      "titulo": "Cuentas medicas",
+      "origen": "menu"
+    },
+    {
+      "n": 25,
+      "titulo": "Acción Constitucional",
+      "origen": "menu"
+    },
+    {
+      "n": 26,
+      "titulo": "Telesalud",
+      "origen": "menu"
+    },
+    {
+      "n": 27,
+      "titulo": "Salud Ocupacional",
+      "origen": "menu"
+    },
+    {
+      "n": 28,
+      "titulo": "Domiciliaria",
+      "origen": "menu"
+    },
+    {
+      "n": 29,
+      "titulo": "PQRS",
+      "origen": "menu"
+    },
+    {
+      "n": 30,
+      "titulo": "Talento Humano",
+      "origen": "menu"
+    },
+    {
+      "n": 31,
+      "titulo": "Solicitudes",
+      "origen": "menu"
+    },
+    {
+      "n": 32,
+      "titulo": "Estadísticas",
+      "origen": "menu"
+    },
+    {
+      "n": 33,
+      "titulo": "Indicadores",
+      "origen": "menu"
+    },
+    {
+      "n": 34,
+      "titulo": "Turno",
+      "origen": "menu"
+    },
+    {
+      "n": 35,
+      "titulo": "Autogestión",
+      "origen": "menu"
+    },
+    {
+      "n": 36,
+      "titulo": "Libre elección",
+      "origen": "menu"
+    },
+    {
+      "n": 37,
+      "titulo": "Sarlaft",
+      "origen": "menu"
+    },
+    {
+      "n": 38,
+      "titulo": "Evaluación Médica Ocupacional",
+      "origen": "menu"
+    },
+    {
+      "n": 39,
+      "titulo": "SST",
+      "origen": "menu"
+    },
+    {
+      "n": 40,
+      "titulo": "Reportes",
+      "origen": "menu"
+    },
+    {
+      "n": 41,
+      "titulo": "Reportes - Prestadores",
+      "origen": "menu"
+    },
+    {
+      "n": 42,
+      "titulo": "Desarrollo",
+      "origen": "menu"
+    },
+    {
+      "n": 43,
+      "titulo": "API",
+      "origen": "menu"
+    },
+    {
+      "n": 44,
+      "titulo": "Log Interoperabilidad",
+      "origen": "menu"
+    },
+    {
+      "n": 45,
+      "titulo": "Interoperabilidad - Historias Clinicas",
+      "origen": "menu"
+    },
+    {
+      "n": 46,
+      "titulo": "Gestion Documental",
+      "origen": "menu"
+    },
+    {
+      "n": 47,
+      "titulo": "Admin",
+      "origen": "menu"
+    },
+    {
+      "n": 48,
+      "titulo": "Historia Clínica",
+      "origen": "ruta"
+    },
+    {
+      "n": 49,
+      "titulo": "Consentimiento Informado",
+      "origen": "ruta"
+    },
+    {
+      "n": 50,
+      "titulo": "Certificados de Aptitud Laboral",
+      "origen": "ruta"
+    },
+    {
+      "n": 51,
+      "titulo": "Cuadro de Turnos",
+      "origen": "ruta"
+    },
+    {
+      "n": 52,
+      "titulo": "Gestión del Conocimiento",
+      "origen": "ruta"
+    },
+    {
+      "n": 53,
+      "titulo": "Medicina Laboral",
+      "origen": "ruta"
+    },
+    {
+      "n": 54,
+      "titulo": "Códigos SUMI",
+      "origen": "ruta"
+    }
+  ]
+}

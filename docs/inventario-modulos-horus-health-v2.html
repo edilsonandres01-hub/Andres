@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inventario de módulos — HORUS HEALTH Versión 2.0</title>
+  <style>
+    :root {
+      --ink: #1a2744;
+      --muted: #5b657a;
+      --line: #d7dde8;
+      --accent: #1f4e79;
+      --gold: #b08d3e;
+      --bg: #f6f4ef;
+      --card: #fff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Liberation Serif", "Times New Roman", Georgia, serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    .page {
+      max-width: 920px;
+      margin: 32px auto 80px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 30px rgba(26,39,68,.08);
+      padding: 48px 56px;
+    }
+    header.letter {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+    }
+    .brand {
+      font-family: "Liberation Sans", Arial, sans-serif;
+      letter-spacing: .14em;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: 28px;
+      margin: 10px 0 6px;
+      font-weight: 700;
+    }
+    .subtitle { color: var(--muted); font-size: 16px; margin: 0 0 12px; }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 4px 16px;
+      font-family: "Liberation Sans", Arial, sans-serif;
+      font-size: 13.5px;
+      margin-top: 16px;
+    }
+    .meta-grid b { color: var(--accent); }
+    h2 {
+      font-size: 18px;
+      color: var(--accent);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 6px;
+      margin-top: 36px;
+    }
+    p, li { font-size: 15.5px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Liberation Sans", Arial, sans-serif;
+      font-size: 13.5px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--accent); color: #fff; font-weight: 600; }
+    tr:nth-child(even) td { background: #f3f6fa; }
+    td.n { width: 48px; font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; }
+    .mod {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      padding: 12px 16px 8px;
+      margin: 12px 0;
+      background: #fbfdff;
+    }
+    .mod.extra { border-left-color: var(--gold); background: #fffcf5; }
+    .mod h3 { margin: 0 0 6px; font-size: 16.5px; }
+    .badge {
+      display: inline-block;
+      min-width: 32px;
+      text-align: center;
+      background: var(--accent);
+      color: #fff;
+      font-family: "Liberation Sans", Arial, sans-serif;
+      font-size: 12px;
+      padding: 2px 6px;
+      margin-right: 6px;
+      border-radius: 2px;
+    }
+    .badge.extra { background: var(--gold); color: #1a2744; }
+    .lead { margin: 0 0 6px; }
+    .meta { font-family: "Liberation Sans", Arial, sans-serif; font-size: 12px; color: var(--muted); }
+    code {
+      font-family: "Liberation Mono", Consolas, monospace;
+      font-size: 11.5px;
+      background: #eef2f7;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .sub { font-weight: 600; }
+    .note {
+      background: #fff8e8;
+      border: 1px solid #ead7a2;
+      padding: 12px 16px;
+      font-size: 14.5px;
+    }
+    footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-family: "Liberation Sans", Arial, sans-serif;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    ol.toc li { margin: 3px 0; }
+    @media print {
+      body { background: #fff; }
+      .page { box-shadow: none; border: 0; margin: 0; padding: 0; max-width: none; }
+      .mod { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="letter">
+      <div class="brand">SUMIMEDICAL S.A.S. · Activo de propiedad intelectual</div>
+      <h1>Inventario de módulos del software HORUS HEALTH Versión 2.0</h1>
+      <p class="subtitle">Identificación mediante título de los módulos de la plataforma SUIM-HORUS (Horus 2)</p>
+      <div class="meta-grid">
+        <b>Software</b><span>HORUS HEALTH Versión 2.0 (SUIM-HORUS)</span>
+        <b>URL de producción</b><span>https://horus2.horus-health.com/</span>
+        <b>Titular</b><span>SUMIMEDICAL S.A.S.</span>
+        <b>Documento</b><span>Respuesta al numeral 4 de la solicitud de información y documentación inicial (Mateus Carlier S.A.S.)</span>
+        <b>Fecha de levantamiento</b><span>4 de septiembre de 2026</span>
+        <b>Módulos identificados</b><span>54 títulos (47 de menú principal + 7 áreas funcionales con rutas propias)</span>
+      </div>
+    </header>
+
+    <h2>1. Objeto</h2>
+    <p>
+      Este documento identifica <strong>mediante su título</strong> los módulos de la Versión 2.0 del software
+      <strong>HORUS HEALTH</strong> (también denominado SUIM-HORUS o Horus 2), en atención al numeral 4 de la
+      solicitud de documentación e información inicial dirigida a SUMIMEDICAL S.A.S., que requiere
+      la identificación de <strong>cincuenta y cuatro (54) módulos</strong>.
+    </p>
+
+    <h2>2. Metodología</h2>
+    <p>
+      El inventario se construyó a partir de la definición de navegación desplegada por la aplicación
+      de producción en <code>https://horus2.horus-health.com/</code> (aplicación Nuxt.js / Vue). Esa definición
+      es el catálogo oficial con el que el sistema dibuja el menú lateral y controla el acceso por permisos.
+      Complementariamente se revisaron las rutas de la Versión 2.0 para identificar áreas funcionales
+      con pantallas propias que no aparecen como ítem de primer nivel del menú.
+    </p>
+    <p>
+      El menú de producción declara <strong>49 entradas de primer nivel</strong>, de las cuales dos títulos
+      están repetidos en el propio menú (<em>Gestión Riesgo</em> y <em>Fias</em>). El conteo de títulos únicos
+      de menú es <strong>47</strong>. Se adicionan <strong>7 módulos funcionales</strong> presentes en el código
+      de la Versión 2.0 con rutas propias, para completar los <strong>54 títulos</strong> requeridos.
+    </p>
+    <div class="note">
+      <strong>Alcance.</strong> Los títulos se transcriben tal como aparecen en el menú de la aplicación
+      (ortografía original). Los submódulos se listan como evidencia de cobertura funcional, pero el
+      inventario solicitado es el de <em>módulos</em> (títulos de primer nivel / áreas funcionales).
+      El acceso autenticado al manual interno (<code>/inicio/manual</code>) está protegido por reCAPTCHA;
+      el catálogo no depende de un perfil de usuario concreto: es el menú maestro del producto, que luego
+      se filtra por permisos. La instancia de producción consultada presenta marca de bienvenida FOMAG
+      (tenant), pero el menú extraído es el catálogo completo de HORUS HEALTH 2.0, no el recorte de un rol.
+    </div>
+    <p style="margin-top:16px">
+      <img src="horus/horus2-login.png" alt="Página de ingreso de HORUS HEALTH 2.0 (horus2.horus-health.com), tenant FOMAG" style="max-width:100%;border:1px solid var(--line)" />
+    </p>
+    <p class="meta">Figura 1. Pantalla de ingreso de producción (4 de septiembre de 2026). Título del navegador: Horus-health – Salud.</p>
+
+    <h2>3. Listado de los 54 módulos (títulos)</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Título del módulo</th><th>Origen en la Versión 2.0</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class='n'>01</td><td>Inicio</td><td>Menú principal de producción</td></tr><tr><td class='n'>02</td><td>Agendamiento</td><td>Menú principal de producción</td></tr><tr><td class='n'>03</td><td>Citas</td><td>Menú principal de producción</td></tr><tr><td class='n'>04</td><td>Gestión de sucesos</td><td>Menú principal de producción</td></tr><tr><td class='n'>05</td><td>Aseguramiento</td><td>Menú principal de producción</td></tr><tr><td class='n'>06</td><td>Contratos</td><td>Menú principal de producción</td></tr><tr><td class='n'>07</td><td>Farmacia</td><td>Menú principal de producción</td></tr><tr><td class='n'>08</td><td>Panel Médico</td><td>Menú principal de producción</td></tr><tr><td class='n'>09</td><td>Gestión de Red</td><td>Menú principal de producción</td></tr><tr><td class='n'>10</td><td>Transcripciones</td><td>Menú principal de producción</td></tr><tr><td class='n'>11</td><td>SISCAC</td><td>Menú principal de producción</td></tr><tr><td class='n'>12</td><td>Históricos</td><td>Menú principal de producción</td></tr><tr><td class='n'>13</td><td>Prestadores</td><td>Menú principal de producción</td></tr><tr><td class='n'>14</td><td>Caracterización</td><td>Menú principal de producción</td></tr><tr><td class='n'>15</td><td>Gestión Riesgo</td><td>Menú principal de producción</td></tr><tr><td class='n'>16</td><td>Empalme</td><td>Menú principal de producción</td></tr><tr><td class='n'>17</td><td>Audimedf</td><td>Menú principal de producción</td></tr><tr><td class='n'>18</td><td>Mesa ayuda</td><td>Menú principal de producción</td></tr><tr><td class='n'>19</td><td>Oncologia</td><td>Menú principal de producción</td></tr><tr><td class='n'>20</td><td>Centro Regulador</td><td>Menú principal de producción</td></tr><tr><td class='n'>21</td><td>Rips</td><td>Menú principal de producción</td></tr><tr><td class='n'>22</td><td>RIAS</td><td>Menú principal de producción</td></tr><tr><td class='n'>23</td><td>Fias</td><td>Menú principal de producción</td></tr><tr><td class='n'>24</td><td>Cuentas medicas</td><td>Menú principal de producción</td></tr><tr><td class='n'>25</td><td>Acción Constitucional</td><td>Menú principal de producción</td></tr><tr><td class='n'>26</td><td>Telesalud</td><td>Menú principal de producción</td></tr><tr><td class='n'>27</td><td>Salud Ocupacional</td><td>Menú principal de producción</td></tr><tr><td class='n'>28</td><td>Domiciliaria</td><td>Menú principal de producción</td></tr><tr><td class='n'>29</td><td>PQRS</td><td>Menú principal de producción</td></tr><tr><td class='n'>30</td><td>Talento Humano</td><td>Menú principal de producción</td></tr><tr><td class='n'>31</td><td>Solicitudes</td><td>Menú principal de producción</td></tr><tr><td class='n'>32</td><td>Estadísticas</td><td>Menú principal de producción</td></tr><tr><td class='n'>33</td><td>Indicadores</td><td>Menú principal de producción</td></tr><tr><td class='n'>34</td><td>Turno</td><td>Menú principal de producción</td></tr><tr><td class='n'>35</td><td>Autogestión</td><td>Menú principal de producción</td></tr><tr><td class='n'>36</td><td>Libre elección</td><td>Menú principal de producción</td></tr><tr><td class='n'>37</td><td>Sarlaft</td><td>Menú principal de producción</td></tr><tr><td class='n'>38</td><td>Evaluación Médica Ocupacional</td><td>Menú principal de producción</td></tr><tr><td class='n'>39</td><td>SST</td><td>Menú principal de producción</td></tr><tr><td class='n'>40</td><td>Reportes</td><td>Menú principal de producción</td></tr><tr><td class='n'>41</td><td>Reportes - Prestadores</td><td>Menú principal de producción</td></tr><tr><td class='n'>42</td><td>Desarrollo</td><td>Menú principal de producción</td></tr><tr><td class='n'>43</td><td>API</td><td>Menú principal de producción</td></tr><tr><td class='n'>44</td><td>Log Interoperabilidad</td><td>Menú principal de producción</td></tr><tr><td class='n'>45</td><td>Interoperabilidad - Historias Clinicas</td><td>Menú principal de producción</td></tr><tr><td class='n'>46</td><td>Gestion Documental</td><td>Menú principal de producción</td></tr><tr><td class='n'>47</td><td>Admin</td><td>Menú principal de producción</td></tr><tr><td class='n'>48</td><td>Historia Clínica</td><td>Área funcional con rutas propias (no figura como ítem de primer nivel del menú)</td></tr><tr><td class='n'>49</td><td>Consentimiento Informado</td><td>Área funcional con rutas propias (no figura como ítem de primer nivel del menú)</td></tr><tr><td class='n'>50</td><td>Certificados de Aptitud Laboral</td><td>Área funcional con rutas propias (no figura como ítem de primer nivel del menú)</td></tr><tr><td class='n'>51</td><td>Cuadro de Turnos</td><td>Área funcional con rutas propias (no figura como ítem de primer nivel del menú)</td></tr><tr><td class='n'>52</td><td>Gestión del Conocimiento</td><td>Área funcional con rutas propias (no figura como ítem de primer nivel del menú)</td></tr><tr><td class='n'>53</td><td>Medicina Laboral</td><td>Área funcional con rutas propias (no figura como ítem de primer nivel del menú)</td></tr><tr><td class='n'>54</td><td>Códigos SUMI</td><td>Área funcional con rutas propias (no figura como ítem de primer nivel del menú)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. Detalle de módulos de menú principal (01 a 47)</h2>
+    <p>Se listan los 204 submódulos asociados a los 47 títulos únicos del menú de producción.</p>
+    
+    <article class="mod" id="m01">
+      <h3><span class="badge">01</span> Inicio</h3>
+      <p class="lead">Punto de entrada del sistema: manuales de usuario y gestión de contenido institucional.</p>
+      <p class="meta">Permiso de menú: <code>blog.vista</code> · Submódulos: 2</p>
+      <ul><li><span class='sub'>Manuales</span> <code>/inicio/manual</code></li><li><span class='sub'>Gestión de Contenido</span> <code>/inicio/gestionContenido</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m02">
+      <h3><span class="badge">02</span> Agendamiento</h3>
+      <p class="lead">Programación de agenda médica, histórico de cambios y parametrización de agenda.</p>
+      <p class="meta">Permiso de menú: <code>agendamiento.medico</code> · Submódulos: 4</p>
+      <ul><li><span class='sub'>Agendar</span> <code>/agendamiento/medico</code></li><li><span class='sub'>Programación</span> <code>/agendamiento/registro</code></li><li><span class='sub'>Histórico cambios agenda</span> <code>/agendamiento/historicoCambios</code></li><li><span class='sub'>Parametrización</span> <code>/agendamiento/parametrizacion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m03">
+      <h3><span class="badge">03</span> Citas</h3>
+      <p class="lead">Agendamiento de citas y su parametrización operativa.</p>
+      <p class="meta">Permiso de menú: <code>cita.afiliados</code> · Submódulos: 2</p>
+      <ul><li><span class='sub'>Agendar</span> <code>/cita/agendamiento</code></li><li><span class='sub'>Parametrización</span> <code>/cita/parametrizacion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m04">
+      <h3><span class="badge">04</span> Gestión de sucesos</h3>
+      <p class="lead">Análisis, informe y parametrización de eventos / sucesos asistenciales.</p>
+      <p class="meta">Permiso de menú: <code>eventoAdverso.menu</code> · Submódulos: 3</p>
+      <ul><li><span class='sub'>Gestión</span> <code>/evento/analisisEvento</code></li><li><span class='sub'>Informe</span> <code>/evento/informeEvento</code></li><li><span class='sub'>Parametrización</span> <code>/evento/parametrizacion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m05">
+      <h3><span class="badge">05</span> Aseguramiento</h3>
+      <p class="lead">Verificación de derechos, portabilidad, gestor de afiliados, barreras de acceso y parametrización del aseguramiento.</p>
+      <p class="meta">Permiso de menú: <code>asegurador.menu</code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Verificación</span> <code>/aseguramiento/verificacion</code></li><li><span class='sub'>Traslados (Portabilidad)</span> <code>/aseguramiento/portabilidad</code></li><li><span class='sub'>Gestor de Afiliados</span> <code>/aseguramiento/gestorAfiliados</code></li><li><span class='sub'>Barreras de acceso</span> <code>/aseguramiento/barreraAcceso</code></li><li><span class='sub'>Parametrización</span> <code>/aseguramiento/parametrizacionAseguramiento</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m06">
+      <h3><span class="badge">06</span> Contratos</h3>
+      <p class="lead">Administración de contratos, familias, prestadores y servicios (CUPS).</p>
+      <p class="meta">Permiso de menú: <code>contrato.menu</code> · Submódulos: 4</p>
+      <ul><li><span class='sub'>Contratos</span> <code>/contrato/contratos</code></li><li><span class='sub'>Familias</span> <code>/contrato/familia</code></li><li><span class='sub'>Prestadores</span> <code>/contrato/prestador</code></li><li><span class='sub'>Servicios</span> <code>/contrato/cups</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m07">
+      <h3><span class="badge">07</span> Farmacia</h3>
+      <p class="lead">Dispensación, inventario, kardex, bodegas, farmacovigilancia, contratos de medicamentos y reposición.</p>
+      <p class="meta">Permiso de menú: <code>farmacia.menu.vista</code> · Submódulos: 18</p>
+      <ul><li><span class='sub'>Reposición inventario</span> <code>/farmacia/reposicionInventario</code></li><li><span class='sub'>Dispensación</span> <code>/farmacia/dispensacion</code></li><li><span class='sub'>Panel de Seguimiento</span> <code>/historico/medicamentosParciales</code></li><li><span class='sub'>Contratos</span> <code>/farmacia/contratos</code></li><li><span class='sub'>Solicitudes Bodega</span> <code>/farmacia/solicitudesBodegas</code></li><li><span class='sub'>Auditoria Solicitudes</span> <code>/farmacia/auditoriaSolicitudes</code></li><li><span class='sub'>Movimiento Solicitudes</span> <code>/farmacia/movimientosSolicitudes</code></li><li><span class='sub'>Existencia</span> <code>/farmacia/existencias</code></li><li><span class='sub'>Kardex</span> <code>/farmacia/kardex</code></li><li><span class='sub'>Dispensado</span> <code>/farmacia/dispensado</code></li><li><span class='sub'>Codigos lasa</span> <code>/farmacia/codigosLasa</code></li><li><span class='sub'>Inventario</span> <code>/farmacia/inventario</code></li><li><span class='sub'>Farmacovigilancia</span> <code>/farmacia/Farmacovigilancia</code></li><li><span class='sub'>Bodega medicamentos</span> <code>/farmacia/bodegaMedicamentos</code></li><li><span class='sub'>Bodegas</span> <code>/farmacia/bodegas</code></li><li><span class='sub'>Productos</span> <code>/codigosSumi/codigoSumi</code></li><li><span class='sub'>Parametrizacion</span> <code>/farmacia/parametrizacionProgramas</code></li><li><span class='sub'>Parametrizacion Contratos Medicamentos</span> <code>/farmacia/parametrizacionContratoMedicamentos</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m08">
+      <h3><span class="badge">08</span> Panel Médico</h3>
+      <p class="lead">Atención médica, asistencia educativa, demanda inducida y parametrización del acto médico.</p>
+      <p class="meta">Permiso de menú: <code>panelmedico.atenciones</code> · Submódulos: 4</p>
+      <ul><li><span class='sub'>Atención médica</span> <code>/panelMedico/atencion</code></li><li><span class='sub'>Asistencia educativa</span> <code>/panelMedico/asistenciaEducativa</code></li><li><span class='sub'>Demanda inducida</span> <code>/panelMedico/demandaInducida</code></li><li><span class='sub'>Parametrizacion</span> <code>/panelMedico/parametrizacion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m09">
+      <h3><span class="badge">09</span> Gestión de Red</h3>
+      <p class="lead">Autorización de medicamentos, servicios, cirugía, oncología y otros servicios de la red.</p>
+      <p class="meta">Permiso de menú: <code>autorizacion.menu</code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Medicamentos</span> <code>/autorizacion/medicamentos</code></li><li><span class='sub'>Servicios</span> <code>/autorizacion/servicios</code></li><li><span class='sub'>Cirugía</span> <code>/autorizacion/serviciosCirugia</code></li><li><span class='sub'>Oncología</span> <code>/autorizacion/oncologia</code></li><li><span class='sub'>Otros Servicios</span> <code>/autorizacion/otrosServicios</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m10">
+      <h3><span class="badge">10</span> Transcripciones</h3>
+      <p class="lead">Transcripción de órdenes externas e internas.</p>
+      <p class="meta">Permiso de menú: <code>transcripcion.menu</code> · Submódulos: 2</p>
+      <ul><li><span class='sub'>Externa</span> <code>/transcripcion/transcripcion</code></li><li><span class='sub'>Interna</span> <code>/transcripcion/transcripcionInterna</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m11">
+      <h3><span class="badge">11</span> SISCAC</h3>
+      <p class="lead">Cargue, auditoría y parametrización SISCAC (resolución de calidad / indicadores).</p>
+      <p class="meta">Permiso de menú: <code>siscac.vista</code> · Submódulos: 3</p>
+      <ul><li><span class='sub'>Cargues</span> <code>/siscac/cargue</code></li><li><span class='sub'>Auditoria</span> <code>/siscac/auditoria</code></li><li><span class='sub'>Parametrización</span> <code>/siscac/parametrizacion2</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m12">
+      <h3><span class="badge">12</span> Históricos</h3>
+      <p class="lead">Consulta histórica de atenciones, historias clínicas interoperables, órdenes, incapacidades y laboratorios.</p>
+      <p class="meta">Permiso de menú: <code>historico.atenciones</code> · Submódulos: 6</p>
+      <ul><li><span class='sub'>Consultas</span> <code>/historico/consultas</code></li><li><span class='sub'>Interoperabilidad Historias CLinicas</span> <code>/historico/interoperabilidadHc</code></li><li><span class='sub'>Repositorio Historias</span> <code>/historico/repositorio</code></li><li><span class='sub'>Ordenes</span> <code>/historico/historico-ordenes</code></li><li><span class='sub'>Incapacidades</span> <code>/historico/incapacidades</code></li><li><span class='sub'>Laboratorios</span> <code>/historico/laboratorios</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m13">
+      <h3><span class="badge">13</span> Prestadores</h3>
+      <p class="lead">Gestión de prestadores, toma de procedimientos y dispensación de medicamentos en red.</p>
+      <p class="meta">Permiso de menú: <code>prestadores.atenciones.prestadores</code> · Submódulos: 3</p>
+      <ul><li><span class='sub'>Prestadores</span> <code>/prestadores/prestadores</code></li><li><span class='sub'>Toma Procedimientos</span> <code>/prestadores/tomaProcedimientos</code></li><li><span class='sub'>Dispensación Medicamentos</span> <code>/prestadores/historicoMedicamentos</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m14">
+      <h3><span class="badge">14</span> Caracterización</h3>
+      <p class="lead">Registro de caracterización de afiliados, ECIS y marcación masiva.</p>
+      <p class="meta">Permiso de menú: <code>caracterizacion.menu</code> · Submódulos: 3</p>
+      <ul><li><span class='sub'>Registro</span> <code>/Caracterizacion/caracterizacion</code></li><li><span class='sub'>ECIS</span> <code>/Caracterizacion/caracterizacionEcis</code></li><li><span class='sub'>Marcación Masiva Afiliados</span> <code>/rias/marcacionMasivaAfiliados</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m15">
+      <h3><span class="badge">15</span> Gestión Riesgo</h3>
+      <p class="lead">Asistencia educativa, demanda inducida y administración de demanda inducida en gestión del riesgo.</p>
+      <p class="meta">Permiso de menú: <code>asistenciaEducativa.gestionRiesgo</code> · Submódulos: 3</p>
+      <ul><li><span class='sub'>Asistencia Educativa</span> <code>/gestionRiesgo/asistenciaPrincipal</code></li><li><span class='sub'>Demanda Inducida</span> <code>/demandaInducida/demandaInducida</code></li><li><span class='sub'>Admin Demanda Inducida</span> <code>/demandaInducida/administracionDemandaInducida</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m16">
+      <h3><span class="badge">16</span> Empalme</h3>
+      <p class="lead">Registro de empalme de información / continuidad operativa.</p>
+      <p class="meta">Permiso de menú: <code>empalme.listarFerrocarriles</code> · Submódulos: 1</p>
+      <ul><li><span class='sub'>Registro</span> <code>/empalme/RegistroEmpalme</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m17">
+      <h3><span class="badge">17</span> Audimedf</h3>
+      <p class="lead">Auditoría médica concurrente: ingreso, enfermería, medicina general, seguimiento y alta.</p>
+      <p class="meta">Permiso de menú: <code>concurrencia.menu</code> · Submódulos: 7</p>
+      <ul><li><span class='sub'>Ingreso Manual</span> <code>/concurrencia/ingreso</code></li><li><span class='sub'>Aux de auditoria concurrente</span> <code>/concurrencia/auxiliarEnfermeria</code></li><li><span class='sub'>Enfermeria concurrente</span> <code>/concurrencia/enfermeria</code></li><li><span class='sub'>Medico Concurrente</span> <code>/concurrencia/medicinaGeneral</code></li><li><span class='sub'>Seguimiento</span> <code>/concurrencia/seguimiento</code></li><li><span class='sub'>Alta</span> <code>/concurrencia/alta</code></li><li><span class='sub'>Parametrizacion</span> <code>/concurrencia/parametrizacion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m18">
+      <h3><span class="badge">18</span> Mesa ayuda</h3>
+      <p class="lead">Mesa de ayuda institucional: radicación, asignación, solución y parametrización de tickets.</p>
+      <p class="meta">Permiso de menú: <code>mesaAyuda.menu</code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Radicar solicitud</span> <code>/mesaAyuda/radicarSolicitud</code></li><li><span class='sub'>Mis solicitudes</span> <code>/mesaAyuda/misSolicitudes</code></li><li><span class='sub'>Mis asignadas</span> <code>/mesaAyuda/misAsignadas</code></li><li><span class='sub'>Solucionadas</span> <code>/mesaAyuda/solucionadas</code></li><li><span class='sub'>Parametrización</span> <code>/mesaAyuda/parametrizacion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m19">
+      <h3><span class="badge">19</span> Oncologia</h3>
+      <p class="lead">Gestión oncológica: procedimientos, resultados, prestadores, esquemas y enfermería.</p>
+      <p class="meta">Permiso de menú: <code>oncologia.enter</code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Toma Procedimientos</span> <code>/oncologia/tomaProcedimientos</code></li><li><span class='sub'>Resultados Oncologícos</span> <code>/oncologia/solicitudesPrestadores</code></li><li><span class='sub'>Prestadores</span> <code>/oncologia/prestadores</code></li><li><span class='sub'>Esquemas</span> <code>/oncologia/esquemas</code></li><li><span class='sub'>Enfermeria</span> <code>/oncologia/enfermeriaOncologia</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m20">
+      <h3><span class="badge">20</span> Centro Regulador</h3>
+      <p class="lead">Referencia y contrarreferencia: registro, seguimientos, procesado y tarifas vs prestadores.</p>
+      <p class="meta">Permiso de menú: <code>referencia.menu</code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Registro</span> <code>/referencia/registro</code></li><li><span class='sub'>Seguimientos</span> <code>/referencia/seguimientos</code></li><li><span class='sub'>Procesado</span> <code>/referencia/procesado</code></li><li><span class='sub'>Tarifa VS Prestadores</span> <code>/referencia/tarifaVsPrestadores</code></li><li><span class='sub'>Logs Concurrencia</span> <code>/referencia/logs</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m21">
+      <h3><span class="badge">21</span> Rips</h3>
+      <p class="lead">RIPS: banco de proveedores, radicación JSON (Res. 2275/2023), validación (Res. 3374/2000) y soportes.</p>
+      <p class="meta">Permiso de menú: <code>rips.menu</code> · Submódulos: 8</p>
+      <ul><li><span class='sub'>Banco de proveedores</span> <code>/rips/banco</code></li><li><span class='sub'>Radicacion (JSON)</span> <code>/rips/radicacion</code></li><li><span class='sub'>Validación rips</span> <code>/rips/validadorRips</code></li><li><span class='sub'>Técnicos de radicación</span> <code>/rips/TecnicosRadicacion</code></li><li><span class='sub'>Validación de soportes administrativos</span> <code>/rips/validacionSoportes</code></li><li><span class='sub'>Recepción</span> <code>/rips/radicados</code></li><li><span class='sub'>Registro de cargue 3374</span> <code>/rips/registroCargues</code></li><li><span class='sub'>Registro de cargue 2275</span> <code>/rips/registroCarguesJson</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m22">
+      <h3><span class="badge">22</span> RIAS</h3>
+      <p class="lead">Rutas Integrales de Atención en Salud: rutas, seguimiento y cargues masivos.</p>
+      <p class="meta">Permiso de menú: <code>rias.menu</code> · Submódulos: 4</p>
+      <ul><li><span class='sub'>Rutas</span> <code>/rias/rutasRias</code></li><li><span class='sub'>Seguimiento</span> <code>/rias/seguimientoRias</code></li><li><span class='sub'>Cargues masivos</span> <code>/rias/carguesMasivosRias</code></li><li><span class='sub'>Marcación Masiva Afiliados</span> <code>/rias/marcacionMasivaAfiliados</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m23">
+      <h3><span class="badge">23</span> Fias</h3>
+      <p class="lead">Descarga de archivos FIAS.</p>
+      <p class="meta">Permiso de menú: <code>fias.menu</code> · Submódulos: 1</p>
+      <ul><li><span class='sub'>Descarga</span> <code>/fias/descargaFias</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m24">
+      <h3><span class="badge">24</span> Cuentas medicas</h3>
+      <p class="lead">Auditoría de cuentas médicas: asignación de facturas, auditoría, informes y reportes a prestadores.</p>
+      <p class="meta">Permiso de menú: <code>cuentasMedicas.vista</code> · Submódulos: 7</p>
+      <ul><li><span class='sub'>Administración</span> <code>/cuentasMedicas/adminCuentasMedicas</code></li><li><span class='sub'>Facturas pendientes de asignar</span> <code>/cuentasMedicas/facturasPendientes</code></li><li><span class='sub'>Reasignacion de Facturas</span> <code>/cuentasMedicas/reasignarFacturas</code></li><li><span class='sub'>Auditoria</span> <code>/cuentasMedicas/auditoria</code></li><li><span class='sub'>Reporte auditores</span> <code>/cuentasMedicas/reporteAuditores</code></li><li><span class='sub'>Informe</span> <code>/cuentasMedicas/informeCuentasMedicas</code></li><li><span class='sub'>Informe prestador</span> <code>/cuentasMedicas/informePrestador</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m25">
+      <h3><span class="badge">25</span> Acción Constitucional</h3>
+      <p class="lead">Gestión de tutelas / acciones constitucionales: asignación, gestión y parametrización.</p>
+      <p class="meta">Permiso de menú: <code>tutelas.menu</code> · Submódulos: 3</p>
+      <ul><li><span class='sub'>Asignada</span> <code>/tutela/tutelaAsignada</code></li><li><span class='sub'>Gestión</span> <code>/tutela/tutelaGestion</code></li><li><span class='sub'>Parametrización</span> <code>/tutela/tutelaParametrizacion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m26">
+      <h3><span class="badge">26</span> Telesalud</h3>
+      <p class="lead">Creación, pendientes, juntas de profesionales y cierre de atenciones de telesalud.</p>
+      <p class="meta">Permiso de menú: <code>teleapoyo.vista</code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Parametrización</span> <code>/telesalud/parametrizacion</code></li><li><span class='sub'>Crear Telesalud</span> <code>/telesalud/crearTelesalud</code></li><li><span class='sub'>Pendientes</span> <code>/telesalud/pendientes</code></li><li><span class='sub'>Junta profesionales</span> <code>/telesalud/juntaProfesionales</code></li><li><span class='sub'>Solucionados</span> <code>/telesalud/solucionados</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m27">
+      <h3><span class="badge">27</span> Salud Ocupacional</h3>
+      <p class="lead">Histórico de salud ocupacional.</p>
+      <p class="meta">Permiso de menú: <code>saludOcupacional.menu</code> · Submódulos: 1</p>
+      <ul><li><span class='sub'>Histórico</span> <code>/saludOcupacional/historicoOcupacional</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m28">
+      <h3><span class="badge">28</span> Domiciliaria</h3>
+      <p class="lead">Ingreso y censo de atención domiciliaria.</p>
+      <p class="meta">Permiso de menú: <code>domiciliaria.menu</code> · Submódulos: 2</p>
+      <ul><li><span class='sub'>Ingreso</span> <code>/domiciliaria/ingresoDomiciliario</code></li><li><span class='sub'>Censo Domiciliario</span> <code>/domiciliaria/censoDomiciliario</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m29">
+      <h3><span class="badge">29</span> PQRS</h3>
+      <p class="lead">PQRSF: formulario, gestión interna/externa, central de PQRS y parametrización.</p>
+      <p class="meta">Permiso de menú: <code>pqrsf.menu</code> · Submódulos: 6</p>
+      <ul><li><span class='sub'>Formulario</span> <code>/gestionPqrsf/formulario</code></li><li><span class='sub'>Gestión</span> <code>/gestionPqrsf/gestion/gestion</code></li><li><span class='sub'>Gestión Interna</span> <code>/gestionPqrsf/gestionInterna/gestionInterna</code></li><li><span class='sub'>Gestión Externa</span> <code>/gestionPqrsf/gestionExterna/gestionExterna</code></li><li><span class='sub'>Central PQRS</span> <code>/gestionPqrsf/centralPqrf/centralPqrf</code></li><li><span class='sub'>Parametrización</span> <code>/gestionPqrsf/parametrizacion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m30">
+      <h3><span class="badge">30</span> Talento Humano</h3>
+      <p class="lead">Empleados, cierre de mes, inducción, incidentes, evaluación de desempeño, beneficios y parametrización.</p>
+      <p class="meta">Permiso de menú: <code>talentoHumano.menua</code> · Submódulos: 8</p>
+      <ul><li><span class='sub'>Empleados</span> <code>/talentoHumano/empleados</code></li><li><span class='sub'>Cierre de mes</span> <code>/talentoHumano/cierreMes</code></li><li><span class='sub'>Inducción específica</span> <code>/talentoHumano/induccionEspecifica</code></li><li><span class='sub'>Incidentes laborales</span> <code>/talentoHumano/incidentes</code></li><li><span class='sub'>Evaluación desempeño</span> <code>/talentoHumano/evaluacionDesempeno</code></li><li><span class='sub'>Plan seguimiento individual</span> <code>/talentoHumano/planSeguimiento</code></li><li><span class='sub'>Beneficios laborales</span> <code>/talentoHumano/beneficios</code></li><li><span class='sub'>Parametrización</span> <code>/talentoHumano/parametrizacion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m31">
+      <h3><span class="badge">31</span> Solicitudes</h3>
+      <p class="lead">Radicación, gestión, asignación, administración e informe de solicitudes.</p>
+      <p class="meta">Permiso de menú: <code>solicitudes.menu</code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Radicar</span> <code>/solicitudes/radicarSolicitud</code></li><li><span class='sub'>Gestión</span> <code>/solicitudes/gestion</code></li><li><span class='sub'>Asignadas</span> <code>/solicitudes/asignadas</code></li><li><span class='sub'>Admin</span> <code>/solicitudes/Admin</code></li><li><span class='sub'>Informe</span> <code>/solicitudes/informe</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m32">
+      <h3><span class="badge">32</span> Estadísticas</h3>
+      <p class="lead">Estadísticas operativas, parametrización y usuarios en línea.</p>
+      <p class="meta">Permiso de menú: <code>estadistica.listar</code> · Submódulos: 3</p>
+      <ul><li><span class='sub'>Estadisticas</span> <code>/estadistica/estadistica</code></li><li><span class='sub'>Parametrización</span> <code>/estadistica/parametrizacion</code></li><li><span class='sub'>Usuario en línea</span> <code>/estadistica/usuarios-en-linea</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m33">
+      <h3><span class="badge">33</span> Indicadores</h3>
+      <p class="lead">Tablero de indicadores de gestión.</p>
+      <p class="meta">Permiso de menú: <code>indicador.listar</code> · Submódulos: 1</p>
+      <ul><li><span class='sub'>Indicadores</span> <code>/indicador/indicadores</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m34">
+      <h3><span class="badge">34</span> Turno</h3>
+      <p class="lead">Gestión de turnos, tablero, llamado, taquilla y áreas clínicas.</p>
+      <p class="meta">Permiso de menú: <code></code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Turnos</span> <code>/turno/listar</code></li><li><span class='sub'>Tablero</span> <code>/turno/tablero</code></li><li><span class='sub'>Llamado</span> <code>/turno/llamado</code></li><li><span class='sub'>Taquilla</span> <code>/taquilla/taquilla</code></li><li><span class='sub'>Areas clinica</span> <code>/areaClinica/areaClinica</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m35">
+      <h3><span class="badge">35</span> Autogestión</h3>
+      <p class="lead">Portal del afiliado: certificado de afiliación, solicitudes, órdenes, PQRSDF y agendamiento de citas.</p>
+      <p class="meta">Permiso de menú: <code>autogestion.menu</code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Certificado de Afiliación</span> <code>/autogestion/certificadoAfiliacion</code></li><li><span class='sub'>Solicitudes</span> <code>/autogestion/radicarAutogestion</code></li><li><span class='sub'>Órdenes</span> <code>/autogestion/ordenesAutogestion</code></li><li><span class='sub'>PQRSDF</span> <code>/autogestion/pqrsfAutogestion</code></li><li><span class='sub'>Agendamiento de citas</span> <code>/autogestion/citasAutogestion</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m36">
+      <h3><span class="badge">36</span> Libre elección</h3>
+      <p class="lead">Formulario de libre elección de IPS.</p>
+      <p class="meta">Permiso de menú: <code>autogestion.menu</code> · Submódulos: 1</p>
+      <ul><li><span class='sub'>Formulario Libre Elección</span> <code>/autogestion/ips-seleccionada</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m37">
+      <h3><span class="badge">37</span> Sarlaft</h3>
+      <p class="lead">Formulario y revisión SARLAFT (prevención de lavado de activos y financiación del terrorismo).</p>
+      <p class="meta">Permiso de menú: <code>sarlaft.vista</code> · Submódulos: 2</p>
+      <ul><li><span class='sub'>Formulario</span> <code>/sarlaft/formularioSarlaft</code></li><li><span class='sub'>Revisión sarlaft</span> <code>/sarlaft/revisionSarlaft</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m38">
+      <h3><span class="badge">38</span> Evaluación Médica Ocupacional</h3>
+      <p class="lead">Solicitudes EMO, gestión y parametrización de sedes ocupacionales.</p>
+      <p class="meta">Permiso de menú: <code>medicinaLaboral.vista</code> · Submódulos: 3</p>
+      <ul><li><span class='sub'>Solicitudes EMO</span> <code>/medicinaLaboral/emo/formularioSolicitudes</code></li><li><span class='sub'>Gestión Solicitudes EMO</span> <code>/medicinaLaboral/emo/gestionSolicitudes</code></li><li><span class='sub'>Parametrización Sedes EMO</span> <code>/medicinaLaboral/emo/parametrizacionSedesOcupacionales</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m39">
+      <h3><span class="badge">39</span> SST</h3>
+      <p class="lead">Seguridad y Salud en el Trabajo: FURAT, FUREL, investigaciones, determinación de origen y junta regional.</p>
+      <p class="meta">Permiso de menú: <code>Sst.modulo</code> · Submódulos: 9</p>
+      <ul><li><span class='sub'>FURAT</span> <code>/furat/registro</code></li><li><span class='sub'>FUREL</span> <code>/furel/registroFurel</code></li><li><span class='sub'>Gestión Investigaciones</span> <code>/Sst/historicos</code></li><li><span class='sub'>Firma Investigaciones</span> <code>/sst/firmaInvestigaciones</code></li><li><span class='sub'>Determinacion Origen</span> <code>/Sst/determinacion-origen</code></li><li><span class='sub'>Junta Regional de Calificacion</span> <code>/sst/junta-regional-calificacion</code></li><li><span class='sub'>Informe</span> <code>/furat/reporte</code></li><li><span class='sub'>Parametrizacion ETC</span> <code>/furat/parametrizacion</code></li><li><span class='sub'>Parametrizacion Adjuntos</span> <code>/Sst/parametrizacionAdjuntos</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m40">
+      <h3><span class="badge">40</span> Reportes</h3>
+      <p class="lead">Generación de reportes, mis reportes, parametrización y vademécum.</p>
+      <p class="meta">Permiso de menú: <code>reportes.vista</code> · Submódulos: 4</p>
+      <ul><li><span class='sub'>Generación de Reportes</span> <code>/reportes/reportes</code></li><li><span class='sub'>Mis Reportes</span> <code>/reportes/mis-reportes</code></li><li><span class='sub'>Parametrización</span> <code>/reportes/parametrizacion</code></li><li><span class='sub'>VADEMECUM</span> <code>/farmacia/vademecum</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m41">
+      <h3><span class="badge">41</span> Reportes - Prestadores</h3>
+      <p class="lead">Reportes específicos para prestadores (formato 202).</p>
+      <p class="meta">Permiso de menú: <code>reportesPrestadores.menu</code> · Submódulos: 1</p>
+      <ul><li><span class='sub'>202</span> <code>/reportesPrestadores/reporte202</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m42">
+      <h3><span class="badge">42</span> Desarrollo</h3>
+      <p class="lead">Catálogo de permisos y estados del sistema (herramientas de desarrollo / configuración avanzada).</p>
+      <p class="meta">Permiso de menú: <code>modulo.permisos</code> · Submódulos: 2</p>
+      <ul><li><span class='sub'>Permisos</span> <code>/desarrollo/permiso</code></li><li><span class='sub'>Estados</span> <code>/desarrollo/estado</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m43">
+      <h3><span class="badge">43</span> API</h3>
+      <p class="lead">Clientes, rutas, auditoría y configuración de interoperabilidad vía API.</p>
+      <p class="meta">Permiso de menú: <code>api.vista</code> · Submódulos: 5</p>
+      <ul><li><span class='sub'>Clientes</span> <code>/api/clientes</code></li><li><span class='sub'>Rutas</span> <code>/api/rutas</code></li><li><span class='sub'>Auditoría - Interoperabilidad</span> <code>/api/auditoriaInteroperabilidad</code></li><li><span class='sub'>Configuración - Interoperabilidad</span> <code>/api/configuracionInteroperabilidad</code></li><li><span class='sub'>Logs</span> <code>/api/logsInteroperabilidades</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m44">
+      <h3><span class="badge">44</span> Log Interoperabilidad</h3>
+      <p class="lead">Auditoría, notificación de despacho y manuales de interoperabilidad.</p>
+      <p class="meta">Permiso de menú: <code>logInteroperabilidad.vista</code> · Submódulos: 3</p>
+      <ul><li><span class='sub'>Auditoria</span> <code>/logInteroperabilidad/auditoriaInteroperabilidad</code></li><li><span class='sub'>Notificacion de Despacho</span> <code>/logInteroperabilidad/notificacionDespacho</code></li><li><span class='sub'>Manuales</span> <code>/logInteroperabilidad/manuales</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m45">
+      <h3><span class="badge">45</span> Interoperabilidad - Historias Clinicas</h3>
+      <p class="lead">Registro de clientes e historias clínicas interoperables.</p>
+      <p class="meta">Permiso de menú: <code>interoperabilidad.historiasClinicas</code> · Submódulos: 2</p>
+      <ul><li><span class='sub'>Registrar - Clientes</span> <code>/logInteroperabilidad/registroInteroperabilidades</code></li><li><span class='sub'>Historias Clinicas - Interoperabilidad</span> <code>/Interoperabilidad/historiasClinicasInteroperabilidad</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m46">
+      <h3><span class="badge">46</span> Gestion Documental</h3>
+      <p class="lead">Repositorio documental / intranet.</p>
+      <p class="meta">Permiso de menú: <code>gestionDocumental.enter</code> · Submódulos: 1</p>
+      <ul><li><span class='sub'>Gestion Documental</span> <code>/intranet/documentos</code></li></ul>
+    </article>
+    
+    <article class="mod" id="m47">
+      <h3><span class="badge">47</span> Admin</h3>
+      <p class="lead">Administración general: roles, usuarios, sedes, entidades, auditorías, notificaciones y parametrizaciones.</p>
+      <p class="meta">Permiso de menú: <code>admin.enter</code> · Submódulos: 17</p>
+      <ul><li><span class='sub'>Auditoria</span> <code>/admin/auditoria</code></li><li><span class='sub'>Auditoria Logueos</span> <code>/admin/auditoria-logueos</code></li><li><span class='sub'>Central Notificaciones</span> <code>/admin/central-notificaciones</code></li><li><span class='sub'>Roles</span> <code>/admin/roles</code></li><li><span class='sub'>Cargos</span> <code>/admin/cargos</code></li><li><span class='sub'>Usuarios</span> <code>/admin/usuarios</code></li><li><span class='sub'>Especialidades</span> <code>/admin/especialidades</code></li><li><span class='sub'>Entidades</span> <code>/admin/entidades</code></li><li><span class='sub'>Citas</span> <code>/admin/citas</code></li><li><span class='sub'>Sedes</span> <code>/admin/sedes</code></li><li><span class='sub'>Colegios</span> <code>/admin/colegios</code></li><li><span class='sub'>Tipo de test</span> <code>/admin/tipoTest</code></li><li><span class='sub'>Consentimientos informados</span> <code>/admin/consentimientosInformados</code></li><li><span class='sub'>Parametrizacion cups rips</span> <code>/admin/parametrizacionCupRips</code></li><li><span class='sub'>Parametrizacion remision a programas</span> <code>/admin/parametrizacionProgramas</code></li><li><span class='sub'>Empresas</span> <code>/admin/empresas</code></li><li><span class='sub'>Envio - Correos</span> <code>/admin/envioCorreos</code></li></ul>
+    </article>
+    
+
+    <h2>5. Módulos funcionales adicionales (48 a 54)</h2>
+    <p>
+      Áreas con pantallas y rutas propias en HORUS HEALTH 2.0 que no figuran como ítem de primer nivel
+      del menú lateral, y que completan el inventario de 54 títulos.
+    </p>
+    
+    <article class="mod extra" id="m48">
+      <h3><span class="badge extra">48</span> Historia Clínica</h3>
+      <p class="lead">Parametrización de estructura de historia clínica (categorías, tipos de campo y campos). Rutas /historia/*.</p>
+      <ul><li><span class='sub'>Campo historia</span> <code>/historia/campoHistoria</code></li><li><span class='sub'>Categoría</span> <code>/historia/categoria</code></li><li><span class='sub'>Tipo de campo</span> <code>/historia/tipoCampo</code></li></ul>
+    </article>
+    
+    <article class="mod extra" id="m49">
+      <h3><span class="badge extra">49</span> Consentimiento Informado</h3>
+      <p class="lead">Registro y consulta de consentimientos informados. Ruta /consentimiento/consentimientoInformado y administración en Admin.</p>
+      <ul><li><span class='sub'>Consentimiento informado</span> <code>/consentimiento/consentimientoInformado</code></li><li><span class='sub'>Histórico de consentimientos</span> <code>/historico/consentimientos</code></li></ul>
+    </article>
+    
+    <article class="mod extra" id="m50">
+      <h3><span class="badge extra">50</span> Certificados de Aptitud Laboral</h3>
+      <p class="lead">Emisión y gestión de certificados de aptitud laboral. Ruta /certificadosAptitudLaboral/certificadosAptitudLaboral.</p>
+      <ul><li><span class='sub'>Certificados de aptitud laboral</span> <code>/certificadosAptitudLaboral/certificadosAptitudLaboral</code></li></ul>
+    </article>
+    
+    <article class="mod extra" id="m51">
+      <h3><span class="badge extra">51</span> Cuadro de Turnos</h3>
+      <p class="lead">Programación mensual de turnos clínicos. Ruta /cuadroTurno/programacionMensual.</p>
+      <ul><li><span class='sub'>Programación mensual</span> <code>/cuadroTurno/programacionMensual</code></li></ul>
+    </article>
+    
+    <article class="mod extra" id="m52">
+      <h3><span class="badge extra">52</span> Gestión del Conocimiento</h3>
+      <p class="lead">Solicitudes de capacitación. Ruta /gestionConocimiento/solicitudCapacitacion.</p>
+      <ul><li><span class='sub'>Solicitud de capacitación</span> <code>/gestionConocimiento/solicitudCapacitacion</code></li></ul>
+    </article>
+    
+    <article class="mod extra" id="m53">
+      <h3><span class="badge extra">53</span> Medicina Laboral</h3>
+      <p class="lead">Agenda y atención de medicina laboral, adicional al módulo de Evaluación Médica Ocupacional (EMO). Rutas /medicinaLaboral/*.</p>
+      <ul><li><span class='sub'>Agendar</span> <code>/medicinaLaboral/agendar</code></li><li><span class='sub'>Atención médica</span> <code>/medicinaLaboral/atencionMedica</code></li></ul>
+    </article>
+    
+    <article class="mod extra" id="m54">
+      <h3><span class="badge extra">54</span> Códigos SUMI</h3>
+      <p class="lead">Catálogo de productos y parametrización farmacéutica (formas farmacéuticas, grupos terapéuticos, vías de administración). Parcialmente expuesto bajo Farmacia &gt; Productos.</p>
+      <ul><li><span class='sub'>Productos / Código SUMI</span> <code>/codigosSumi/codigoSumi</code></li><li><span class='sub'>Formas farmacéuticas</span> <code>/codigosSumi/formasFarmaceuticas</code></li><li><span class='sub'>Grupos terapéuticos</span> <code>/codigosSumi/gruposTerapeuticos</code></li><li><span class='sub'>Subgrupos terapéuticos</span> <code>/codigosSumi/subgruposTerapeuticos</code></li><li><span class='sub'>Vías de administración</span> <code>/codigosSumi/viasAdministracion</code></li><li><span class='sub'>Líneas bases</span> <code>/codigosSumi/lineasBases</code></li><li><span class='sub'>Parametrización</span> <code>/codigosSumi/parametrizacionCodesumis</code></li></ul>
+    </article>
+    
+
+    <h2>6. Observaciones para el expediente de propiedad intelectual</h2>
+    <ul>
+      <li>El producto en producción se presenta al usuario como <strong>Horus-health – Salud</strong> (título del navegador) y, en el tenant FOMAG, con marca de bienvenida FOMAG. El nombre técnico del software es <strong>HORUS HEALTH Versión 2.0 / SUIM-HORUS</strong>.</li>
+      <li>El menú maestro incluye módulos transversales (Admin, API, Desarrollo, Reportes) y módulos misionales de salud (Aseguramiento, Farmacia, RIPS, Cuentas médicas, Historia clínica interoperable, etc.).</li>
+      <li>La cifra de 54 módulos se obtiene de 47 títulos únicos de menú + 7 áreas funcionales con rutas propias. Si el expediente previo usó otro criterio de conteo (por ejemplo, contar las dos entradas duplicadas del menú, o contar ciertos submódulos como módulos), este documento permite conciliar esa cifra con la evidencia de producción.</li>
+      <li>Este inventario cubre el numeral 4 de la solicitud. Los numerales 5 y 6 (módulos de las versiones personalizadas para Ferrocarriles Nacionales de Colombia y para FOMAG) requieren contrastar este catálogo base con las personalizaciones y permisos de cada tenant.</li>
+    </ul>
+
+    <footer>
+      Documento de inventario técnico generado el 4 de septiembre de 2026 a partir de la aplicación de producción
+      HORUS HEALTH 2.0 (https://horus2.horus-health.com/). Fuente estructurada: docs/horus/menu-produccion.json.
+      No incluye credenciales ni secretos de la plataforma.
+    </footer>
+  </div>
+</body>
+</html>
