@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Puntos 4, 5 y 6 — Identificación de módulos por título</title>
+  <style>
+    :root {
+      --ink: #1a2744;
+      --muted: #5b657a;
+      --line: #d7dde8;
+      --accent: #1f4e79;
+      --warn: #8a5a00;
+      --warnbg: #fff8e8;
+      --bg: #f6f4ef;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Liberation Serif", "Times New Roman", Georgia, serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    .page {
+      max-width: 980px;
+      margin: 32px auto 80px;
+      background: #fff;
+      border: 1px solid var(--line);
+      padding: 48px 52px;
+    }
+    .brand {
+      font-family: "Liberation Sans", Arial, sans-serif;
+      letter-spacing: .12em;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    h1 { font-size: 26px; margin: 8px 0 6px; }
+    h2 {
+      font-size: 18px;
+      color: var(--accent);
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 6px;
+      margin-top: 40px;
+    }
+    h3 { font-size: 16px; color: var(--ink); margin-top: 22px; }
+    .subtitle { color: var(--muted); margin: 0 0 18px; }
+    p, li { font-size: 15.5px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Liberation Sans", Arial, sans-serif;
+      font-size: 12.5px;
+      margin: 12px 0 20px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--accent); color: #fff; font-weight: 600; }
+    tr:nth-child(even) td { background: #f3f6fa; }
+    td.n { width: 42px; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
+    .note {
+      background: var(--warnbg);
+      border: 1px solid #ead7a2;
+      padding: 12px 16px;
+      font-size: 14.5px;
+      color: var(--warn);
+    }
+    .note strong { color: var(--ink); }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 4px 14px;
+      font-family: "Liberation Sans", Arial, sans-serif;
+      font-size: 13.5px;
+      margin: 14px 0 8px;
+    }
+    .meta-grid b { color: var(--accent); }
+    footer {
+      margin-top: 36px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      font-family: "Liberation Sans", Arial, sans-serif;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    code {
+      font-family: "Liberation Mono", Consolas, monospace;
+      font-size: 12px;
+      background: #eef2f7;
+      padding: 1px 5px;
+    }
+    @media print {
+      body { background: #fff; }
+      .page { border: 0; margin: 0; padding: 0; }
+      table { break-inside: auto; }
+      tr { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="brand">SUMIMEDICAL S.A.S. · Información y documentación inicial</div>
+  <h1>Identificación de módulos mediante su título</h1>
+  <p class="subtitle">Puntos 4, 5 y 6 de la solicitud de información y documentación inicial (Mateus Carlier S.A.S.)</p>
+
+  <div class="meta-grid">
+    <b>Documento principal</b><span>Solicitud de información y documentación inicial dirigida a SUMIMEDICAL S.A.S.</span>
+    <b>Criterio de elaboración</b><span>Solo se transcribe información comprobada en las fuentes indicadas. No se inventan módulos, estados, fechas ni cantidades.</span>
+  </div>
+
+  <h3>Fuentes utilizadas</h3>
+  <table>
+    <thead><tr><th>Punto</th><th>Fuente</th><th>Identificación de la fuente</th></tr></thead>
+    <tbody>
+      <tr><td class="n">4</td><td>Inventario de módulos — Aplicación Horus Health</td><td>Archivo <code>Inventario_Modulos_Horus_Health.docx</code></td></tr>
+      <tr><td class="n">5</td><td>Inventario HORUS HEALTH FPS</td><td>Archivo <code>INVENTARIO HORUS HEALTH FPS (1).docx</code>. Instancia <code>https://fps.horus-health.com</code>. Corte: 14 de agosto de 2026.</td></tr>
+      <tr><td class="n">6</td><td>Inventario elaborado previamente sobre la instancia horus2.horus-health.com</td><td>Archivo <code>docs/inventario-modulos-horus-health-v2.md</code> (y HTML homólogo). La propia fuente lo titula como inventario de HORUS HEALTH Versión 2.0, no como versión personalizada FOMAG de 24 módulos.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. Identificación mediante su título de los cincuenta y cuatro (54) módulos de la Versión 2.0 del software HORUS HEALTH</h2>
+
+  <p>
+    La fuente del punto 4 se titula <strong>Inventario de módulos / Aplicación Horus Health</strong>.
+    Identifica los módulos por el título que aparece en el menú de la aplicación.
+  </p>
+
+  <h3>Datos de resumen de la fuente</h3>
+  <table><thead><tr><th>Indicador</th><th>Valor</th></tr></thead><tbody><tr><td class='n'>Módulos del menú</td><td>58</td></tr><tr><td class='n'>Pantallas / submódulos</td><td>290</td></tr><tr><td class='n'>Módulos con fecha de documentación</td><td>28</td></tr><tr><td class='n'>Módulos sin fecha en el catálogo</td><td>30</td></tr><tr><td class='n'>Manuales en catálogo</td><td>54</td></tr><tr><td class='n'>Videos en catálogo</td><td>19</td></tr><tr><td class='n'>Piezas informativas (banners)</td><td>4</td></tr></tbody></table>
+
+  <div class="note">
+    <strong>Observación sobre el conteo solicitado.</strong>
+    El documento principal solicita la identificación de cincuenta y cuatro (54) módulos.
+    La fuente del punto 4 reporta <strong>58 módulos del menú</strong>.
+    En esa misma fuente, el valor <strong>54</strong> corresponde al indicador <em>Manuales en catálogo</em>, no al número de módulos.
+    No se recorta ni se completa el listado para igualar la cifra 54, por no existir en la fuente un criterio que identifique cuáles 54 de los 58 títulos constituirían el conjunto solicitado.
+    Se transcriben los 58 títulos de módulo documentados.
+  </div>
+
+  <h3>Títulos de los módulos (fuente: Inventario de módulos — Aplicación Horus Health)</h3>
+  <table><thead><tr><th>#</th><th>Módulo</th><th>Fecha de creación</th><th>Pantallas</th><th>Manuales</th><th>Videos</th><th>Permiso de menú</th></tr></thead><tbody><tr><td class='n'>1</td><td>Panel Médico</td><td>2024-10-31</td><td>14</td><td>3</td><td>2</td><td>panelmedico.atenciones</td></tr><tr><td class='n'>2</td><td>Agendamiento</td><td>2024-11-19</td><td>5</td><td>3</td><td>2</td><td>agendamiento.medico</td></tr><tr><td class='n'>3</td><td>Caracterización</td><td>2024-11-19</td><td>6</td><td>2</td><td>1</td><td>caracterizacion.menu</td></tr><tr><td class='n'>4</td><td>Citas</td><td>2024-12-12</td><td>3</td><td>2</td><td>2</td><td>cita.afiliados</td></tr><tr><td class='n'>5</td><td>Autogestión</td><td>2024-12-17</td><td>8</td><td>2</td><td>2</td><td>autogestion.menu</td></tr><tr><td class='n'>6</td><td>Aseguramiento</td><td>2025-01-02</td><td>4</td><td>2</td><td>1</td><td>asegurador.menu</td></tr><tr><td class='n'>7</td><td>Mesa ayuda</td><td>2025-01-02</td><td>7</td><td>1</td><td>1</td><td>mesaAyuda.menu</td></tr><tr><td class='n'>8</td><td>Transcripciones</td><td>2025-01-02</td><td>3</td><td>1</td><td>1</td><td>transcripcion.menu</td></tr><tr><td class='n'>9</td><td>Admisiones</td><td>2025-01-22</td><td>4</td><td>1</td><td>1</td><td>admisiones.menu</td></tr><tr><td class='n'>10</td><td>Admin</td><td>2025-01-31</td><td>18</td><td>3</td><td>0</td><td>admin.enter</td></tr><tr><td class='n'>11</td><td>Autorización</td><td>2025-01-31</td><td>5</td><td>3</td><td>1</td><td>autorizacion.menu</td></tr><tr><td class='n'>12</td><td>Centro Regulador</td><td>2025-01-31</td><td>5</td><td>2</td><td>1</td><td>referencia.menu</td></tr><tr><td class='n'>13</td><td>Cuentas medicas</td><td>2025-01-31</td><td>7</td><td>2</td><td>0</td><td>cuentasMedicas.vista</td></tr><tr><td class='n'>14</td><td>Desarrollo</td><td>2025-01-31</td><td>4</td><td>2</td><td>0</td><td>modulo.permisos</td></tr><tr><td class='n'>15</td><td>Históricos</td><td>2025-01-31</td><td>13</td><td>2</td><td>0</td><td>historico.atenciones</td></tr><tr><td class='n'>16</td><td>Reportes</td><td>2025-01-31</td><td>10</td><td>1</td><td>0</td><td>reportes.vista</td></tr><tr><td class='n'>17</td><td>Farmacia</td><td>2025-03-03</td><td>7</td><td>3</td><td>1</td><td>farmacia.menu.vista</td></tr><tr><td class='n'>18</td><td>Gestión de sucesos</td><td>2025-03-03</td><td>7</td><td>3</td><td>0</td><td>eventoAdverso.menu</td></tr><tr><td class='n'>19</td><td>Acción Constitucional</td><td>2025-12-26</td><td>4</td><td>2</td><td>0</td><td>tutelas.menu</td></tr><tr><td class='n'>20</td><td>Contratos</td><td>2026-03-10</td><td>5</td><td>1</td><td>0</td><td>contrato.menu</td></tr><tr><td class='n'>21</td><td>Empalme</td><td>2026-03-10</td><td>2</td><td>1</td><td>0</td><td>empalme.listarFerrocarriles</td></tr><tr><td class='n'>22</td><td>Inicio</td><td>2026-03-10</td><td>4</td><td>1</td><td>0</td><td>menu.inicio</td></tr><tr><td class='n'>23</td><td>Oncologia</td><td>2026-03-10</td><td>6</td><td>1</td><td>0</td><td>oncologia.enter</td></tr><tr><td class='n'>24</td><td>PQRFs</td><td>2026-03-10</td><td>7</td><td>1</td><td>1</td><td>pqrsf.menu</td></tr><tr><td class='n'>25</td><td>Solicitudes</td><td>2026-03-10</td><td>6</td><td>1</td><td>0</td><td>solicitudes.menu</td></tr><tr><td class='n'>26</td><td>Telesalud</td><td>2026-03-10</td><td>6</td><td>1</td><td>0</td><td>telesalud.vista</td></tr><tr><td class='n'>27</td><td>Compras-Farmacia</td><td>2026-03-16</td><td>5</td><td>0</td><td>1</td><td>farmacia.menu.vista</td></tr><tr><td class='n'>28</td><td>Informes-Farmacia</td><td>2026-03-16</td><td>4</td><td>0</td><td>1</td><td>farmacia.menu.vista</td></tr><tr><td class='n'>29</td><td>API</td><td>No registrada</td><td>2</td><td>0</td><td>0</td><td>api.vista</td></tr><tr><td class='n'>30</td><td>Admisión de urgencias</td><td>No registrada</td><td>2</td><td>0</td><td>0</td><td>admisionUrgencias.enter</td></tr><tr><td class='n'>31</td><td>Barreras de acceso</td><td>No registrada</td><td>5</td><td>0</td><td>0</td><td>barreraAcceso.menu</td></tr><tr><td class='n'>32</td><td>CAC</td><td>No registrada</td><td>3</td><td>0</td><td>0</td><td>cac.vista</td></tr><tr><td class='n'>33</td><td>Cajas y Recaudos</td><td>No registrada</td><td>4</td><td>0</td><td>0</td><td>caja.menu</td></tr><tr><td class='n'>34</td><td>Censo</td><td>No registrada</td><td>2</td><td>0</td><td>0</td><td>admisionUrgencias.enter</td></tr><tr><td class='n'>35</td><td>Clientes Mesa Ayuda</td><td>No registrada</td><td>2</td><td>0</td><td>0</td><td>clientes.mesaAyuda.vista</td></tr><tr><td class='n'>36</td><td>Compras</td><td>No registrada</td><td>3</td><td>0</td><td>0</td><td>compras.menu</td></tr><tr><td class='n'>37</td><td>Concurrencia</td><td>No registrada</td><td>5</td><td>0</td><td>0</td><td>concurrencia.menu</td></tr><tr><td class='n'>38</td><td>Consentimientos informados</td><td>No registrada</td><td>4</td><td>0</td><td>0</td><td>consentimientosInformados.modulo</td></tr><tr><td class='n'>39</td><td>Contrato ventas</td><td>No registrada</td><td>5</td><td>0</td><td>0</td><td>vista.contratoventas</td></tr><tr><td class='n'>40</td><td>Control de PROA</td><td>No registrada</td><td>2</td><td>0</td><td>0</td><td>proa.menu</td></tr><tr><td class='n'>41</td><td>Domiciliaria</td><td>No registrada</td><td>3</td><td>0</td><td>0</td><td>domiciliaria.menu</td></tr><tr><td class='n'>42</td><td>Enfermeria</td><td>No registrada</td><td>2</td><td>0</td><td>0</td><td>admisionUrgencias.enter</td></tr><tr><td class='n'>43</td><td>Estadisticas</td><td>No registrada</td><td>3</td><td>0</td><td>0</td><td>estadistica.listar</td></tr><tr><td class='n'>44</td><td>Facturacion</td><td>No registrada</td><td>6</td><td>0</td><td>0</td><td>facturacion.menu</td></tr><tr><td class='n'>45</td><td>Fias</td><td>No registrada</td><td>2</td><td>0</td><td>0</td><td>fias.menu</td></tr><tr><td class='n'>46</td><td>Gestión Riesgo</td><td>No registrada</td><td>4</td><td>0</td><td>0</td><td>asistenciaEducativa.gestionRiesgo</td></tr><tr><td class='n'>47</td><td>Gestión de Proyectos</td><td>No registrada</td><td>1</td><td>0</td><td>0</td><td>mesaAyuda.tareas</td></tr><tr><td class='n'>48</td><td>Herramientas</td><td>No registrada</td><td>3</td><td>0</td><td>0</td><td>blog.vista</td></tr><tr><td class='n'>49</td><td>Interoperabilidad Telepatia</td><td>No registrada</td><td>2</td><td>0</td><td>0</td><td>interoperabilidad.telepatia.menu</td></tr><tr><td class='n'>50</td><td>Interoperabilidades</td><td>No registrada</td><td>4</td><td>0</td><td>0</td><td>cita.afiliados</td></tr><tr><td class='n'>51</td><td>Ministerio</td><td>No registrada</td><td>4</td><td>0</td><td>0</td><td>ministerio.modulo</td></tr><tr><td class='n'>52</td><td>Ordenamiento</td><td>No registrada</td><td>2</td><td>0</td><td>0</td><td>ordenamiento.menu</td></tr><tr><td class='n'>53</td><td>Prestadores</td><td>No registrada</td><td>6</td><td>0</td><td>0</td><td>prestadores.atenciones.prestadores</td></tr><tr><td class='n'>54</td><td>Rips</td><td>No registrada</td><td>7</td><td>0</td><td>0</td><td>rips.menu</td></tr><tr><td class='n'>55</td><td>Sarlaft</td><td>No registrada</td><td>3</td><td>0</td><td>0</td><td>sarlaft.vista</td></tr><tr><td class='n'>56</td><td>Talento Humano</td><td>No registrada</td><td>6</td><td>0</td><td>0</td><td>talentoHumano.menu</td></tr><tr><td class='n'>57</td><td>Turno</td><td>No registrada</td><td>6</td><td>0</td><td>0</td><td>—</td></tr><tr><td class='n'>58</td><td>Urgencias</td><td>No registrada</td><td>8</td><td>0</td><td>0</td><td>urgencias.enter</td></tr></tbody></table>
+
+  <p>
+    La fuente indica que el inventario de módulos con fecha de creación está ordenado por fecha,
+    y que los módulos sin documento asociado aparecen al final. Ese orden se conserva.
+    Los campos <em>Fecha de creación</em>, <em>Pantallas</em>, <em>Manuales</em>, <em>Videos</em> y
+    <em>Permiso de menú</em> se copian de la fuente. No se interpreta el significado de los permisos
+    ni se atribuyen a un cliente.
+  </p>
+
+  <h2>5. Identificación mediante su título de los once (11) módulos de la versión “personalizada” del software desarrollado para Ferrocarriles Nacionales de Colombia</h2>
+
+  <p>
+    La fuente del punto 5 se titula <strong>Inventario de módulos con fecha de creación</strong>
+    y corresponde al Fondo de Pasivo Social de Ferrocarriles Nacionales de Colombia (FPS/FNC).
+    Fuentes declaradas en el documento: <code>https://fps.horus-health.com</code>;
+    API <code>https://aseguramientoback.horus-health.com/api</code>;
+    metadatos de los manuales. Corte: 14 de agosto de 2026.
+  </p>
+
+  <h3>Identificación técnica de la obra (según la fuente)</h3>
+  <table><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody><tr><td class='n'>Nombre comercial</td><td>HORUS HEALTH — Fondo de Pasivo Social Ferrocarriles Nacionales de Colombia</td></tr><tr><td class='n'>Frontend</td><td>front-ferrocarriles (Nuxt.js / Vue / Vuetify)</td></tr><tr><td class='n'>URL frontend</td><td>https://fps.horus-health.com</td></tr><tr><td class='n'>API backend</td><td>https://aseguramientoback.horus-health.com/api</td></tr><tr><td class='n'>Autenticación</td><td>Bearer token (POST /auth/login). Tipos: Funcionario y Afiliado.</td></tr><tr><td class='n'>Control de acceso</td><td>Roles y permisos (Spatie). 151 permisos catalogados. 19 roles.</td></tr><tr><td class='n'>Publicación vigente</td><td>Frontend Last-Modified: 6 de agosto de 2026, 20:45 GMT</td></tr><tr><td class='n'>Semilla de la instancia FPS</td><td>19 de abril de 2024, 21:01 America/Bogota</td></tr><tr><td class='n'>Obra documental más antigua</td><td>Manual administración de usuarios V.1 — 30 de septiembre de 2021</td></tr></tbody></table>
+
+  <div class="note">
+    <strong>Observación sobre el conteo solicitado.</strong>
+    El documento principal solicita la identificación de once (11) módulos de la versión “personalizada”
+    para Ferrocarriles Nacionales de Colombia.
+    La fuente del punto 5 declara expresamente: <em>Totales: 22 módulos funcionales y 98 submódulos / pantallas de menú.</em>
+    No se encuentra en esa fuente un subconjunto etiquetado como los once (11) módulos de la versión personalizada.
+    No se selecciona un grupo de 11 títulos. Se transcriben los 22 títulos documentados.
+  </div>
+
+  <h3>Títulos de los módulos (fuente: Inventario HORUS HEALTH FPS)</h3>
+  <table><thead><tr><th>N.</th><th>Módulo</th><th>Fecha de la obra</th><th>Fecha en FPS</th><th>Subm.</th><th>Evidencia</th></tr></thead><tbody><tr><td class='n'>1</td><td>Administración (usuarios, roles y permisos)</td><td>30 sep 2021</td><td>19 abr 2024</td><td>3</td><td>Manual V.1 (CreationDate del PDF). Semilla de BD FPS: tipos de usuario, roles desarrolladores/empleado y empleados.</td></tr><tr><td class='n'>2</td><td>RIPS</td><td>21 abr 2022</td><td>18 dic 2024</td><td>6</td><td>Manual Validación RIPS V.2. Paquetes históricos desde 19 feb 2022 (migración). Estados de validación en FPS: 18 dic 2024.</td></tr><tr><td class='n'>3</td><td>Resolución 202</td><td>22 abr 2022</td><td>dic 2024</td><td>3</td><td>Manual para Resolución 202. Rol de menú id 12, posterior a RIPS en el catálogo de permisos.</td></tr><tr><td class='n'>4</td><td>Facturación de urgencias</td><td>10 may 2022</td><td>24 oct 2024</td><td>10</td><td>Manual de usuario Facturación. Estados de factura en FPS el 24 oct 2024. Rol facturación 5 nov 2024. Códigos de glosa 15 nov 2024.</td></tr><tr><td class='n'>5</td><td>Caracterización / Gestión (obra previa)</td><td>30 may 2023</td><td>4 sep 2025</td><td>2</td><td>Manual CARACTERIZACION (GESTION). En FPS el módulo vigente es Gestión del riesgo / SISCAC (patologías 4 sep 2025; manual 28 nov 2025).</td></tr><tr><td class='n'>6</td><td>Estadísticas e indicadores</td><td>5 jun 2023</td><td>18 dic 2025</td><td>3</td><td>Manual indicadores y estadísticas. Manual Estadísticas Ferrocarriles (obra especifica FPS) 18 dic 2025.</td></tr><tr><td class='n'>7</td><td>Auditoria medica</td><td>5 jun 2023</td><td>10 dic 2024</td><td>6</td><td>Manual de usuario auditoria. Rol auditorio medica 10 dic 2024. Catálogo de tipos, ámbitos y regionales 11 dic 2024.</td></tr><tr><td class='n'>8</td><td>Mesa de ayuda</td><td>5 jun 2023</td><td>5 dic 2024</td><td>3</td><td>Manual helpdesk. Estados ABIERTO/CERRADO en FPS 5 dic 2024.</td></tr><tr><td class='n'>9</td><td>Autogestión y medicamentos</td><td>5 jun 2023</td><td>24 oct 2024</td><td>5</td><td>Manual de autogestión y medicamentos. Rol autogestion_empleados 24 oct 2024.</td></tr><tr><td class='n'>10</td><td>UPC</td><td>5 jun 2023</td><td>2024-2025</td><td>2</td><td>Manual UPC reporte. Permisos upc.vista / upc.reporte / upc.parametrizacion (ids 94 a 96).</td></tr><tr><td class='n'>11</td><td>Inicio / Manuales</td><td>19 abr 2024</td><td>19 abr 2024</td><td>1</td><td>Página de aterrizaje post-login de la instancia FPS. Semilla de plataforma 19 abr 2024 21:01 (América/Bogotá).</td></tr><tr><td class='n'>12</td><td>Desarrollo (estados y permisos técnicos)</td><td>19 abr 2024</td><td>19 abr 2024</td><td>2</td><td>Tabla de estados ACTIVO y demás semilla 19 abr 2024. Permiso dev.</td></tr><tr><td class='n'>13</td><td>Aseguramiento</td><td>19 abr 2024</td><td>19 jun 2024</td><td>9</td><td>Estados de afiliación 19 abr 2024. Rol Aseguramiento 19 jun 2024. Manual del módulo 16 dic 2024.</td></tr><tr><td class='n'>14</td><td>Prestaciones económicas</td><td>17 jun 2024</td><td>17 jun 2024</td><td>5</td><td>Rol prestaciones económicas 17 jun 2024. Primer módulo de negocio creado después de la semilla.</td></tr><tr><td class='n'>15</td><td>Compensación</td><td>2 ago 2024</td><td>2 ago 2024</td><td>7</td><td>Grupos etarios UPC 2 ago 2024. Zonas de compensación 10 oct 2024. Manual del módulo 20 dic 2024.</td></tr><tr><td class='n'>16</td><td>PILA</td><td>21 nov 2024</td><td>21 nov 2024</td><td>8</td><td>Rol pila 21 nov 2024. Manual del módulo 20 dic 2024.</td></tr><tr><td class='n'>17</td><td>Facturación RIPS</td><td>dic 2024</td><td>dic 2024</td><td>4</td><td>Permisos facturacionRips. * (ids 60 a 77), posteriores a facturación de urgencias en el catálogo.</td></tr><tr><td class='n'>18</td><td>RIAS</td><td>22 ago 2025</td><td>22 ago 2025</td><td>8</td><td>Plantillas RIA (Nefro, Cáncer, Materno perinatal, PyM, Salud mental) 22 ago 2025. Manual 28 nov 2025.</td></tr><tr><td class='n'>19</td><td>Gestión del riesgo / SISCAC</td><td>4 sep 2025</td><td>4 sep 2025</td><td>5</td><td>Catálogo de patologías SISCAC 4 sep 2025. Tipos de cargue CAC. Manual 28 nov 2025.</td></tr><tr><td class='n'>20</td><td>Interoperabilidad - Historias clínicas</td><td>23 oct 2025</td><td>23 oct 2025</td><td>2</td><td>Rol Modulo interoperabilidad HC 23 oct 2025.</td></tr><tr><td class='n'>21</td><td>Programas de salud</td><td>4 nov 2025</td><td>4 nov 2025</td><td>7</td><td>Plantillas (Cesación de tabaco, Enfermedades huérfanas, EPOC-ASMA y otras) 4 nov 2025. Manual 28 nov 2025.</td></tr><tr><td class='n'>22</td><td>Reporte de errores (RIAS y Programas)</td><td>nov 2025</td><td>nov 2025</td><td>2</td><td>Permisos reporte. Vista / reportes Errores. * (ids 162 a 164).</td></tr></tbody></table>
+
+  <h3>Submódulos por menú productivo (misma fuente)</h3>
+  <p>
+    La fuente indica: <em>Listado extraído del menú de funcionario en producción. Cada ítem corresponde a una pantalla o procedimiento del programa.</em>
+    Estos nombres no se presentan como módulos adicionales a los 22; se transcriben como aparecen.
+  </p>
+  <table><thead><tr><th>Módulo</th><th>Submódulos</th></tr></thead><tbody><tr><td class='n'>Inicio (1)</td><td>Manuales (/inicio/manual)</td></tr><tr><td class='n'>Aseguramiento (9)</td><td>Estadística aseguramiento; Cierre afiliados; Consulta afiliados; Afiliaciones y traslados; Auditoria novedades; Mis novedades; Inconsistencias; Cargas masivas; Reportes</td></tr><tr><td class='n'>PILA (8)</td><td>Relación cotizante FCN/PTOS; Novedades PILA FCN/PTOS; Aportantes otras entidades; Auditoria; Consulta; Carga de planillas; Carga de transferencias; Reportes</td></tr><tr><td class='n'>Compensación (7)</td><td>Proceso compensación; Corrección compensados; Inconsistencia; Auditoria subprocesos inconsistencia; Consultas; Reportes; Parametrización</td></tr><tr><td class='n'>Prestaciones económicas (5)</td><td>Transcripciones; Auditoria prestaciones; Auditoria ADRES; Consulta / históricos; Reportes</td></tr><tr><td class='n'>RIPS (6)</td><td>Validador; Carga masiva JSON; Cargue IPS no REPS; Radicados; Reportes; Conversor</td></tr><tr><td class='n'>Resolución 202 (3)</td><td>Validador; Radicados; Reportes</td></tr><tr><td class='n'>UPC (2)</td><td>Reporte; Parametrización</td></tr><tr><td class='n'>RIAS (9)</td><td>Cargue masivo; Parametrización; Creación de campos; Seguimiento rutas RIAS; Seguimiento materno perinatal; Seguimiento cerebro cardio vascular y metabólica; Seguimiento promoción y mantenimiento; Seguimiento salud mental y SPA; Seguimiento cáncer</td></tr><tr><td class='n'>Programas (7)</td><td>Cargue; Parametrización; Creación de campos; Seguimiento rutas programas; Seguimiento enfermedades huérfanas; Seguimiento EPOC-ASMA; Seguimiento cesación de tabaco</td></tr><tr><td class='n'>Reporte de errores (2)</td><td>Errores RIAS; Errores programas</td></tr><tr><td class='n'>Gestión del riesgo / SISCAC (5)</td><td>Cargues; Parametrización; Auditoria; Historias; SISCAC</td></tr><tr><td class='n'>Facturación de urgencias (10)</td><td>Radicar factura de urgencias; Facturas radicadas; Mis asignadas - auditoria; Mis asignadas - soportes glosas; Firmas post-auditoria; Gestión facturación; Contabilidad; Tesorería; Reportes; Parametrización</td></tr><tr><td class='n'>Interoperabilidad (2)</td><td>Registrar clientes; Historias clínicas - interoperabilidad</td></tr><tr><td class='n'>Facturación RIPS (4)</td><td>Radicar; Registros; Gestión / mis asignadas; Parametrización</td></tr><tr><td class='n'>Mesa de ayuda (3)</td><td>Radicar solicitud; Mis solicitudes; Solicitudes radicadas</td></tr><tr><td class='n'>Autogestión (5)</td><td>Solicitudes; Central / gestión; Mis asignadas; Parametrización; Reportes</td></tr><tr><td class='n'>Auditoria médica (6)</td><td>Cronograma; Panel de control; Seguimiento; Reportes; Cargas masivas; Parametrización</td></tr><tr><td class='n'>Estadísticas (3)</td><td>Estadísticas; Parametrización; Permisos de estadística</td></tr><tr><td class='n'>Desarrollo (2)</td><td>Permisos; Estados</td></tr><tr><td class='n'>Administración (3)</td><td>Roles; Usuarios; Auditoria de usuarios</td></tr></tbody></table>
+
+  <h2>6. Identificación mediante su título de los veinticuatro (24) módulos de la versión “personalizada” del software desarrollado para FOMAG</h2>
+
+  <div class="note">
+    <strong>Identificación de los veinticuatro (24) módulos de la versión “personalizada” para FOMAG.</strong>
+    No se encuentra información disponible en las fuentes suministradas.
+    No se cargó un inventario que identifique, mediante su título, un conjunto de veinticuatro (24) módulos
+    como versión personalizada del software para FOMAG.
+  </div>
+
+  <p>
+    El inventario elaborado previamente (<code>docs/inventario-modulos-horus-health-v2.md</code>) se refiere a la
+    instancia <code>https://horus2.horus-health.com/</code> y registra marca de bienvenida FOMAG en la pantalla de ingreso.
+    Esa misma fuente se titula como inventario de los módulos de <strong>HORUS HEALTH Versión 2.0</strong>
+    y declara un conteo de 54 títulos (47 de menú principal + 7 áreas funcionales con rutas propias).
+    No declara que esos títulos constituyan la versión personalizada de FOMAG ni que el conjunto sea de 24 módulos.
+  </p>
+  <p>
+    Por esa razón, los títulos de esa fuente <strong>no se presentan como los 24 módulos del numeral 6</strong>.
+    Se transcriben a continuación únicamente como el listado que sí existe en el inventario previo, para trazabilidad,
+    sin recortarlos a 24 y sin afirmar que correspondan a la versión personalizada solicitada.
+  </p>
+
+  <h3>Títulos documentados en el inventario elaborado previamente (no homologados al numeral 6)</h3>
+  <table><thead><tr><th>#</th><th>Título del módulo</th><th>Origen según la fuente</th></tr></thead><tbody><tr><td class='n'>01</td><td>Inicio</td><td>Menú principal</td></tr><tr><td class='n'>02</td><td>Agendamiento</td><td>Menú principal</td></tr><tr><td class='n'>03</td><td>Citas</td><td>Menú principal</td></tr><tr><td class='n'>04</td><td>Gestión de sucesos</td><td>Menú principal</td></tr><tr><td class='n'>05</td><td>Aseguramiento</td><td>Menú principal</td></tr><tr><td class='n'>06</td><td>Contratos</td><td>Menú principal</td></tr><tr><td class='n'>07</td><td>Farmacia</td><td>Menú principal</td></tr><tr><td class='n'>08</td><td>Panel Médico</td><td>Menú principal</td></tr><tr><td class='n'>09</td><td>Gestión de Red</td><td>Menú principal</td></tr><tr><td class='n'>10</td><td>Transcripciones</td><td>Menú principal</td></tr><tr><td class='n'>11</td><td>SISCAC</td><td>Menú principal</td></tr><tr><td class='n'>12</td><td>Históricos</td><td>Menú principal</td></tr><tr><td class='n'>13</td><td>Prestadores</td><td>Menú principal</td></tr><tr><td class='n'>14</td><td>Caracterización</td><td>Menú principal</td></tr><tr><td class='n'>15</td><td>Gestión Riesgo</td><td>Menú principal</td></tr><tr><td class='n'>16</td><td>Empalme</td><td>Menú principal</td></tr><tr><td class='n'>17</td><td>Audimedf</td><td>Menú principal</td></tr><tr><td class='n'>18</td><td>Mesa ayuda</td><td>Menú principal</td></tr><tr><td class='n'>19</td><td>Oncologia</td><td>Menú principal</td></tr><tr><td class='n'>20</td><td>Centro Regulador</td><td>Menú principal</td></tr><tr><td class='n'>21</td><td>Rips</td><td>Menú principal</td></tr><tr><td class='n'>22</td><td>RIAS</td><td>Menú principal</td></tr><tr><td class='n'>23</td><td>Fias</td><td>Menú principal</td></tr><tr><td class='n'>24</td><td>Cuentas medicas</td><td>Menú principal</td></tr><tr><td class='n'>25</td><td>Acción Constitucional</td><td>Menú principal</td></tr><tr><td class='n'>26</td><td>Telesalud</td><td>Menú principal</td></tr><tr><td class='n'>27</td><td>Salud Ocupacional</td><td>Menú principal</td></tr><tr><td class='n'>28</td><td>Domiciliaria</td><td>Menú principal</td></tr><tr><td class='n'>29</td><td>PQRS</td><td>Menú principal</td></tr><tr><td class='n'>30</td><td>Talento Humano</td><td>Menú principal</td></tr><tr><td class='n'>31</td><td>Solicitudes</td><td>Menú principal</td></tr><tr><td class='n'>32</td><td>Estadísticas</td><td>Menú principal</td></tr><tr><td class='n'>33</td><td>Indicadores</td><td>Menú principal</td></tr><tr><td class='n'>34</td><td>Turno</td><td>Menú principal</td></tr><tr><td class='n'>35</td><td>Autogestión</td><td>Menú principal</td></tr><tr><td class='n'>36</td><td>Libre elección</td><td>Menú principal</td></tr><tr><td class='n'>37</td><td>Sarlaft</td><td>Menú principal</td></tr><tr><td class='n'>38</td><td>Evaluación Médica Ocupacional</td><td>Menú principal</td></tr><tr><td class='n'>39</td><td>SST</td><td>Menú principal</td></tr><tr><td class='n'>40</td><td>Reportes</td><td>Menú principal</td></tr><tr><td class='n'>41</td><td>Reportes - Prestadores</td><td>Menú principal</td></tr><tr><td class='n'>42</td><td>Desarrollo</td><td>Menú principal</td></tr><tr><td class='n'>43</td><td>API</td><td>Menú principal</td></tr><tr><td class='n'>44</td><td>Log Interoperabilidad</td><td>Menú principal</td></tr><tr><td class='n'>45</td><td>Interoperabilidad - Historias Clinicas</td><td>Menú principal</td></tr><tr><td class='n'>46</td><td>Gestion Documental</td><td>Menú principal</td></tr><tr><td class='n'>47</td><td>Admin</td><td>Menú principal</td></tr><tr><td class='n'>48</td><td>Historia Clínica</td><td>Área funcional con rutas propias</td></tr><tr><td class='n'>49</td><td>Consentimiento Informado</td><td>Área funcional con rutas propias</td></tr><tr><td class='n'>50</td><td>Certificados de Aptitud Laboral</td><td>Área funcional con rutas propias</td></tr><tr><td class='n'>51</td><td>Cuadro de Turnos</td><td>Área funcional con rutas propias</td></tr><tr><td class='n'>52</td><td>Gestión del Conocimiento</td><td>Área funcional con rutas propias</td></tr><tr><td class='n'>53</td><td>Medicina Laboral</td><td>Área funcional con rutas propias</td></tr><tr><td class='n'>54</td><td>Códigos SUMI</td><td>Área funcional con rutas propias</td></tr></tbody></table>
+
+  <p>
+    La fuente previa indica que el menú de esa instancia declara 49 entradas de primer nivel, de las cuales
+    <em>Gestión Riesgo</em> y <em>Fias</em> están duplicados (47 títulos únicos de menú), y que se adicionaron
+    7 áreas funcionales con rutas propias para completar 54 títulos. Ese criterio pertenece a esa fuente;
+    no se utiliza aquí para construir el conjunto de 24 módulos del numeral 6.
+  </p>
+
+  <h3>Trazabilidad</h3>
+  <table>
+    <thead><tr><th>Punto</th><th>Elemento</th><th>Fuente</th><th>Evidencia encontrada</th><th>Observación</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="n">4</td>
+        <td>Títulos de módulos de HORUS HEALTH</td>
+        <td>Inventario_Modulos_Horus_Health.docx</td>
+        <td>Sección “2. Inventario de módulos con fecha de creación”: 58 títulos. Resumen: “Módulos del menú = 58”.</td>
+        <td>El documento principal pide 54. En la fuente, 54 es “Manuales en catálogo”.</td>
+      </tr>
+      <tr>
+        <td class="n">5</td>
+        <td>Títulos de módulos FPS/FNC</td>
+        <td>INVENTARIO HORUS HEALTH FPS (1).docx</td>
+        <td>Tabla de 22 módulos. Texto: “Totales: 22 módulos funcionales y 98 submódulos / pantallas de menú.”</td>
+        <td>El documento principal pide 11. La fuente no identifica un subconjunto de 11.</td>
+      </tr>
+      <tr>
+        <td class="n">6</td>
+        <td>Títulos de la versión personalizada FOMAG (24 módulos)</td>
+        <td>No hay inventario que identifique 24 módulos FOMAG</td>
+        <td>No se encuentra información disponible en las fuentes suministradas.</td>
+        <td>El inventario previo de horus2.horus-health.com lista 54 títulos de HORUS HEALTH V2.0; no se usa como los 24 módulos del numeral 6.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <footer>
+    Consolidación editorial de los puntos 4, 5 y 6. No se agregan módulos, fechas, estados ni cantidades
+    que no figuren en las fuentes citadas. Los títulos se transcriben con la grafía de cada fuente.
+  </footer>
+</div>
+</body>
+</html>

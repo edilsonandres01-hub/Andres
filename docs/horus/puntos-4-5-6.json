@@ -1,0 +1,729 @@
+{
+  "documento_principal": "Identificación mediante su título — puntos 4, 5 y 6",
+  "punto_4": {
+    "fuente": "Inventario_Modulos_Horus_Health.docx",
+    "solicitado": 54,
+    "documentado_en_fuente": 58,
+    "nota": "El 54 de la fuente corresponde a Manuales en catálogo",
+    "modulos": [
+      {
+        "n": "1",
+        "titulo": "Panel Médico",
+        "fecha_creacion": "2024-10-31",
+        "pantallas": "14",
+        "manuales": "3",
+        "videos": "2",
+        "permiso": "panelmedico.atenciones"
+      },
+      {
+        "n": "2",
+        "titulo": "Agendamiento",
+        "fecha_creacion": "2024-11-19",
+        "pantallas": "5",
+        "manuales": "3",
+        "videos": "2",
+        "permiso": "agendamiento.medico"
+      },
+      {
+        "n": "3",
+        "titulo": "Caracterización",
+        "fecha_creacion": "2024-11-19",
+        "pantallas": "6",
+        "manuales": "2",
+        "videos": "1",
+        "permiso": "caracterizacion.menu"
+      },
+      {
+        "n": "4",
+        "titulo": "Citas",
+        "fecha_creacion": "2024-12-12",
+        "pantallas": "3",
+        "manuales": "2",
+        "videos": "2",
+        "permiso": "cita.afiliados"
+      },
+      {
+        "n": "5",
+        "titulo": "Autogestión",
+        "fecha_creacion": "2024-12-17",
+        "pantallas": "8",
+        "manuales": "2",
+        "videos": "2",
+        "permiso": "autogestion.menu"
+      },
+      {
+        "n": "6",
+        "titulo": "Aseguramiento",
+        "fecha_creacion": "2025-01-02",
+        "pantallas": "4",
+        "manuales": "2",
+        "videos": "1",
+        "permiso": "asegurador.menu"
+      },
+      {
+        "n": "7",
+        "titulo": "Mesa ayuda",
+        "fecha_creacion": "2025-01-02",
+        "pantallas": "7",
+        "manuales": "1",
+        "videos": "1",
+        "permiso": "mesaAyuda.menu"
+      },
+      {
+        "n": "8",
+        "titulo": "Transcripciones",
+        "fecha_creacion": "2025-01-02",
+        "pantallas": "3",
+        "manuales": "1",
+        "videos": "1",
+        "permiso": "transcripcion.menu"
+      },
+      {
+        "n": "9",
+        "titulo": "Admisiones",
+        "fecha_creacion": "2025-01-22",
+        "pantallas": "4",
+        "manuales": "1",
+        "videos": "1",
+        "permiso": "admisiones.menu"
+      },
+      {
+        "n": "10",
+        "titulo": "Admin",
+        "fecha_creacion": "2025-01-31",
+        "pantallas": "18",
+        "manuales": "3",
+        "videos": "0",
+        "permiso": "admin.enter"
+      },
+      {
+        "n": "11",
+        "titulo": "Autorización",
+        "fecha_creacion": "2025-01-31",
+        "pantallas": "5",
+        "manuales": "3",
+        "videos": "1",
+        "permiso": "autorizacion.menu"
+      },
+      {
+        "n": "12",
+        "titulo": "Centro Regulador",
+        "fecha_creacion": "2025-01-31",
+        "pantallas": "5",
+        "manuales": "2",
+        "videos": "1",
+        "permiso": "referencia.menu"
+      },
+      {
+        "n": "13",
+        "titulo": "Cuentas medicas",
+        "fecha_creacion": "2025-01-31",
+        "pantallas": "7",
+        "manuales": "2",
+        "videos": "0",
+        "permiso": "cuentasMedicas.vista"
+      },
+      {
+        "n": "14",
+        "titulo": "Desarrollo",
+        "fecha_creacion": "2025-01-31",
+        "pantallas": "4",
+        "manuales": "2",
+        "videos": "0",
+        "permiso": "modulo.permisos"
+      },
+      {
+        "n": "15",
+        "titulo": "Históricos",
+        "fecha_creacion": "2025-01-31",
+        "pantallas": "13",
+        "manuales": "2",
+        "videos": "0",
+        "permiso": "historico.atenciones"
+      },
+      {
+        "n": "16",
+        "titulo": "Reportes",
+        "fecha_creacion": "2025-01-31",
+        "pantallas": "10",
+        "manuales": "1",
+        "videos": "0",
+        "permiso": "reportes.vista"
+      },
+      {
+        "n": "17",
+        "titulo": "Farmacia",
+        "fecha_creacion": "2025-03-03",
+        "pantallas": "7",
+        "manuales": "3",
+        "videos": "1",
+        "permiso": "farmacia.menu.vista"
+      },
+      {
+        "n": "18",
+        "titulo": "Gestión de sucesos",
+        "fecha_creacion": "2025-03-03",
+        "pantallas": "7",
+        "manuales": "3",
+        "videos": "0",
+        "permiso": "eventoAdverso.menu"
+      },
+      {
+        "n": "19",
+        "titulo": "Acción Constitucional",
+        "fecha_creacion": "2025-12-26",
+        "pantallas": "4",
+        "manuales": "2",
+        "videos": "0",
+        "permiso": "tutelas.menu"
+      },
+      {
+        "n": "20",
+        "titulo": "Contratos",
+        "fecha_creacion": "2026-03-10",
+        "pantallas": "5",
+        "manuales": "1",
+        "videos": "0",
+        "permiso": "contrato.menu"
+      },
+      {
+        "n": "21",
+        "titulo": "Empalme",
+        "fecha_creacion": "2026-03-10",
+        "pantallas": "2",
+        "manuales": "1",
+        "videos": "0",
+        "permiso": "empalme.listarFerrocarriles"
+      },
+      {
+        "n": "22",
+        "titulo": "Inicio",
+        "fecha_creacion": "2026-03-10",
+        "pantallas": "4",
+        "manuales": "1",
+        "videos": "0",
+        "permiso": "menu.inicio"
+      },
+      {
+        "n": "23",
+        "titulo": "Oncologia",
+        "fecha_creacion": "2026-03-10",
+        "pantallas": "6",
+        "manuales": "1",
+        "videos": "0",
+        "permiso": "oncologia.enter"
+      },
+      {
+        "n": "24",
+        "titulo": "PQRFs",
+        "fecha_creacion": "2026-03-10",
+        "pantallas": "7",
+        "manuales": "1",
+        "videos": "1",
+        "permiso": "pqrsf.menu"
+      },
+      {
+        "n": "25",
+        "titulo": "Solicitudes",
+        "fecha_creacion": "2026-03-10",
+        "pantallas": "6",
+        "manuales": "1",
+        "videos": "0",
+        "permiso": "solicitudes.menu"
+      },
+      {
+        "n": "26",
+        "titulo": "Telesalud",
+        "fecha_creacion": "2026-03-10",
+        "pantallas": "6",
+        "manuales": "1",
+        "videos": "0",
+        "permiso": "telesalud.vista"
+      },
+      {
+        "n": "27",
+        "titulo": "Compras-Farmacia",
+        "fecha_creacion": "2026-03-16",
+        "pantallas": "5",
+        "manuales": "0",
+        "videos": "1",
+        "permiso": "farmacia.menu.vista"
+      },
+      {
+        "n": "28",
+        "titulo": "Informes-Farmacia",
+        "fecha_creacion": "2026-03-16",
+        "pantallas": "4",
+        "manuales": "0",
+        "videos": "1",
+        "permiso": "farmacia.menu.vista"
+      },
+      {
+        "n": "29",
+        "titulo": "API",
+        "fecha_creacion": "No registrada",
+        "pantallas": "2",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "api.vista"
+      },
+      {
+        "n": "30",
+        "titulo": "Admisión de urgencias",
+        "fecha_creacion": "No registrada",
+        "pantallas": "2",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "admisionUrgencias.enter"
+      },
+      {
+        "n": "31",
+        "titulo": "Barreras de acceso",
+        "fecha_creacion": "No registrada",
+        "pantallas": "5",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "barreraAcceso.menu"
+      },
+      {
+        "n": "32",
+        "titulo": "CAC",
+        "fecha_creacion": "No registrada",
+        "pantallas": "3",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "cac.vista"
+      },
+      {
+        "n": "33",
+        "titulo": "Cajas y Recaudos",
+        "fecha_creacion": "No registrada",
+        "pantallas": "4",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "caja.menu"
+      },
+      {
+        "n": "34",
+        "titulo": "Censo",
+        "fecha_creacion": "No registrada",
+        "pantallas": "2",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "admisionUrgencias.enter"
+      },
+      {
+        "n": "35",
+        "titulo": "Clientes Mesa Ayuda",
+        "fecha_creacion": "No registrada",
+        "pantallas": "2",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "clientes.mesaAyuda.vista"
+      },
+      {
+        "n": "36",
+        "titulo": "Compras",
+        "fecha_creacion": "No registrada",
+        "pantallas": "3",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "compras.menu"
+      },
+      {
+        "n": "37",
+        "titulo": "Concurrencia",
+        "fecha_creacion": "No registrada",
+        "pantallas": "5",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "concurrencia.menu"
+      },
+      {
+        "n": "38",
+        "titulo": "Consentimientos informados",
+        "fecha_creacion": "No registrada",
+        "pantallas": "4",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "consentimientosInformados.modulo"
+      },
+      {
+        "n": "39",
+        "titulo": "Contrato ventas",
+        "fecha_creacion": "No registrada",
+        "pantallas": "5",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "vista.contratoventas"
+      },
+      {
+        "n": "40",
+        "titulo": "Control de PROA",
+        "fecha_creacion": "No registrada",
+        "pantallas": "2",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "proa.menu"
+      },
+      {
+        "n": "41",
+        "titulo": "Domiciliaria",
+        "fecha_creacion": "No registrada",
+        "pantallas": "3",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "domiciliaria.menu"
+      },
+      {
+        "n": "42",
+        "titulo": "Enfermeria",
+        "fecha_creacion": "No registrada",
+        "pantallas": "2",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "admisionUrgencias.enter"
+      },
+      {
+        "n": "43",
+        "titulo": "Estadisticas",
+        "fecha_creacion": "No registrada",
+        "pantallas": "3",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "estadistica.listar"
+      },
+      {
+        "n": "44",
+        "titulo": "Facturacion",
+        "fecha_creacion": "No registrada",
+        "pantallas": "6",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "facturacion.menu"
+      },
+      {
+        "n": "45",
+        "titulo": "Fias",
+        "fecha_creacion": "No registrada",
+        "pantallas": "2",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "fias.menu"
+      },
+      {
+        "n": "46",
+        "titulo": "Gestión Riesgo",
+        "fecha_creacion": "No registrada",
+        "pantallas": "4",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "asistenciaEducativa.gestionRiesgo"
+      },
+      {
+        "n": "47",
+        "titulo": "Gestión de Proyectos",
+        "fecha_creacion": "No registrada",
+        "pantallas": "1",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "mesaAyuda.tareas"
+      },
+      {
+        "n": "48",
+        "titulo": "Herramientas",
+        "fecha_creacion": "No registrada",
+        "pantallas": "3",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "blog.vista"
+      },
+      {
+        "n": "49",
+        "titulo": "Interoperabilidad Telepatia",
+        "fecha_creacion": "No registrada",
+        "pantallas": "2",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "interoperabilidad.telepatia.menu"
+      },
+      {
+        "n": "50",
+        "titulo": "Interoperabilidades",
+        "fecha_creacion": "No registrada",
+        "pantallas": "4",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "cita.afiliados"
+      },
+      {
+        "n": "51",
+        "titulo": "Ministerio",
+        "fecha_creacion": "No registrada",
+        "pantallas": "4",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "ministerio.modulo"
+      },
+      {
+        "n": "52",
+        "titulo": "Ordenamiento",
+        "fecha_creacion": "No registrada",
+        "pantallas": "2",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "ordenamiento.menu"
+      },
+      {
+        "n": "53",
+        "titulo": "Prestadores",
+        "fecha_creacion": "No registrada",
+        "pantallas": "6",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "prestadores.atenciones.prestadores"
+      },
+      {
+        "n": "54",
+        "titulo": "Rips",
+        "fecha_creacion": "No registrada",
+        "pantallas": "7",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "rips.menu"
+      },
+      {
+        "n": "55",
+        "titulo": "Sarlaft",
+        "fecha_creacion": "No registrada",
+        "pantallas": "3",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "sarlaft.vista"
+      },
+      {
+        "n": "56",
+        "titulo": "Talento Humano",
+        "fecha_creacion": "No registrada",
+        "pantallas": "6",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "talentoHumano.menu"
+      },
+      {
+        "n": "57",
+        "titulo": "Turno",
+        "fecha_creacion": "No registrada",
+        "pantallas": "6",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "—"
+      },
+      {
+        "n": "58",
+        "titulo": "Urgencias",
+        "fecha_creacion": "No registrada",
+        "pantallas": "8",
+        "manuales": "0",
+        "videos": "0",
+        "permiso": "urgencias.enter"
+      }
+    ]
+  },
+  "punto_5": {
+    "fuente": "INVENTARIO HORUS HEALTH FPS (1).docx",
+    "solicitado": 11,
+    "documentado_en_fuente": 22,
+    "totales_fuente": "22 módulos funcionales y 98 submódulos / pantallas de menú",
+    "corte": "14 de agosto de 2026",
+    "modulos": [
+      {
+        "n": "1",
+        "titulo": "Administración (usuarios, roles y permisos)",
+        "fecha_obra": "30 sep 2021",
+        "fecha_fps": "19 abr 2024",
+        "submodulos": "3",
+        "evidencia": "Manual V.1 (CreationDate del PDF). Semilla de BD FPS: tipos de usuario, roles desarrolladores/empleado y empleados."
+      },
+      {
+        "n": "2",
+        "titulo": "RIPS",
+        "fecha_obra": "21 abr 2022",
+        "fecha_fps": "18 dic 2024",
+        "submodulos": "6",
+        "evidencia": "Manual Validación RIPS V.2. Paquetes históricos desde 19 feb 2022 (migración). Estados de validación en FPS: 18 dic 2024."
+      },
+      {
+        "n": "3",
+        "titulo": "Resolución 202",
+        "fecha_obra": "22 abr 2022",
+        "fecha_fps": "dic 2024",
+        "submodulos": "3",
+        "evidencia": "Manual para Resolución 202. Rol de menú id 12, posterior a RIPS en el catálogo de permisos."
+      },
+      {
+        "n": "4",
+        "titulo": "Facturación de urgencias",
+        "fecha_obra": "10 may 2022",
+        "fecha_fps": "24 oct 2024",
+        "submodulos": "10",
+        "evidencia": "Manual de usuario Facturación. Estados de factura en FPS el 24 oct 2024. Rol facturación 5 nov 2024. Códigos de glosa 15 nov 2024."
+      },
+      {
+        "n": "5",
+        "titulo": "Caracterización / Gestión (obra previa)",
+        "fecha_obra": "30 may 2023",
+        "fecha_fps": "4 sep 2025",
+        "submodulos": "2",
+        "evidencia": "Manual CARACTERIZACION (GESTION). En FPS el módulo vigente es Gestión del riesgo / SISCAC (patologías 4 sep 2025; manual 28 nov 2025)."
+      },
+      {
+        "n": "6",
+        "titulo": "Estadísticas e indicadores",
+        "fecha_obra": "5 jun 2023",
+        "fecha_fps": "18 dic 2025",
+        "submodulos": "3",
+        "evidencia": "Manual indicadores y estadísticas. Manual Estadísticas Ferrocarriles (obra especifica FPS) 18 dic 2025."
+      },
+      {
+        "n": "7",
+        "titulo": "Auditoria medica",
+        "fecha_obra": "5 jun 2023",
+        "fecha_fps": "10 dic 2024",
+        "submodulos": "6",
+        "evidencia": "Manual de usuario auditoria. Rol auditorio medica 10 dic 2024. Catálogo de tipos, ámbitos y regionales 11 dic 2024."
+      },
+      {
+        "n": "8",
+        "titulo": "Mesa de ayuda",
+        "fecha_obra": "5 jun 2023",
+        "fecha_fps": "5 dic 2024",
+        "submodulos": "3",
+        "evidencia": "Manual helpdesk. Estados ABIERTO/CERRADO en FPS 5 dic 2024."
+      },
+      {
+        "n": "9",
+        "titulo": "Autogestión y medicamentos",
+        "fecha_obra": "5 jun 2023",
+        "fecha_fps": "24 oct 2024",
+        "submodulos": "5",
+        "evidencia": "Manual de autogestión y medicamentos. Rol autogestion_empleados 24 oct 2024."
+      },
+      {
+        "n": "10",
+        "titulo": "UPC",
+        "fecha_obra": "5 jun 2023",
+        "fecha_fps": "2024-2025",
+        "submodulos": "2",
+        "evidencia": "Manual UPC reporte. Permisos upc.vista / upc.reporte / upc.parametrizacion (ids 94 a 96)."
+      },
+      {
+        "n": "11",
+        "titulo": "Inicio / Manuales",
+        "fecha_obra": "19 abr 2024",
+        "fecha_fps": "19 abr 2024",
+        "submodulos": "1",
+        "evidencia": "Página de aterrizaje post-login de la instancia FPS. Semilla de plataforma 19 abr 2024 21:01 (América/Bogotá)."
+      },
+      {
+        "n": "12",
+        "titulo": "Desarrollo (estados y permisos técnicos)",
+        "fecha_obra": "19 abr 2024",
+        "fecha_fps": "19 abr 2024",
+        "submodulos": "2",
+        "evidencia": "Tabla de estados ACTIVO y demás semilla 19 abr 2024. Permiso dev."
+      },
+      {
+        "n": "13",
+        "titulo": "Aseguramiento",
+        "fecha_obra": "19 abr 2024",
+        "fecha_fps": "19 jun 2024",
+        "submodulos": "9",
+        "evidencia": "Estados de afiliación 19 abr 2024. Rol Aseguramiento 19 jun 2024. Manual del módulo 16 dic 2024."
+      },
+      {
+        "n": "14",
+        "titulo": "Prestaciones económicas",
+        "fecha_obra": "17 jun 2024",
+        "fecha_fps": "17 jun 2024",
+        "submodulos": "5",
+        "evidencia": "Rol prestaciones económicas 17 jun 2024. Primer módulo de negocio creado después de la semilla."
+      },
+      {
+        "n": "15",
+        "titulo": "Compensación",
+        "fecha_obra": "2 ago 2024",
+        "fecha_fps": "2 ago 2024",
+        "submodulos": "7",
+        "evidencia": "Grupos etarios UPC 2 ago 2024. Zonas de compensación 10 oct 2024. Manual del módulo 20 dic 2024."
+      },
+      {
+        "n": "16",
+        "titulo": "PILA",
+        "fecha_obra": "21 nov 2024",
+        "fecha_fps": "21 nov 2024",
+        "submodulos": "8",
+        "evidencia": "Rol pila 21 nov 2024. Manual del módulo 20 dic 2024."
+      },
+      {
+        "n": "17",
+        "titulo": "Facturación RIPS",
+        "fecha_obra": "dic 2024",
+        "fecha_fps": "dic 2024",
+        "submodulos": "4",
+        "evidencia": "Permisos facturacionRips. * (ids 60 a 77), posteriores a facturación de urgencias en el catálogo."
+      },
+      {
+        "n": "18",
+        "titulo": "RIAS",
+        "fecha_obra": "22 ago 2025",
+        "fecha_fps": "22 ago 2025",
+        "submodulos": "8",
+        "evidencia": "Plantillas RIA (Nefro, Cáncer, Materno perinatal, PyM, Salud mental) 22 ago 2025. Manual 28 nov 2025."
+      },
+      {
+        "n": "19",
+        "titulo": "Gestión del riesgo / SISCAC",
+        "fecha_obra": "4 sep 2025",
+        "fecha_fps": "4 sep 2025",
+        "submodulos": "5",
+        "evidencia": "Catálogo de patologías SISCAC 4 sep 2025. Tipos de cargue CAC. Manual 28 nov 2025."
+      },
+      {
+        "n": "20",
+        "titulo": "Interoperabilidad - Historias clínicas",
+        "fecha_obra": "23 oct 2025",
+        "fecha_fps": "23 oct 2025",
+        "submodulos": "2",
+        "evidencia": "Rol Modulo interoperabilidad HC 23 oct 2025."
+      },
+      {
+        "n": "21",
+        "titulo": "Programas de salud",
+        "fecha_obra": "4 nov 2025",
+        "fecha_fps": "4 nov 2025",
+        "submodulos": "7",
+        "evidencia": "Plantillas (Cesación de tabaco, Enfermedades huérfanas, EPOC-ASMA y otras) 4 nov 2025. Manual 28 nov 2025."
+      },
+      {
+        "n": "22",
+        "titulo": "Reporte de errores (RIAS y Programas)",
+        "fecha_obra": "nov 2025",
+        "fecha_fps": "nov 2025",
+        "submodulos": "2",
+        "evidencia": "Permisos reporte. Vista / reportes Errores. * (ids 162 a 164)."
+      }
+    ]
+  },
+  "punto_6": {
+    "solicitado": 24,
+    "identificacion_24_modulos_fomag": "No se encuentra información disponible en las fuentes suministradas.",
+    "inventario_previo": {
+      "archivo": "docs/inventario-modulos-horus-health-v2.md",
+      "instancia": "https://horus2.horus-health.com/",
+      "titulo_de_la_fuente": "Inventario de módulos — HORUS HEALTH Versión 2.0",
+      "titulos_en_fuente": 54,
+      "homologado_al_numeral_6": false
+    }
+  }
+}
