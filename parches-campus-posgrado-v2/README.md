@@ -8,6 +8,31 @@ hay que aplicarlos a mano.
 Base sobre la que se generaron: `main` en `860cd00`, salvo `dashboard/`, que es
 posterior y se generó sobre `main` en `632bf7a`.
 
+---
+
+## AVISO: `deploy/` y `limpieza/` YA NO HACEN FALTA
+
+Comprobado el 2026-09-08 contra `main` en `632bf7a`. Mientras estos parches se
+preparaban, `main` avanzó 19 commits y **el mismo trabajo entró por otra vía**:
+
+| Commit en `main` | Reemplaza a |
+|---|---|
+| `5e206b3` fix(docker): incluir backend/lib en la imagen | todo `deploy/` y `limpieza/0004` |
+| `97bca96` chore(backend): eliminar código muerto (ai-grader.js + árbol NestJS) | `limpieza/0001`–`0003` |
+| `1edfd74` docs(veracidad): MASTER_IEP_INTEGRATION.md refleja el sistema real | `limpieza/0005` |
+| `93e47d2` fix(master): referencia interna + ECTS en vez de officialCode espurio | `limpieza/0006` |
+
+Verificado en `main`: `backend/src/` y `backend/ai-grader.js` ya no existen, y el
+`Dockerfile` ya tiene `COPY backend/lib ./lib` en su línea 10.
+
+**No apliques `deploy/` ni `limpieza/`**: fallarán o generarán conflictos. Se
+conservan solo como registro de la investigación. Producción ya arranca: los
+endpoints `/api/tfm`, `/api/exams/:id/status` y `/api/me/review-plan` responden 401
+(existen y piden sesión) en lugar de 404.
+
+**Sigue vigente:** `plantillas/` (no está en `main`; los cuatro
+`notebookTemplateUrl` siguen a `null`) y `dashboard/` (generado sobre `632bf7a`).
+
 ## `deploy/` — arreglo crítico de despliegue
 
 El contenedor de Railway se cae al arrancar. `simple-server.js` hace
