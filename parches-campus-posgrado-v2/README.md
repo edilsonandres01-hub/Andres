@@ -52,6 +52,32 @@ git am /ruta/a/plantillas/*.patch
 git push -u origin cursor/handson-tfm-templates-21ab
 ```
 
+## `plantillas/` — 4 notebooks hands-on + memoria del TFM
+
+Cinco parches. Serie independiente: no comparte ningún fichero con `deploy/` ni con
+`limpieza/`. Ver `plantillas/APLICAR.md`.
+
+```bash
+git checkout -b cursor/handson-tfm-templates-21ab main
+git am /ruta/a/plantillas/*.patch
+git push -u origin cursor/handson-tfm-templates-21ab
+```
+
+Los enlaces a las plantillas apuntan a `.../blob/main/plantillas/...`, así que
+empiezan a funcionar en cuanto la rama entre en `main`.
+
+## Orden recomendado
+
+1. **`limpieza/`** primero: su parche `0004` ya trae el arreglo del `Dockerfile`, así
+   que desbloquea el despliegue y limpia el repo de una vez.
+2. **`plantillas/`** después, sobre `main` ya actualizado.
+3. **`deploy/`** solo si prefieres desplegar el arreglo crítico por separado y dejar
+   la limpieza para más tarde. En ese caso **no apliques también `limpieza/0004`**.
+
+Tras mergear, Railway construirá y esta vez arrancará: aplicará las migraciones
+002→015 y el seed. Ese camino ya se ensayó sobre una restauración de los datos reales
+de producción, sin pérdidas, y `smoke.mjs` pasó 15/15.
+
 ## Backup de producción
 
 `backup-produccion-rowcounts.txt` es solo el recuento de filas. **El dump completo
