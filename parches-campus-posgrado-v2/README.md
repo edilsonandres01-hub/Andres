@@ -5,7 +5,8 @@ Estos parches se generaron desde una VM efímera y se guardan aquí porque el ag
 (`403: Permission denied to cursor[bot]`). No hay ramas ni PRs en el repo destino:
 hay que aplicarlos a mano.
 
-Base sobre la que se generaron: `main` en `860cd00`.
+Base sobre la que se generaron: `main` en `860cd00`, salvo `dashboard/`, que es
+posterior y se generó sobre `main` en `632bf7a`.
 
 ## `deploy/` — arreglo crítico de despliegue
 
@@ -66,6 +67,26 @@ git push -u origin cursor/handson-tfm-templates-21ab
 Los enlaces a las plantillas apuntan a `.../blob/main/plantillas/...`, así que
 empiezan a funcionar en cuanto la rama entre en `main`.
 
+## `dashboard/` — el panel principal deja de listar las asignaturas del Máster
+
+Dos parches. El panel listaba las 12 asignaturas del Máster (las 11 del plan + el
+TFM) como tarjetas sueltas, duplicando el acceso al Máster y saltándose la cascada de
+desbloqueo: `GET /api/courses` no devuelve `locked`, así que las 12 se veían iguales
+y todas abiertas aunque solo la I lo estuviera. Ahora solo se ven dentro de
+`/master-iep`, y el bloque del Máster del panel muestra el progreso agregado del
+programa. El criterio es el dato de relación `meta.programSlug`, no el título.
+Ver `dashboard/APLICAR.md`.
+
+**Independiente de `deploy/`, `limpieza/` y `plantillas/`**: solo toca
+`frontend/src/pages/Dashboard.tsx` y `frontend/src/hooks/useCourses.ts`, que ninguna
+de ellas modifica.
+
+```bash
+git checkout -b cursor/dashboard-sin-asignaturas-del-master-bfca main
+git am /ruta/a/dashboard/*.patch
+git push -u origin cursor/dashboard-sin-asignaturas-del-master-bfca
+```
+
 ## Orden recomendado
 
 1. **`limpieza/`** primero: su parche `0004` ya trae el arreglo del `Dockerfile`, así
@@ -73,6 +94,15 @@ empiezan a funcionar en cuanto la rama entre en `main`.
 2. **`plantillas/`** después, sobre `main` ya actualizado.
 3. **`deploy/`** solo si prefieres desplegar el arreglo crítico por separado y dejar
    la limpieza para más tarde. En ese caso **no apliques también `limpieza/0004`**.
+4. **`dashboard/`** en cualquier momento: no comparte ningún fichero con las otras
+   tres series.
+
+Aviso: `main` avanzó de `860cd00` a `632bf7a`, y los lotes `deploy/`, `limpieza/` y
+`plantillas/` se generaron sobre el primero. `limpieza/0001`–`0003` y `limpieza/0006`
+ya **no aplican limpiamente** sobre el `main` actual, porque parte de lo que hacían
+entró por otra vía (el scaffold NestJS ya no existe y `MasterIEPPage.tsx` ya trae el
+cambio de la referencia interna). Conviene regenerar esos lotes sobre `632bf7a`; el
+detalle está en `dashboard/APLICAR.md`.
 
 Tras mergear, Railway construirá y esta vez arrancará: aplicará las migraciones
 002→015 y el seed. Ese camino ya se ensayó sobre una restauración de los datos reales
