@@ -5,8 +5,17 @@ Estos parches se generaron desde una VM efímera y se guardan aquí porque el ag
 (`403: Permission denied to cursor[bot]`). No hay ramas ni PRs en el repo destino:
 hay que aplicarlos a mano.
 
-Base sobre la que se generaron: `main` en `860cd00`, salvo `dashboard/`, que es
-posterior y se generó sobre `main` en `632bf7a`.
+Base sobre la que se generaron: `main` en `860cd00`, salvo `dashboard/` y
+`gate-prerrequisitos/`, que son posteriores y se generaron sobre `main` en
+`632bf7a`.
+
+| Lote | Estado | Base |
+|---|---|---|
+| `gate-prerrequisitos/` | **vigente** | `632bf7a` |
+| `dashboard/` | vigente | `632bf7a` |
+| `plantillas/` | vigente | `860cd00` |
+| `deploy/` | **obsoleto** (entró en `main` por otra vía) | `860cd00` |
+| `limpieza/` | **obsoleto** (entró en `main` por otra vía) | `860cd00` |
 
 ---
 
@@ -112,15 +121,55 @@ git am /ruta/a/dashboard/*.patch
 git push -u origin cursor/dashboard-sin-asignaturas-del-master-bfca
 ```
 
+## `gate-prerrequisitos/` — la cascada del Máster se aplica de verdad, en el servidor
+
+Cuatro parches. La cascada lineal del Máster (11 asignaturas + TFM, cada una con
+`meta.prerequisiteSlug`) era **decorativa**: `locked` se calculaba en un bucle de tres
+líneas dentro del handler de `/api/programs`, y el único control real vivía en
+`POST /api/progress`, que se esquivaba entregando la actividad, aprobando el quiz
+formativo (que inserta en `progress`) o abriendo directamente un intento de examen de
+15 preguntas. Comprobado en vivo: con una cuenta nueva se podía cursar entera una
+asignatura bloqueada.
+
+Ahora la regla vive en un solo sitio, `backend/lib/prerequisites.js`, y la consumen
+todas las superficies. La semántica respeta el **modo consulta** de `7aed5bf`: leer
+una asignatura bloqueada sigue devolviendo 200 con el material completo —el payload
+lo declara con `locked` y `lockedReason`—, pero avanzar devuelve **403
+`PREREQUISITE_LOCKED`**. Cierra además «Explorar Cursos», `CourseView` y el dashboard
+móvil, incluida la invalidación de la caché de `AsyncStorage`.
+Ver `gate-prerrequisitos/APLICAR.md`.
+
+Verificado contra PostgreSQL real: smoke **15/15**, `gate-check` **30/30**, caché del
+móvil **14/14**, `type-check` y `build` correctos. Inventario de estudiantes afectados
+en producción: **0** (`gate-prerrequisitos/ESTUDIANTES-AFECTADOS.md`, con la consulta
+SQL de solo lectura incluida).
+
+**Choca con `dashboard/`**: ambos tocan `frontend/src/hooks/useCourses.ts`. El
+conflicto es aditivo y se resuelve quedándose con los dos lados; el detalle exacto
+está en `gate-prerrequisitos/APLICAR.md`.
+
+```bash
+git checkout -b cursor/gate-prerrequisitos-9b8f main
+git am -3 /ruta/a/dashboard/*.patch            # primero
+git am -3 /ruta/a/gate-prerrequisitos/*.patch  # se para en 0002; ver APLICAR.md
+git push -u origin cursor/gate-prerrequisitos-9b8f
+```
+
 ## Orden recomendado
 
-1. **`limpieza/`** primero: su parche `0004` ya trae el arreglo del `Dockerfile`, así
-   que desbloquea el despliegue y limpia el repo de una vez.
-2. **`plantillas/`** después, sobre `main` ya actualizado.
-3. **`deploy/`** solo si prefieres desplegar el arreglo crítico por separado y dejar
-   la limpieza para más tarde. En ese caso **no apliques también `limpieza/0004`**.
-4. **`dashboard/`** en cualquier momento: no comparte ningún fichero con las otras
-   tres series.
+Con `main` en `632bf7a`, los únicos lotes que quedan por aplicar son
+`plantillas/`, `dashboard/` y `gate-prerrequisitos/`:
+
+1. **`plantillas/`** — independiente de todo lo demás; no toca el frontend.
+2. **`dashboard/`** — antes que el gate, porque el conflicto se resuelve mejor en
+   ese sentido (`git am -3` deja una sola pieza que resolver).
+3. **`gate-prerrequisitos/`** — al final. Es el único lote que toca el backend, el
+   móvil y el CI, así que conviene que sea el último en entrar y el que se valide
+   sobre el árbol ya completo. Se verificó exactamente así: árbol combinado
+   `dashboard` + `gate` sobre `632bf7a`, con smoke 15/15 y gate-check 30/30.
+
+`deploy/` y `limpieza/` ya no se aplican (ver el aviso de arriba). El orden
+histórico que describían las secciones siguientes queda solo como registro.
 
 Aviso: `main` avanzó de `860cd00` a `632bf7a`, y los lotes `deploy/`, `limpieza/` y
 `plantillas/` se generaron sobre el primero. `limpieza/0001`–`0003` y `limpieza/0006`
@@ -139,9 +188,19 @@ de producción, sin pérdidas, y `smoke.mjs` pasó 15/15.
 NO está aquí** porque contiene datos reales de usuarios. Se generó en
 `/tmp/backups/campus-posgrado-20260908-122825.sql` dentro de la VM, que es efímera.
 
-La base de producción sigue intacta en `001_init.sql` (las migraciones nunca llegaron
-a correr porque el contenedor se caía antes), así que ese backup se puede rehacer
-idéntico en cualquier momento con `pg_dump` antes de mergear el arreglo.
+**Corrección (2026-09-08, comprobado en producción en solo lectura).** Este párrafo
+decía que la base de producción «sigue intacta en `001_init.sql` porque las
+migraciones nunca llegaron a correr». Ya no es cierto: al conectarse por un proxy TCP
+temporal para el inventario del gate se encontraron tablas de las migraciones
+007–015 (`exam_attempts`, `formative_responses`, `activity_submissions`,
+`tfm_enrollments`, `certificates`, `quiz_responses`). El esquema está al día; lo que
+apenas tiene contenido son los datos: 4 usuarios (3 con rol `student`, dos de ellos
+de pruebas automatizadas), 5 filas en `progress`, 0 entregas, 2 intentos de examen y
+0 certificados. Detalle completo en
+`gate-prerrequisitos/ESTUDIANTES-AFECTADOS.md`.
+
+Aun así el backup se puede rehacer con `pg_dump` en cualquier momento antes de
+mergear.
 
 ## Pendiente de decisión del usuario
 

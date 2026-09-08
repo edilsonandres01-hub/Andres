@@ -1,0 +1,581 @@
+From 3cdf818a3a2726a748d2945083a66c55ed976a2e Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursor@example.com>
+Date: Tue, 8 Sep 2026 20:20:54 +0000
+Subject: [PATCH 3/4] =?UTF-8?q?feat(mobile):=20dashboard=20con=20asignatur?=
+ =?UTF-8?q?as=20bloqueadas=20e=20invalidaci=C3=B3n=20de=20AsyncStorage?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+El dashboard móvil pintaba cualquier curso como abierto y, peor, servía el
+catálogo desde AsyncStorage sin versión ni caducidad: una asignatura guardada
+como abierta se quedaba abierta en el dispositivo indefinidamente, incluso
+después de que el servidor empezara a bloquearla.
+
+- cachePolicy.ts (nuevo, sin dependencias de React Native): decide si una
+  entrada guardada sirve. Descarta el formato antiguo —el array pelado que
+  escribía la versión anterior—, las de otra versión y el JSON corrupto;
+  las caducadas dejan de servirse salvo en modo offline. CACHE_VERSION = 2
+  para invalidar de golpe todo lo grabado antes de que existiera `locked`.
+- cache.ts: la E/S contra AsyncStorage, más invalidateCourseCache().
+- useCourses: deja de servir la caché a ciegas. Solo la usa si es de esta
+  versión, está fresca y declara el estado de bloqueo; revalida por detrás y
+  cae a la copia rancia únicamente si la petición falla.
+- useAuth: un 403 PREREQUISITE_LOCKED borra la caché en el acto (el móvil
+  creía abierto algo que el servidor tiene cerrado), y el logout también.
+- DashboardScreen: tarjeta bloqueada con 🔒, motivo y entrada en modo consulta;
+  tirar para refrescar salta la caché a propósito.
+- scripts/cache-gate-check.mjs: ejercita la política de caché y comprueba
+  contra la API real que el payload declara `locked` y que una escritura con
+  caché sucia sigue devolviendo 403.
+---
+ mobile/scripts/cache-gate-check.mjs    | 108 +++++++++++++++++++++++++
+ mobile/src/hooks/cache.ts              |  33 ++++++++
+ mobile/src/hooks/cachePolicy.ts        |  65 +++++++++++++++
+ mobile/src/hooks/useAuth.ts            |  17 ++++
+ mobile/src/hooks/useCourses.ts         | 101 +++++++++++++----------
+ mobile/src/screens/DashboardScreen.tsx |  79 +++++++++++++-----
+ 6 files changed, 343 insertions(+), 60 deletions(-)
+ create mode 100644 mobile/scripts/cache-gate-check.mjs
+ create mode 100644 mobile/src/hooks/cache.ts
+ create mode 100644 mobile/src/hooks/cachePolicy.ts
+
+diff --git a/mobile/scripts/cache-gate-check.mjs b/mobile/scripts/cache-gate-check.mjs
+new file mode 100644
+index 0000000..b2c9c95
+--- /dev/null
++++ b/mobile/scripts/cache-gate-check.mjs
+@@ -0,0 +1,108 @@
++// Verificación de la caché de AsyncStorage frente al gate de prerrequisitos.
++//
++//   BASE=http://localhost:3001/api node --experimental-strip-types scripts/cache-gate-check.mjs
++//
++// La app móvil guardaba el catálogo en AsyncStorage y lo servía sin caducidad
++// ni versión: una asignatura cacheada como abierta seguía pintándose abierta
++// para siempre. Aquí se comprueba, contra la política real (src/hooks/
++// cachePolicy.ts) y contra la API real, que:
++//   - una entrada del formato antiguo, de otra versión o caducada se descarta,
++//   - una entrada sin `locked` no se considera fiable,
++//   - lo que hoy devuelve GET /courses sí declara el bloqueo.
++import {
++  CACHE_VERSION,
++  CACHE_TTL_MS,
++  inspectCacheEntry,
++  declaresLockState,
++  makeEnvelope,
++} from '../src/hooks/cachePolicy.ts';
++
++const BASE = process.env.BASE || 'http://localhost:3001/api';
++let pass = 0;
++let fail = 0;
++const ok = (cond, msg, extra) => {
++  if (cond) {
++    pass += 1;
++    console.log('  ✓', msg);
++  } else {
++    fail += 1;
++    console.log('  ✗', msg, extra !== undefined ? `\n      → ${JSON.stringify(extra)}` : '');
++  }
++};
++
++const NOW = 1_800_000_000_000;
++
++console.log('\n1. Entradas de caché que deben descartarse');
++// Lo que escribía la versión anterior: el array pelado, sin envoltorio.
++const legado = JSON.stringify([
++  { id: 'a', slug: 'master-ii', title: 'II', locked: false },
++]);
++let v = inspectCacheEntry(legado, NOW);
++ok(!v.usable && v.discard, `formato antiguo sin versión → se borra (${v.reason})`, v);
++
++v = inspectCacheEntry(JSON.stringify({ v: 1, at: NOW, data: [] }), NOW);
++ok(!v.usable && v.discard, `versión anterior → se borra (${v.reason})`, v);
++
++v = inspectCacheEntry(JSON.stringify(makeEnvelope([], NOW - CACHE_TTL_MS - 1)), NOW);
++ok(!v.usable && !v.discard, `caducada → no se sirve, pero se conserva para modo offline (${v.reason})`, v);
++
++v = inspectCacheEntry('{no es json', NOW);
++ok(!v.usable && v.discard, `JSON corrupto → se borra (${v.reason})`, v);
++
++v = inspectCacheEntry(null, NOW);
++ok(!v.usable, 'sin entrada → nada que servir');
++
++console.log('\n2. Entradas que sí valen');
++v = inspectCacheEntry(JSON.stringify(makeEnvelope([{ id: 'a' }], NOW - 1000)), NOW);
++ok(v.usable && !v.stale, `entrada v${CACHE_VERSION} fresca → se sirve`);
++v = inspectCacheEntry(JSON.stringify(makeEnvelope([{ id: 'a' }], NOW - CACHE_TTL_MS - 1)), NOW, true);
++ok(v.usable && v.stale, 'entrada caducada en modo offline → se sirve marcada como rancia');
++
++console.log('\n3. Caché sucia: bloqueada en el servidor, guardada como abierta');
++const sucia = [
++  { id: '1', slug: 'master-i', title: 'I', locked: false },
++  { id: '2', slug: 'master-ii', title: 'II', prerequisiteSlug: 'master-i' }, // sin `locked`
++];
++ok(!declaresLockState(sucia), 'un catálogo sin `locked` en una asignatura con prerrequisito NO es fiable');
++const limpia = [
++  { id: '1', slug: 'master-i', title: 'I', locked: false },
++  { id: '2', slug: 'master-ii', title: 'II', prerequisiteSlug: 'master-i', locked: true },
++];
++ok(declaresLockState(limpia), 'un catálogo que declara `locked` sí es fiable');
++
++console.log('\n4. Lo que el móvil recibe hoy de la API');
++const email = `movil${Date.now()}@example.com`;
++const reg = await (
++  await fetch(`${BASE}/auth/register`, {
++    method: 'POST',
++    headers: { 'content-type': 'application/json' },
++    body: JSON.stringify({ email, name: 'Móvil', password: 'Password123' }),
++  })
++).json();
++const H = { authorization: `Bearer ${reg.accessToken}`, 'content-type': 'application/json' };
++const courses = await (await fetch(`${BASE}/courses`, { headers: H })).json();
++const master = courses.filter((c) => (c.meta || {}).programSlug === 'master-iep');
++ok(master.length > 0, `GET /courses devuelve ${master.length} asignaturas del Máster`);
++ok(declaresLockState(courses), 'el payload real pasa el control de fiabilidad de la caché');
++const ii = master.find((c) => c.slug === 'master-ii');
++ok(ii && ii.locked === true, 'master-ii llega al móvil marcada como bloqueada', ii && { locked: ii.locked });
++ok(!!(ii && ii.lockedReason), 'llega con el motivo para pintarlo en la tarjeta');
++
++console.log('\n5. Aunque la caché mintiera, el servidor no cede');
++const res2 = await (await fetch(`${BASE}/courses/master-ii`, { headers: H })).json();
++const manual = res2.modules
++  .flatMap((m) => m.resources)
++  .find((r) => ['book', 'video', 'docs', 'reading', 'lecture', 'tool'].includes(r.type));
++const w = await fetch(`${BASE}/progress`, {
++  method: 'POST',
++  headers: H,
++  body: JSON.stringify({ resourceId: manual.id }),
++});
++const wb = await w.json();
++ok(w.status === 403 && wb.code === 'PREREQUISITE_LOCKED', 'una escritura desde el móvil con caché sucia → 403', {
++  status: w.status,
++  code: wb.code,
++});
++
++console.log(`\n${pass} ok, ${fail} fallo(s)`);
++process.exit(fail ? 1 : 0);
+diff --git a/mobile/src/hooks/cache.ts b/mobile/src/hooks/cache.ts
+new file mode 100644
+index 0000000..d28e9b1
+--- /dev/null
++++ b/mobile/src/hooks/cache.ts
+@@ -0,0 +1,33 @@
++import AsyncStorage from '@react-native-async-storage/async-storage';
++import { inspectCacheEntry, makeEnvelope } from './cachePolicy';
++
++// Caché local del catálogo. Vive aquí, y no dentro de useCourses, para que el
++// interceptor de errores de la API pueda invalidarla sin importar el hook (y
++// sin crear un ciclo de imports). La política —qué entrada vale y cuál se
++// tira— está en cachePolicy.ts, que no depende de React Native y se prueba
++// aparte.
++
++export const COURSES_CACHE_KEY = 'courses_cache';
++export const PROGRESS_CACHE_KEY = 'progress_cache';
++
++export { CACHE_VERSION, CACHE_TTL_MS } from './cachePolicy';
++
++export async function writeCache<T>(key: string, data: T) {
++  await AsyncStorage.setItem(key, JSON.stringify(makeEnvelope(data, Date.now())));
++}
++
++export async function readCache<T>(key: string, { allowStale = false } = {}): Promise<T | null> {
++  const verdict = inspectCacheEntry(await AsyncStorage.getItem(key), Date.now(), allowStale);
++  if (verdict.usable) return verdict.data as T;
++  if (verdict.discard) await AsyncStorage.removeItem(key);
++  return null;
++}
++
++/**
++ * Borra el estado cacheado del catálogo y el progreso. Se llama al cerrar
++ * sesión y en cuanto el servidor responde 403 PREREQUISITE_LOCKED: ese 403
++ * significa que lo que el móvil creía abierto está en realidad bloqueado.
++ */
++export async function invalidateCourseCache() {
++  await AsyncStorage.multiRemove([COURSES_CACHE_KEY, PROGRESS_CACHE_KEY]);
++}
+diff --git a/mobile/src/hooks/cachePolicy.ts b/mobile/src/hooks/cachePolicy.ts
+new file mode 100644
+index 0000000..ae0d827
+--- /dev/null
++++ b/mobile/src/hooks/cachePolicy.ts
+@@ -0,0 +1,65 @@
++// Política de la caché local del catálogo. Sin dependencias: es la parte que
++// decide si una entrada guardada en AsyncStorage sirve o hay que tirarla, y se
++// puede ejercitar de forma aislada (mobile/scripts/cache-gate-check.mjs).
++
++// Subir esta versión invalida TODA la caché guardada en el dispositivo. Se
++// subió a 2 al introducir `locked`: una caché v1 se grabó cuando el backend no
++// enviaba el campo, y servirla dejaría asignaturas bloqueadas pintadas como
++// abiertas.
++export const CACHE_VERSION = 2;
++
++// Vencida la ventana, la entrada deja de valer como respuesta y pasa a ser solo
++// red de seguridad para cuando no hay conexión.
++export const CACHE_TTL_MS = 5 * 60 * 1000;
++
++export interface CacheEnvelope<T> {
++  v: number;
++  at: number;
++  data: T;
++}
++
++export type CacheVerdict =
++  | { usable: true; stale: boolean; data: any }
++  | { usable: false; discard: boolean; reason: string };
++
++/**
++ * Decide qué hacer con lo que hay guardado bajo una clave.
++ *   usable  — se puede servir
++ *   stale   — está caducada (solo aceptable en modo offline)
++ *   discard — hay que borrarla del dispositivo, no volverá a ser válida
++ */
++export function inspectCacheEntry(raw: string | null, now: number, allowStale = false): CacheVerdict {
++  if (raw === null || raw === undefined) return { usable: false, discard: false, reason: 'vacía' };
++  let parsed: any;
++  try {
++    parsed = JSON.parse(raw);
++  } catch {
++    return { usable: false, discard: true, reason: 'JSON corrupto' };
++  }
++  // Formato antiguo: el payload se guardaba pelado, sin envoltorio ni versión.
++  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
++    return { usable: false, discard: true, reason: 'formato antiguo sin versión' };
++  }
++  if (parsed.v !== CACHE_VERSION) {
++    return { usable: false, discard: true, reason: `versión ${parsed.v} ≠ ${CACHE_VERSION}` };
++  }
++  const stale = now - Number(parsed.at || 0) > CACHE_TTL_MS;
++  if (stale && !allowStale) return { usable: false, discard: false, reason: 'caducada' };
++  return { usable: true, stale, data: parsed.data };
++}
++
++/**
++ * Una caché de cursos en la que alguna asignatura con prerrequisito no declara
++ * `locked` viene de un backend anterior al gate: no se puede confiar en ella
++ * para decidir qué está abierto, aunque la versión y la frescura cuadren.
++ */
++export function declaresLockState(courses: any): boolean {
++  return (
++    Array.isArray(courses) &&
++    courses.every((c: any) => c && (c.locked !== undefined || !c.prerequisiteSlug))
++  );
++}
++
++export function makeEnvelope<T>(data: T, now: number): CacheEnvelope<T> {
++  return { v: CACHE_VERSION, at: now, data };
++}
+diff --git a/mobile/src/hooks/useAuth.ts b/mobile/src/hooks/useAuth.ts
+index c0ba408..cdc33c9 100644
+--- a/mobile/src/hooks/useAuth.ts
++++ b/mobile/src/hooks/useAuth.ts
+@@ -1,5 +1,6 @@
+ import AsyncStorage from '@react-native-async-storage/async-storage';
+ import axios from 'axios';
++import { invalidateCourseCache } from './cache';
+ 
+ const API_URL = 'https://campus-posgrado-v2-api.railway.app/api';
+ 
+@@ -21,6 +22,19 @@ api.interceptors.request.use(async (config) => {
+   return config;
+ });
+ 
++// Un 403 PREREQUISITE_LOCKED significa que el móvil creía abierta una
++// asignatura que el servidor tiene bloqueada: la copia local está sucia y se
++// tira, para que la siguiente pantalla se pinte con el estado real.
++api.interceptors.response.use(
++  (response) => response,
++  async (error) => {
++    if (error?.response?.status === 403 && error.response.data?.code === 'PREREQUISITE_LOCKED') {
++      await invalidateCourseCache().catch(() => {});
++    }
++    return Promise.reject(error);
++  }
++);
++
+ export const useAuth = {
+   async register(email: string, name: string, password: string) {
+     try {
+@@ -56,6 +70,9 @@ export const useAuth = {
+       await AsyncStorage.removeItem('accessToken');
+       await AsyncStorage.removeItem('refreshToken');
+       await AsyncStorage.removeItem('user');
++      // El catálogo cacheado lleva el estado de la cascada del usuario que se
++      // va: no puede sobrevivir al siguiente login.
++      await invalidateCourseCache();
+     } catch (error) {
+       throw error;
+     }
+diff --git a/mobile/src/hooks/useCourses.ts b/mobile/src/hooks/useCourses.ts
+index 5a41128..d16e2ef 100644
+--- a/mobile/src/hooks/useCourses.ts
++++ b/mobile/src/hooks/useCourses.ts
+@@ -1,13 +1,31 @@
+ import AsyncStorage from '@react-native-async-storage/async-storage';
+ import api from './useAuth';
++import {
++  COURSES_CACHE_KEY,
++  PROGRESS_CACHE_KEY,
++  readCache,
++  writeCache,
++  invalidateCourseCache,
++} from './cache';
++import { declaresLockState } from './cachePolicy';
+ 
+ export interface Course {
+   id: string;
++  slug?: string;
+   title: string;
+   description: string;
+   imageUrl: string;
+   progress: { completed: number; total: number; percentage: number };
+   modules: any[];
++  /**
++   * Cascada de prerrequisitos del Máster. La decide el servidor
++   * (backend/lib/prerequisites.js) y viene en GET /courses. El móvil NO
++   * recalcula la regla: solo la pinta y se encarga de no servirla rancia.
++   */
++  locked?: boolean;
++  lockedReason?: string | null;
++  prerequisiteSlug?: string | null;
++  prerequisiteTitle?: string | null;
+ }
+ 
+ export interface Progress {
+@@ -17,67 +35,68 @@ export interface Progress {
+   courses: { [key: string]: any };
+ }
+ 
+-const COURSES_CACHE_KEY = 'courses_cache';
+-const PROGRESS_CACHE_KEY = 'progress_cache';
+-
+ export const useCourses = {
++  /**
++   * La caché ya no es incondicional. El estado de bloqueo cambia en el
++   * servidor —al completar la asignatura anterior— sin que el móvil se entere,
++   * así que una entrada guardada solo se sirve si es de esta versión, está
++   * dentro de la ventana de frescura y declara el estado de bloqueo; además se
++   * revalida por detrás. Si algo de eso falla, se va a la red.
++   */
+   async getCourses(forceRefresh = false): Promise<Course[]> {
+-    try {
+-      // Try cache first if not forcing refresh
+-      if (!forceRefresh) {
+-        const cached = await AsyncStorage.getItem(COURSES_CACHE_KEY);
+-        if (cached) {
+-          return JSON.parse(cached);
+-        }
++    if (!forceRefresh) {
++      const cached = await readCache<Course[]>(COURSES_CACHE_KEY);
++      if (cached && declaresLockState(cached)) {
++        this.refreshCoursesInBackground();
++        return cached;
+       }
++      if (cached) await AsyncStorage.removeItem(COURSES_CACHE_KEY);
++    }
+ 
++    try {
+       const response = await api.get('/courses');
+-      const courses = response.data;
+-
+-      // Cache locally
+-      await AsyncStorage.setItem(COURSES_CACHE_KEY, JSON.stringify(courses));
++      const courses: Course[] = response.data;
++      await writeCache(COURSES_CACHE_KEY, courses);
+       return courses;
+     } catch (error) {
+-      // Return cache if offline
+-      const cached = await AsyncStorage.getItem(COURSES_CACHE_KEY);
+-      if (cached) {
+-        return JSON.parse(cached);
+-      }
++      // Sin red: se acepta una copia caducada, pero solo si declara los
++      // bloqueos. Sin red tampoco se puede escribir, así que el gate del
++      // servidor sigue siendo el que manda.
++      const stale = await readCache<Course[]>(COURSES_CACHE_KEY, { allowStale: true });
++      if (stale && declaresLockState(stale)) return stale;
+       throw error;
+     }
+   },
+ 
++  refreshCoursesInBackground() {
++    api
++      .get('/courses')
++      .then((r) => writeCache(COURSES_CACHE_KEY, r.data))
++      .catch(() => {});
++  },
++
+   async getCourse(courseId: string): Promise<Course> {
+-    try {
+-      const response = await api.get(`/courses/${courseId}`);
+-      return response.data;
+-    } catch (error) {
+-      throw error;
+-    }
++    const response = await api.get(`/courses/${courseId}`);
++    return response.data;
+   },
+ 
+   async getProgress(forceRefresh = false): Promise<Progress> {
++    if (!forceRefresh) {
++      const cached = await readCache<Progress>(PROGRESS_CACHE_KEY);
++      if (cached) return cached;
++    }
+     try {
+-      if (!forceRefresh) {
+-        const cached = await AsyncStorage.getItem(PROGRESS_CACHE_KEY);
+-        if (cached) {
+-          return JSON.parse(cached);
+-        }
+-      }
+-
+       const response = await api.get('/progress');
+-      const progress = response.data;
+-
+-      await AsyncStorage.setItem(PROGRESS_CACHE_KEY, JSON.stringify(progress));
+-      return progress;
++      await writeCache(PROGRESS_CACHE_KEY, response.data);
++      return response.data;
+     } catch (error) {
+-      const cached = await AsyncStorage.getItem(PROGRESS_CACHE_KEY);
+-      if (cached) {
+-        return JSON.parse(cached);
+-      }
++      const stale = await readCache<Progress>(PROGRESS_CACHE_KEY, { allowStale: true });
++      if (stale) return stale;
+       throw error;
+     }
+-  }
++  },
++
++  invalidateCourseCache,
+ };
+ 
+ export default useCourses;
+diff --git a/mobile/src/screens/DashboardScreen.tsx b/mobile/src/screens/DashboardScreen.tsx
+index 8f36d31..d1e3f5c 100644
+--- a/mobile/src/screens/DashboardScreen.tsx
++++ b/mobile/src/screens/DashboardScreen.tsx
+@@ -20,11 +20,11 @@ export function DashboardScreen({ navigation }: any) {
+   const [progress, setProgress] = useState<any>(null);
+   const [isLoading, setIsLoading] = useState(true);
+ 
+-  const loadData = async () => {
++  const loadData = async (forceRefresh = false) => {
+     try {
+       const [coursesData, progressData] = await Promise.all([
+-        useCourses.getCourses(isRefreshing),
+-        useCourses.getProgress(isRefreshing)
++        useCourses.getCourses(forceRefresh),
++        useCourses.getProgress(forceRefresh)
+       ]);
+       setCourses(coursesData);
+       setProgress(progressData);
+@@ -64,7 +64,9 @@ export function DashboardScreen({ navigation }: any) {
+         refreshing={isRefreshing}
+         onRefresh={() => {
+           setIsRefreshing(true);
+-          loadData();
++          // Tirar para refrescar salta la caché a propósito: es el gesto con el
++          // que el estudiante espera ver la asignatura que acaba de desbloquear.
++          loadData(true);
+         }}
+         ListHeaderComponent={
+           <>
+@@ -97,27 +99,47 @@ export function DashboardScreen({ navigation }: any) {
+         }
+         renderItem={({ item }) => (
+           <TouchableOpacity
+-            style={styles.courseCard}
+-            onPress={() => navigation.navigate('Course', { courseId: item.id })}
++            style={[styles.courseCard, item.locked && styles.courseCardLocked]}
++            onPress={() =>
++              navigation.navigate('Course', { courseId: item.id, preview: !!item.locked })
++            }
+           >
+             <View style={styles.courseHeader}>
+-              <Text style={styles.courseTitle}>{item.title}</Text>
+-              <Text style={styles.courseProgress}>{item.progress.percentage}%</Text>
++              <Text style={[styles.courseTitle, item.locked && styles.courseTitleLocked]}>
++                {item.locked ? `🔒 ${item.title}` : item.title}
++              </Text>
++              {!item.locked && (
++                <Text style={styles.courseProgress}>{item.progress.percentage}%</Text>
++              )}
+             </View>
+             <Text style={styles.courseDescription} numberOfLines={2}>
+               {item.description}
+             </Text>
+-            <View style={styles.progressBar}>
+-              <View
+-                style={[
+-                  styles.progressFill,
+-                  { width: `${item.progress.percentage}%` }
+-                ]}
+-              />
+-            </View>
+-            <Text style={styles.progressText}>
+-              {item.progress.completed} de {item.progress.total} completados
+-            </Text>
++            {item.locked ? (
++              <>
++                <Text style={styles.lockedReason}>
++                  {item.lockedReason ||
++                    (item.prerequisiteTitle
++                      ? `Completa "${item.prerequisiteTitle}" para desbloquear.`
++                      : 'Bloqueada por la cascada del programa.')}
++                </Text>
++                <Text style={styles.lockedHint}>👁️ Puedes consultarla, pero no avanzar.</Text>
++              </>
++            ) : (
++              <>
++                <View style={styles.progressBar}>
++                  <View
++                    style={[
++                      styles.progressFill,
++                      { width: `${item.progress.percentage}%` }
++                    ]}
++                  />
++                </View>
++                <Text style={styles.progressText}>
++                  {item.progress.completed} de {item.progress.total} completados
++                </Text>
++              </>
++            )}
+           </TouchableOpacity>
+         )}
+         ListEmptyComponent={
+@@ -220,12 +242,31 @@ const styles = StyleSheet.create({
+     alignItems: 'flex-start',
+     marginBottom: 8
+   },
++  courseCardLocked: {
++    backgroundColor: '#f3f4f6',
++    borderStyle: 'dashed',
++    borderColor: '#d1d5db'
++  },
+   courseTitle: {
+     fontSize: 14,
+     fontWeight: '600',
+     color: '#000',
+     flex: 1
+   },
++  courseTitleLocked: {
++    color: '#6b7280'
++  },
++  lockedReason: {
++    fontSize: 11,
++    color: '#92400e',
++    marginTop: 4
++  },
++  lockedHint: {
++    fontSize: 11,
++    color: '#2563eb',
++    marginTop: 6,
++    fontWeight: '600'
++  },
+   courseProgress: {
+     fontSize: 14,
+     fontWeight: 'bold',
+-- 
+2.43.0
+
