@@ -35,6 +35,23 @@ git am /ruta/a/limpieza/*.patch
 git push -u origin cursor/dead-code-cleanup-21ab
 ```
 
+## `plantillas/` — contenido que faltaba (4 notebooks + memoria del TFM)
+
+Cinco parches. Añaden las cuatro plantillas hands-on de las Asignaturas III, VI, IX
+y X (que tenían `notebookTemplateUrl: null`), la plantilla de la memoria del TFM y
+el cableado del seed para que todo sea alcanzable desde el producto. Los cuatro
+notebooks se ejecutaron de principio a fin sin errores. Ver `plantillas/APLICAR.md`.
+
+**Independiente de `deploy/` y de `limpieza/`**: no comparte ningún fichero con ellas.
+
+```bash
+git clone https://github.com/edilsonalvarez-create/campus-posgrado-v2
+cd campus-posgrado-v2
+git checkout -b cursor/handson-tfm-templates-21ab main
+git am /ruta/a/plantillas/*.patch
+git push -u origin cursor/handson-tfm-templates-21ab
+```
+
 ## Backup de producción
 
 `backup-produccion-rowcounts.txt` es solo el recuento de filas. **El dump completo
