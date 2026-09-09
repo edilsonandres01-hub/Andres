@@ -1,6 +1,6 @@
-From f8e43c2059df3fb279ca6b11f51bc18de4cb67ec Mon Sep 17 00:00:00 2001
+From 16d9b1454d3f90e8dce4c1cf0b11f39a86abd48d Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursor@cursor.com>
-Date: Wed, 9 Sep 2026 01:43:38 +0000
+Date: Wed, 9 Sep 2026 02:18:06 +0000
 Subject: [PATCH 2/3] =?UTF-8?q?fix(llm):=20presupuesto=20de=20tokens=20de?=
  =?UTF-8?q?=20razonamiento=20y=20truncaci=C3=B3n=20que=20no=20falla=20en?=
  =?UTF-8?q?=20silencio?=
@@ -28,30 +28,38 @@ esperan JSON devolvían null/[] sin distinguirlo de 'el modelo no dijo nada'.
   —sigue siendo más útil que el fallback genérico— pero deja el aviso en el
   log.
 - LLM_REASONING_EFFORT: se envía como `reasoning_effort` solo si tiene
-  valor. Vacía por defecto porque el enum aceptado depende del endpoint;
-  con NVIDIA + kimi-k3 está comprobado que acepta 'max'.
+  valor, y vacía por defecto. El enum válido lo impone cada modelo, no el
+  endpoint: contra NVIDIA, moonshotai/kimi-k3 acepta 'max' y
+  openai/gpt-oss-20b lo rechaza con 400 admitiendo solo low|medium|high.
+  Bajarlo recorta mucho el razonamiento, pero la truncación ya la resuelven
+  los presupuestos sin tocar la calidad de la respuesta.
 
 Se añaden además dos protecciones que este endpoint hace necesarias:
 LLM_TIMEOUT_MS (def. 180000; con 16k tokens de presupuesto un modelo de
 razonamiento tarda minutos y fetch no trae timeout) y LLM_MAX_RETRIES
 (def. 2, espera exponencial con techo de 20s) ante 429 y 5xx, porque el
-plan gratuito de NVIDIA responde 429 con mucha facilidad.
+plan gratuito de NVIDIA responde 429 con mucha facilidad. Cada reintento deja
+traza en el log: sin ella, un 429 reintentado con éxito solo se nota como
+latencia inexplicable.
 ---
- backend/lib/llm.js | 172 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 131 insertions(+), 41 deletions(-)
+ backend/lib/llm.js | 178 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 137 insertions(+), 41 deletions(-)
 
 diff --git a/backend/lib/llm.js b/backend/lib/llm.js
-index db72236..741bdbb 100644
+index db72236..4bc056e 100644
 --- a/backend/lib/llm.js
 +++ b/backend/lib/llm.js
-@@ -20,6 +20,27 @@
+@@ -20,6 +20,30 @@
  // ── Endpoint (solo proveedores OpenAI-compatibles) ───────────────────
  //   LLM_BASE_URL      raíz de la API, sin /chat/completions
  //                     (def. https://integrate.api.nvidia.com/v1 con 'nvidia')
 +//   LLM_REASONING_EFFORT  se envía como `reasoning_effort` si está definida;
-+//                     vacía = no se manda el parámetro. El enum admitido depende
-+//                     del endpoint, así que déjala vacía salvo que sepas que el
-+//                     tuyo acepta el valor.
++//                     vacía = no se manda el parámetro. Cuidado: el enum válido
++//                     lo impone CADA MODELO, no el endpoint. Medido contra
++//                     NVIDIA: moonshotai/kimi-k3 acepta 'max', mientras que
++//                     openai/gpt-oss-20b lo rechaza con 400 y solo admite
++//                     'low' | 'medium' | 'high'. Un valor inválido es un 400 que
++//                     no se reintenta, así que vacía por defecto.
 +//
 +// ── Presupuesto de tokens ────────────────────────────────────────────
 +// kimi-k3 y demás modelos de razonamiento gastan parte de `max_tokens` en la
@@ -72,7 +80,7 @@ index db72236..741bdbb 100644
  //
  // Cuando PROVIDER='none' todo devuelve null/[] y quien llama usa su fallback
  // (FAQ redactada, o 501 en la ruta de asistencia de nota).
-@@ -41,9 +62,26 @@ const MODEL_HEAVY = process.env.LLM_MODEL_HEAVY || DEFAULT_MODELS.heavy;
+@@ -41,9 +65,26 @@ const MODEL_HEAVY = process.env.LLM_MODEL_HEAVY || DEFAULT_MODELS.heavy;
  const KEY = process.env.LLM_API_KEY || (PROVIDER === 'anthropic' ? process.env.ANTHROPIC_API_KEY || '' : '');
  
  const BASE_URL = (process.env.LLM_BASE_URL || (PROVIDER === 'nvidia' ? NVIDIA_BASE_URL : '')).replace(/\/+$/, '');
@@ -99,7 +107,7 @@ index db72236..741bdbb 100644
  function enabled() {
    if (!KEY) return false;
    if (PROVIDER === 'anthropic') return true;
-@@ -51,17 +89,43 @@ function enabled() {
+@@ -51,17 +92,46 @@ function enabled() {
    return false;
  }
  
@@ -135,6 +143,7 @@ index db72236..741bdbb 100644
 +    } catch (e) {
 +      last = new Error(`${PROVIDER} network: ${e.message}`);
 +      if (attempt === MAX_RETRIES) throw last;
++      console.warn(`[llm] error de red con ${PROVIDER} (${e.message}); reintento ${attempt + 1}/${MAX_RETRIES}`);
 +      await sleep(backoffMs(attempt));
 +      continue;
 +    }
@@ -144,6 +153,8 @@ index db72236..741bdbb 100644
 +    last = new Error(`${PROVIDER} ${r.status}: ${detail.slice(0, 300)}`);
 +    if (r.status !== 429 && r.status < 500) throw last;
 +    if (attempt === MAX_RETRIES) throw last;
++    // Sin esta traza, un 429 reintentado con éxito solo se nota en la latencia.
++    console.warn(`[llm] ${r.status} de ${PROVIDER}; reintento ${attempt + 1}/${MAX_RETRIES} en ${backoffMs(attempt)}ms`);
 +    await sleep(backoffMs(attempt));
    }
 -  return r.json();
@@ -151,7 +162,7 @@ index db72236..741bdbb 100644
  }
  
  // --- Transporte: Anthropic /v1/messages ---
-@@ -71,11 +135,12 @@ async function callAnthropic({ system, messages, maxTokens, model }) {
+@@ -71,11 +141,12 @@ async function callAnthropic({ system, messages, maxTokens, model }) {
      { 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
      { model, max_tokens: maxTokens, system, messages },
    );
@@ -165,7 +176,7 @@ index db72236..741bdbb 100644
  }
  
  // --- Transporte: OpenAI-compatible /chat/completions (NVIDIA NIM) ---
-@@ -86,31 +151,41 @@ async function callAnthropic({ system, messages, maxTokens, model }) {
+@@ -86,31 +157,41 @@ async function callAnthropic({ system, messages, maxTokens, model }) {
  //    llegar al usuario ni a los `JSON.parse` de gradeSuggestion/draftItems.
  //  · Sin streaming: quien llama es síncrono y no lo necesita.
  async function callOpenAICompatible({ system, messages, maxTokens, model }) {
@@ -219,7 +230,7 @@ index db72236..741bdbb 100644
  // --- Tutor socrático anclado en la lección (Fase 4) ---
  function tutorSystemPrompt(lessonContext, resources) {
    return [
-@@ -134,12 +209,37 @@ function tutorSystemPrompt(lessonContext, resources) {
+@@ -134,12 +215,37 @@ function tutorSystemPrompt(lessonContext, resources) {
  
  async function tutor({ lessonContext, resources, history = [], question }) {
    if (!enabled()) return { text: null, disabled: true };
@@ -260,7 +271,7 @@ index db72236..741bdbb 100644
  }
  
  // --- Asistencia de calificación contra rúbrica (Fase 4), humano en el bucle ---
-@@ -158,7 +258,7 @@ async function gradeSuggestion({ rubric, submissionText }) {
+@@ -158,7 +264,7 @@ async function gradeSuggestion({ rubric, submissionText }) {
      'forma {"criteria":[{"key":"...","levelPoints":N,"comment":"..."}],"overall":"..."}.',
      'Sé exigente: es nivel de maestría. Justifica cada nivel con evidencia del texto.',
    ].join('\n');
@@ -269,7 +280,7 @@ index db72236..741bdbb 100644
      system,
      messages: [
        {
-@@ -166,14 +266,9 @@ async function gradeSuggestion({ rubric, submissionText }) {
+@@ -166,14 +272,9 @@ async function gradeSuggestion({ rubric, submissionText }) {
          content: `RÚBRICA:\n${criteriaBlock}\n\nENTREGA DEL ESTUDIANTE:\n${String(submissionText || '').slice(0, 12000)}`,
        },
      ],
@@ -286,7 +297,7 @@ index db72236..741bdbb 100644
  }
  
  // --- Borrador de ítems de banco (offline, scripts/draft-item-bank.mjs) ---
-@@ -186,7 +281,7 @@ async function draftItems({ lesson, n = 6, skillTag }) {
+@@ -186,7 +287,7 @@ async function draftItems({ lesson, n = 6, skillTag }) {
      'Devuelve SOLO un JSON array de objetos',
      '{stem, options:[4], correctIndex, explanations:[4], difficulty:"baja|media|alta", cognitive:"aplicacion|analisis"}.',
    ].join('\n');
@@ -295,7 +306,7 @@ index db72236..741bdbb 100644
      model: MODEL_HEAVY,
      system,
      messages: [
-@@ -195,14 +290,9 @@ async function draftItems({ lesson, n = 6, skillTag }) {
+@@ -195,14 +296,9 @@ async function draftItems({ lesson, n = 6, skillTag }) {
          content: `CONCEPTO (contenidoOficial): ${skillTag || lesson.contenidoOficial}\n\nCUERPO DE LA LECCIÓN:\n${(lesson.contenido || []).join('\n\n')}\n\nCONCEPTOS CLAVE:\n${(lesson.conceptosClave || []).join('; ')}\n\nGenera ${n} ítems.`,
        },
      ],

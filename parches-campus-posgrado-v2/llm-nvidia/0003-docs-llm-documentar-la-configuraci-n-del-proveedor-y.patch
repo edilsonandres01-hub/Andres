@@ -1,6 +1,6 @@
-From af913582895704bb9269d691edb5cc85e880f8ee Mon Sep 17 00:00:00 2001
+From e2e1c5c19fd2c445647f1e1e3717622b33dc5023 Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursor@cursor.com>
-Date: Wed, 9 Sep 2026 01:43:38 +0000
+Date: Wed, 9 Sep 2026 02:18:06 +0000
 Subject: [PATCH 3/3] =?UTF-8?q?docs(llm):=20documentar=20la=20configuraci?=
  =?UTF-8?q?=C3=B3n=20del=20proveedor=20y=20quitar=20las=20referencias=20a?=
  =?UTF-8?q?=20ANTHROPIC=5FAPI=5FKEY?=
@@ -22,10 +22,10 @@ variable que el servidor ignora.
  DEPLOYMENT_QUICK_START.md                | 13 ++++--
  DEPLOY_AUTOMATIZADO.md                   |  6 +--
  MASTER_IEP_INTEGRATION.md                |  2 +-
- backend/.env.example                     | 52 +++++++++++++++++++++---
+ backend/.env.example                     | 56 +++++++++++++++++++++---
  backend/simple-server.js                 |  2 +-
  frontend/src/components/GradingPanel.tsx |  2 +-
- 7 files changed, 64 insertions(+), 17 deletions(-)
+ 7 files changed, 68 insertions(+), 17 deletions(-)
 
 diff --git a/DEPLOY.md b/DEPLOY.md
 index 3ec786a..46a877e 100644
@@ -97,7 +97,7 @@ index 47f3d41..cfbd830 100644
     `grades.llm_suggestion` y nunca en `grades.score`. El instructor confirma o
     corrige antes de enviar. Sin API key, el botón no aparece.
 diff --git a/backend/.env.example b/backend/.env.example
-index 516d4c7..a54152a 100644
+index 516d4c7..1aeb826 100644
 --- a/backend/.env.example
 +++ b/backend/.env.example
 @@ -1,6 +1,7 @@
@@ -109,7 +109,7 @@ index 516d4c7..a54152a 100644
  
  # ── Base de datos (obligatorio) ──────────────────────────────────────
  # Opción A: cadena única (la que usa Railway)
-@@ -32,13 +33,54 @@ SEED_DEMO_DATA=false
+@@ -32,13 +33,58 @@ SEED_DEMO_DATA=false
  #EXAM_COOLDOWN_HOURS=24
  
  # ── Integración LLM (tutor socrático + asistencia de nota) ────────────
@@ -152,9 +152,13 @@ index 516d4c7..a54152a 100644
 +#LLM_MAX_TOKENS_GRADE=6000
 +#LLM_MAX_TOKENS_ITEMS=16000
 +
-+# `reasoning_effort` solo se envía si esta variable tiene valor. El enum admitido
-+# depende del endpoint; con NVIDIA + kimi-k3 está comprobado que acepta 'max'.
-+# Déjala vacía salvo que sepas que tu endpoint admite el valor que le pones.
++# `reasoning_effort` solo se envía si esta variable tiene valor. El enum válido lo
++# impone CADA MODELO, no el endpoint: medido contra NVIDIA, `moonshotai/kimi-k3`
++# acepta 'max' y `openai/gpt-oss-20b` lo rechaza con 400 admitiendo solo
++# 'low' | 'medium' | 'high'. Bajarlo recorta mucho el razonamiento (en gpt-oss-20b,
++# de 7061 a 506 caracteres entre 'high' y 'low'), pero el problema de la truncación
++# ya lo resuelven los presupuestos de arriba sin sacrificar calidad de respuesta.
++# Déjala vacía salvo que la latencia o el coste obliguen.
 +#LLM_REASONING_EFFORT=
 +
 +# ── Robustez de red del LLM ───────────────────────────────────────────

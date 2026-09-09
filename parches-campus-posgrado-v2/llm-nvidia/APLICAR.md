@@ -99,17 +99,54 @@ Lo que hacen los parches:
    visible sin tocar el servidor. `tutor()` devuelve la respuesta parcial —sigue
    siendo mejor que el fallback genérico— pero deja el aviso en el log.
 
+## `reasoning_effort`: existe, pero el enum lo impone el modelo
+
+Comprobado contra la API real, y es el hallazgo que más condiciona la
+configuración: **el enum válido de `reasoning_effort` lo valida cada modelo, no el
+endpoint.** `moonshotai/kimi-k3` acepta `"max"` (el valor que traía el ejemplo
+original); `openai/gpt-oss-20b`, en el mismo endpoint y con la misma clave, lo
+rechaza con **400** y solo admite `'low' | 'medium' | 'high'`.
+
+Por eso `LLM_REASONING_EFFORT` es **opcional y va vacía por defecto**: si el
+parámetro estuviera fijado en el código, cambiar de modelo rompería con un 400
+—que además es un error de configuración y el transporte, correctamente, no
+reintenta—. Bajarlo sí recorta mucho el razonamiento (en `gpt-oss-20b`, de 7061 a
+506 caracteres entre `high` y `low`), pero eso es una palanca de latencia y coste:
+la truncación ya la resuelven los presupuestos de tokens, y sin sacrificar calidad
+de respuesta. Las mediciones completas están en `EVIDENCIA.md`.
+
 ## Robustez de red
 
 El plan del que sale la clave devuelve **429 `Too Many Requests` con mucha
 facilidad**: durante estas pruebas, dos llamadas seguidas a `moonshotai/kimi-k3`
-agotaron la cuota y el endpoint respondió 429 durante más de una hora, mientras
-`GET /v1/models` seguía devolviendo 200. Por eso 0002 añade reintentos con espera
-exponencial (techo de 20 s) ante 429 y 5xx, y un timeout explícito: `fetch` no
-trae ninguno y una llamada con 16 000 tokens de presupuesto tarda minutos.
+agotaron la cuota y el endpoint respondió 429 durante más de una hora. El límite es
+**por modelo**: mientras kimi-k3 daba 429, `GET /v1/models` seguía en 200 y
+`openai/gpt-oss-20b` respondía con normalidad con la misma clave.
+
+Por eso 0002 añade reintentos con espera exponencial (techo de 20 s) ante 429 y
+5xx, con traza en el log —sin ella, un 429 reintentado con éxito solo se nota como
+latencia inexplicable—, y un timeout explícito: `fetch` no trae ninguno y una
+llamada con 16 000 tokens de presupuesto tarda minutos.
 
 Si el tutor empieza a tardar en producción, mira los 429 en el log antes que
-nada; es un límite de cuota del proveedor, no del código.
+nada; es un límite de cuota del proveedor, no del código. Conviene contar con que
+esta cuota es estrecha antes de abrir el tutor a una promoción entera.
+
+## Verificación
+
+Resumen; el detalle con salidas y consumo de tokens está en `EVIDENCIA.md`.
+
+- Las tres funciones ejercitadas contra la API real con datos del propio repo (la
+  lección «IA y Toma de Decisiones Automatizadas» y la rúbrica `rubric-master-i`):
+  el tutor responde en español y **se niega a revelar la respuesta del quiz** aun
+  teniéndola en el contexto; `gradeSuggestion` devuelve el JSON con la forma exacta
+  y las cuatro claves reales de la rúbrica; `draftItems` devuelve un array válido
+  con todos los campos.
+- Las dos rutas HTTP (`POST /api/tutor/:id` y
+  `POST /api/submissions/:id/grade-suggestion`) contra PostgreSQL real: 200 las dos.
+- A/B de la truncación con el mismo presupuesto corto: el parseo antiguo devuelve
+  `200 {"suggestion":null}`; el nuevo, `502` con `LLM_TRUNCATED` y el consumo real.
+- `backend/scripts/smoke.mjs` con `LLM_PROVIDER=none`: **15 ok, 0 fallos**.
 
 ## Relación con los otros lotes
 
