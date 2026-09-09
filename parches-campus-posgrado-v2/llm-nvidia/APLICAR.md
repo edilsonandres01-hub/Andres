@@ -177,3 +177,11 @@ En cuanto el merge se despliegue, el tutor pasa a responder con kimi-k3 sin
 tocar nada más.
 
 **Rota la clave antes de mergear.** La que hay en Railway se compartió por chat.
+
+**Y comprueba la cuota antes de dar por bueno el tutor.** Con esta cuenta,
+`moonshotai/kimi-k3` lleva devolviendo `429` de forma sostenida desde las dos
+primeras llamadas, y `moonshotai/kimi-k2.6` devuelve `404 Not found for account`.
+El código degrada limpiamente ante un 429 —el tutor cae a su FAQ, `/grade-suggestion`
+responde 502 con el mensaje—, pero el tutor no dará respuestas de IA hasta que la
+cuenta recupere crédito. Rotar la clave no cambia la cuota. Si hace falta, cambiar
+de modelo es tocar `LLM_MODEL` y `LLM_MODEL_HEAVY` en Railway, sin tocar código.

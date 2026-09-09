@@ -270,6 +270,14 @@ Dos avisos importantes:
   volver atrás hay que pegar una clave nueva desde la consola de Anthropic; la
   anterior empezaba por `sk-ant-api03…`.
 - **La clave de NVIDIA hay que rotarla**: se compartió por chat antes de ponerla.
+- **`moonshotai/kimi-k3` está sin cuota en esta cuenta.** Tras dos llamadas
+  correctas, el endpoint devolvió `429` de forma sostenida durante más de dos
+  horas, incluso tras 20 minutos sin enviar nada; `moonshotai/kimi-k2.6` devuelve
+  `404 Not found for account`. Aunque se mergee el lote, el tutor recibirá 429 y
+  degradará a su FAQ hasta que la cuenta recupere crédito para ese modelo. Rotar
+  la clave no lo arregla: una clave nueva de la misma cuenta hereda la cuota.
+  Cambiar de modelo sí es solo tocar `LLM_MODEL` en Railway. Detalle en
+  `llm-nvidia/EVIDENCIA.md`.
 
 ## Pendiente de decisión del usuario
 - **`officialCode` de las asignaturas V, VIII y TFM**: hoy muestran

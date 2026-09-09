@@ -10,11 +10,31 @@ rúbrica **`rubric-master-i`** (`backend/db/seed-data/rubrics.js`, criterios
 ## Aviso sobre el modelo usado en cada prueba
 
 **La cuota de `moonshotai/kimi-k3` de esta clave se agotó a mitad del trabajo.**
-Tras dos llamadas correctas, el endpoint devolvió `429 Too Many Requests` de forma
-continuada durante más de una hora. El límite es **por modelo, no por cuenta**:
-mientras kimi-k3 daba 429, `GET /v1/models` seguía en 200 y
-`openai/gpt-oss-20b` respondía 200 con normalidad en el mismo endpoint y con la
-misma clave.
+Tras dos llamadas correctas (01:29 y 01:30 UTC), el endpoint devolvió
+`429 Too Many Requests` de forma **continuada durante más de dos horas**, hasta el
+final de la sesión. El límite es **por modelo, no por cuenta**: mientras kimi-k3
+daba 429, `GET /v1/models` seguía en 200 y `openai/gpt-oss-20b` respondía 200 con
+normalidad en el mismo endpoint y con la misma clave.
+
+No es un artefacto de sondear demasiado: se dejó la clave **20 minutos sin ninguna
+petición** y el primer intento posterior volvió a dar 429.
+
+Lo que la cuenta puede llamar de verdad tampoco coincide con el catálogo. `GET
+/v1/models` lista 81 modelos, pero:
+
+| Modelo | Resultado |
+|---|---|
+| `moonshotai/kimi-k3` | **429** sostenido |
+| `moonshotai/kimi-k2.6` | **404** `Not found for account '5rmdDxPc…'` |
+| `openai/gpt-oss-20b` | 200 (y algún 504 puntual bajo carga) |
+| `meta/llama-3.1-8b-instruct` | 410 `end of life` |
+
+**Consecuencia operativa:** aunque estos parches se mergeen y se desplieguen, con
+esta clave el tutor recibirá 429 de kimi-k3 y degradará a su FAQ de respaldo hasta
+que la cuenta recupere cuota o crédito para ese modelo. Rotar la clave —que hay que
+hacerlo— **no arregla esto por sí solo**: una clave nueva de la misma cuenta hereda
+las mismas cuotas. Como `LLM_MODEL` es una variable de entorno, cambiar a un modelo
+con cuota es un cambio de configuración en Railway, sin tocar el código.
 
 Por eso la evidencia está partida:
 
