@@ -305,3 +305,20 @@ llm-nvidia -> plantillas -> dashboard          los tres limpios
 
 Ese conflicto es el ya documentado entre `dashboard/` y `gate-prerrequisitos/`.
 `llm-nvidia` aplicado directamente encima de `gate-prerrequisitos/` entra limpio.
+
+## 8. Rechequeo 2026-09-09 ~12:14 UTC
+
+Once horas después del 429 original:
+
+| Comprobación | Resultado |
+|---|---|
+| `moonshotai/kimi-k3` | **429** `Too Many Requests` (63 ms) |
+| `openai/gpt-oss-20b` | **200**, español, `finish_reason=stop`, 191 completion tokens / 38,9 s |
+| Parches `llm-nvidia/` sobre `main` `6f20fc7` | `git am` limpio (3/3) |
+| Producción `GET /api/health` | 200 `{"status":"ok"}` |
+| Producción `GET /api/tutor/:lesson` | 200 `{"enabled":false,"messages":[]}` |
+| Producción `POST /api/tutor/:lesson` | 200 en 0,14 s, `disabled: true`, FAQ de respaldo |
+
+Decisión operativa: Railway pasa de `moonshotai/kimi-k3` a `openai/gpt-oss-20b`
+en `LLM_MODEL` y `LLM_MODEL_HEAVY` (`skipDeploys: true`, el código viejo no lee
+esas variables). El default del código sigue siendo kimi-k3.

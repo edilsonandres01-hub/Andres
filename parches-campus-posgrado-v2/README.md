@@ -248,36 +248,34 @@ final tras la migración a NVIDIA:
 | Variable | Valor |
 |---|---|
 | `LLM_PROVIDER` | `nvidia` |
-| `LLM_MODEL` | `moonshotai/kimi-k3` |
-| `LLM_MODEL_HEAVY` | `moonshotai/kimi-k3` |
-| `LLM_API_KEY` | *(secreto, 70 caracteres, prefijo `nvapi-8eV…`)* |
+| `LLM_MODEL` | `openai/gpt-oss-20b` |
+| `LLM_MODEL_HEAVY` | `openai/gpt-oss-20b` |
+| `LLM_API_KEY` | *(secreto, prefijo `nvapi-8eV…`)* |
 | `ANTHROPIC_API_KEY` | **borrada** |
 
 `LLM_BASE_URL` no hace falta: con `LLM_PROVIDER=nvidia` el código usa
 `https://integrate.api.nvidia.com/v1` por defecto. Los presupuestos de tokens
 tampoco están declarados; se usan los valores por defecto del código
-(3000 / 6000 / 16000).
+(3000 / 6000 / 16000). El valor por defecto del código sigue siendo
+`moonshotai/kimi-k3`; Railway lo sobreescribe porque esa cuenta no tiene cuota
+para él.
 
-Dos avisos importantes:
+Avisos:
 
-- **Está inerte hasta que se mergee `llm-nvidia/`.** El código desplegado solo
-  entiende `LLM_PROVIDER=anthropic`, así que hoy el tutor degrada a su FAQ de
-  respaldo. Verificado en producción tras el cambio: `/api/tutor/:id` responde
-  **200** con `disabled: true` y el texto de respaldo, y `/api/health` y
-  `/api/courses` siguen en 200. No se rompe nada; simplemente no hay IA.
-- **`ANTHROPIC_API_KEY` se borró y con ella se perdió el valor.** Antes del cambio
-  había una clave de Anthropic válida y el tutor respondía de verdad. Si hay que
+- **Inerte hasta que se mergee `llm-nvidia/`.** El código desplegado solo
+  entiende `LLM_PROVIDER=anthropic`. Rechequeado el 2026-09-09 ~12:14 UTC:
+  `GET /api/health` 200, `GET /api/tutor/:id` 200 con `enabled: false`,
+  `POST /api/tutor/:id` 200 en 0,14 s con `disabled: true` y la FAQ de respaldo.
+  No se rompe nada; simplemente no hay IA hasta el merge.
+- **`ANTHROPIC_API_KEY` se borró y con ella se perdió el valor.** Si hay que
   volver atrás hay que pegar una clave nueva desde la consola de Anthropic; la
   anterior empezaba por `sk-ant-api03…`.
 - **La clave de NVIDIA hay que rotarla**: se compartió por chat antes de ponerla.
-- **`moonshotai/kimi-k3` está sin cuota en esta cuenta.** Tras dos llamadas
-  correctas, el endpoint devolvió `429` de forma sostenida durante más de dos
-  horas, incluso tras 20 minutos sin enviar nada; `moonshotai/kimi-k2.6` devuelve
-  `404 Not found for account`. Aunque se mergee el lote, el tutor recibirá 429 y
-  degradará a su FAQ hasta que la cuenta recupere crédito para ese modelo. Rotar
-  la clave no lo arregla: una clave nueva de la misma cuenta hereda la cuota.
-  Cambiar de modelo sí es solo tocar `LLM_MODEL` en Railway. Detalle en
-  `llm-nvidia/EVIDENCIA.md`.
+- **`moonshotai/kimi-k3` sigue sin cuota.** 429 a las 01:30 UTC y **sigue en 429
+  a las 12:14 UTC**. `moonshotai/kimi-k2.6` da 404. Por eso Railway apunta a
+  `openai/gpt-oss-20b`, que responde 200 en español con la misma clave. Cuando
+  kimi-k3 recupere crédito, cambia `LLM_MODEL` y `LLM_MODEL_HEAVY` en Railway;
+  no hay que tocar código. Detalle en `llm-nvidia/EVIDENCIA.md`.
 
 ## Pendiente de decisión del usuario
 - **`officialCode` de las asignaturas V, VIII y TFM**: hoy muestran

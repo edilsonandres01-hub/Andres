@@ -169,19 +169,22 @@ es el más pequeño y no toca el frontend salvo un literal de texto.
 ## Después de mergear
 
 Las variables de Railway del servicio de app en producción **ya están puestas**
-(`LLM_PROVIDER=nvidia`, `LLM_MODEL` y `LLM_MODEL_HEAVY` a `moonshotai/kimi-k3`,
-`LLM_API_KEY` con la clave; `ANTHROPIC_API_KEY` borrada). Hasta que estos parches
-entren en `main`, el código desplegado no entiende `LLM_PROVIDER=nvidia` y el
-tutor degrada a su FAQ de respaldo: **la configuración está lista pero inerte**.
-En cuanto el merge se despliegue, el tutor pasa a responder con kimi-k3 sin
-tocar nada más.
+(`LLM_PROVIDER=nvidia`, `LLM_API_KEY` con la clave; `ANTHROPIC_API_KEY` borrada).
+Hasta que estos parches entren en `main`, el código desplegado no entiende
+`LLM_PROVIDER=nvidia` y el tutor degrada a su FAQ de respaldo: **la configuración
+está lista pero inerte**. Verificado el 2026-09-09 contra producción: `GET
+/api/tutor/:id` responde 200 con `enabled: false`; `POST /api/tutor/:id` responde
+200 en 0,14 s con `disabled: true` y el texto de FAQ. No se rompe nada.
+
+**Modelo operativo en Railway: `openai/gpt-oss-20b`, no kimi-k3.** El modelo que
+pediste sigue siendo el valor por defecto del código, pero esta cuenta no tiene
+cuota para él: `moonshotai/kimi-k3` devolvió `429 Too Many Requests` a las 01:30
+UTC y **sigue en 429 once horas después** (rechequeado a las 12:14 UTC). El
+límite es por modelo: con la misma clave, `openai/gpt-oss-20b` responde 200 y en
+español. Por eso `LLM_MODEL` y `LLM_MODEL_HEAVY` en Railway apuntan a
+`openai/gpt-oss-20b`. Cuando kimi-k3 recupere crédito, basta con cambiar esas
+dos variables; no hay que tocar código.
 
 **Rota la clave antes de mergear.** La que hay en Railway se compartió por chat.
-
-**Y comprueba la cuota antes de dar por bueno el tutor.** Con esta cuenta,
-`moonshotai/kimi-k3` lleva devolviendo `429` de forma sostenida desde las dos
-primeras llamadas, y `moonshotai/kimi-k2.6` devuelve `404 Not found for account`.
-El código degrada limpiamente ante un 429 —el tutor cae a su FAQ, `/grade-suggestion`
-responde 502 con el mensaje—, pero el tutor no dará respuestas de IA hasta que la
-cuenta recupere crédito. Rotar la clave no cambia la cuota. Si hace falta, cambiar
-de modelo es tocar `LLM_MODEL` y `LLM_MODEL_HEAVY` en Railway, sin tocar código.
+Rotar no arregla la cuota de kimi-k3: una clave nueva de la misma cuenta hereda
+el mismo límite.
