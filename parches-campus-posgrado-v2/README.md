@@ -11,6 +11,7 @@ Base sobre la que se generaron: `main` en `860cd00`, salvo `dashboard/` y
 
 | Lote | Estado | Base |
 |---|---|---|
+| `llm-nvidia/` | **vigente** | `632bf7a` |
 | `gate-prerrequisitos/` | **vigente** | `632bf7a` |
 | `dashboard/` | vigente | `632bf7a` |
 | `plantillas/` | vigente | `860cd00` |
@@ -155,11 +156,48 @@ git am -3 /ruta/a/gate-prerrequisitos/*.patch  # se para en 0002; ver APLICAR.md
 git push -u origin cursor/gate-prerrequisitos-9b8f
 ```
 
+## `llm-nvidia/` — el LLM deja de ser Anthropic y pasa a NVIDIA NIM (kimi-k3)
+
+Tres parches. La integración entera vive en `backend/lib/llm.js`, así que el
+cambio se concentra ahí: `LLM_PROVIDER` acepta ahora `nvidia` y
+`openai-compatible` además de `anthropic` y del `none` por defecto, hablando el
+formato OpenAI (`system` como primer mensaje de `messages`, respuesta en
+`choices[0].message.content`, sin streaming). **Anthropic sigue operativo**: misma
+URL, mismas cabeceras, mismos presupuestos de tokens que antes.
+
+El problema real no era traducir el formato sino que `moonshotai/kimi-k3` es un
+**modelo de razonamiento**: gasta parte de `max_tokens` en su cadena de
+pensamiento (`message.reasoning_content`) antes de escribir la respuesta. Con los
+límites heredados de Claude la salida se truncaba, y `gradeSuggestion` y
+`draftItems` se tragaban el JSON incompleto devolviendo `null` / `[]`, indistinguible
+de «el modelo no dijo nada». Ahora los presupuestos son 3000/6000/16000
+(configurables), `reasoning_content` se descarta siempre en el transporte, y una
+respuesta con `finish_reason: "length"` lanza `LLM_TRUNCATED` en lugar de callarse.
+Ver `llm-nvidia/APLICAR.md`.
+
+**Independiente de `plantillas/`, `dashboard/` y `gate-prerrequisitos/`.** Solo
+comparte `backend/simple-server.js` con el gate, y ahí cambia una línea de
+comentario. Comprobado: los cuatro lotes aplicados en cadena sobre `632bf7a` solo
+producen el conflicto ya conocido entre `dashboard/` y `gate-prerrequisitos/` en
+`frontend/src/hooks/useCourses.ts`.
+
+```bash
+git checkout -b cursor/llm-nvidia-nim-2328 main
+git am /ruta/a/llm-nvidia/*.patch
+git push -u origin cursor/llm-nvidia-nim-2328
+```
+
+Las variables de Railway ya están puestas (ver más abajo), pero **no hacen nada
+hasta que estos parches entren en `main`**: el código desplegado no entiende
+`LLM_PROVIDER=nvidia`.
+
 ## Orden recomendado
 
-Con `main` en `632bf7a`, los únicos lotes que quedan por aplicar son
+Con `main` en `632bf7a`, los lotes que quedan por aplicar son `llm-nvidia/`,
 `plantillas/`, `dashboard/` y `gate-prerrequisitos/`:
 
+0. **`llm-nvidia/`** — independiente; el más pequeño y el único que no toca el
+   frontend salvo un literal de texto. Puede ir en cualquier posición.
 1. **`plantillas/`** — independiente de todo lo demás; no toca el frontend.
 2. **`dashboard/`** — antes que el gate, porque el conflicto se resuelve mejor en
    ese sentido (`git am -3` deja una sola pieza que resolver).
@@ -202,11 +240,38 @@ de pruebas automatizadas), 5 filas en `progress`, 0 entregas, 2 intentos de exam
 Aun así el backup se puede rehacer con `pg_dump` en cualquier momento antes de
 mergear.
 
-## Pendiente de decisión del usuario
+## Configuración del LLM en Railway (2026-09-09)
 
-- **`ANTHROPIC_API_KEY`**: falta en Railway. El resto de la configuración del LLM
-  (`LLM_PROVIDER=anthropic`, `LLM_MODEL`, `LLM_MODEL_HEAVY`) ya está puesta. Sin la
-  clave el tutor degrada limpiamente en vez de fallar.
+Servicio de app en producción (`campus-posgrado-v2`, entorno `production`). Estado
+final tras la migración a NVIDIA:
+
+| Variable | Valor |
+|---|---|
+| `LLM_PROVIDER` | `nvidia` |
+| `LLM_MODEL` | `moonshotai/kimi-k3` |
+| `LLM_MODEL_HEAVY` | `moonshotai/kimi-k3` |
+| `LLM_API_KEY` | *(secreto, 70 caracteres, prefijo `nvapi-8eV…`)* |
+| `ANTHROPIC_API_KEY` | **borrada** |
+
+`LLM_BASE_URL` no hace falta: con `LLM_PROVIDER=nvidia` el código usa
+`https://integrate.api.nvidia.com/v1` por defecto. Los presupuestos de tokens
+tampoco están declarados; se usan los valores por defecto del código
+(3000 / 6000 / 16000).
+
+Dos avisos importantes:
+
+- **Está inerte hasta que se mergee `llm-nvidia/`.** El código desplegado solo
+  entiende `LLM_PROVIDER=anthropic`, así que hoy el tutor degrada a su FAQ de
+  respaldo. Verificado en producción tras el cambio: `/api/tutor/:id` responde
+  **200** con `disabled: true` y el texto de respaldo, y `/api/health` y
+  `/api/courses` siguen en 200. No se rompe nada; simplemente no hay IA.
+- **`ANTHROPIC_API_KEY` se borró y con ella se perdió el valor.** Antes del cambio
+  había una clave de Anthropic válida y el tutor respondía de verdad. Si hay que
+  volver atrás hay que pegar una clave nueva desde la consola de Anthropic; la
+  anterior empezaba por `sk-ant-api03…`.
+- **La clave de NVIDIA hay que rotarla**: se compartió por chat antes de ponerla.
+
+## Pendiente de decisión del usuario
 - **`officialCode` de las asignaturas V, VIII y TFM**: hoy muestran
   `IEP-V-INTERNO`, `IEP-VIII-INTERNO` e `IEP-TFM-INTERNO`. Para poner los códigos
   oficiales reales basta con definir `OFFICIAL_CODE_V`, `OFFICIAL_CODE_VIII` y
