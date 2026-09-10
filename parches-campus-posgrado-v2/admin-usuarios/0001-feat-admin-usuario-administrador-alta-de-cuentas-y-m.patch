@@ -1,0 +1,361 @@
+From b653a03eecc275aae340846c17695b98eab9d2ee Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Thu, 10 Sep 2026 02:54:57 +0000
+Subject: [PATCH 1/2] =?UTF-8?q?feat(admin):=20usuario=20administrador,=20a?=
+ =?UTF-8?q?lta=20de=20cuentas=20y=20matr=C3=ADcula?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Seed de admin@example.com. Endpoints /api/admin/users y
+/api/admin/enrollments para que el admin cree alumnos e instructores
+y los matricule (curso, lista o todo el Máster). El rol admin no se
+crea por API. Smoke cubre permisos, alta y matrícula.
+---
+ backend/db/seed.js        |   1 +
+ backend/scripts/smoke.mjs |  87 ++++++++++++++++
+ backend/simple-server.js  | 207 +++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 294 insertions(+), 1 deletion(-)
+
+diff --git a/backend/db/seed.js b/backend/db/seed.js
+index 7e9974c..d36f6e2 100644
+--- a/backend/db/seed.js
++++ b/backend/db/seed.js
+@@ -266,6 +266,7 @@ async function main() {
+     const users = [
+       ['test@example.com', 'Test User', sha256('Password123'), 'student'],
+       ['instructor@example.com', 'Instructor Demo', sha256('Password123'), 'instructor'],
++      ['admin@example.com', 'Administrador', sha256('Password123'), 'admin'],
+     ];
+     for (const [email, name, hash, role] of users) {
+       await client.query(
+diff --git a/backend/scripts/smoke.mjs b/backend/scripts/smoke.mjs
+index e2a639e..7c7da77 100644
+--- a/backend/scripts/smoke.mjs
++++ b/backend/scripts/smoke.mjs
+@@ -87,6 +87,93 @@ async function main() {
+   ok(rub.criteria.length >= 4 && rub.totalPoints === 100, 'rúbrica de la Asignatura I disponible');
+   ok(proj.contentJson.rubricSlug === 'rubric-master-i', 'proyecto enlaza a su rúbrica');
+ 
++  // Admin: crear usuarios y matricularlos
++  r = await fetch(`${BASE}/auth/login`, {
++    method: 'POST',
++    headers: { 'content-type': 'application/json' },
++    body: JSON.stringify({ email: 'admin@example.com', password: 'Password123' }),
++  });
++  const admin = await j(r);
++  ok(r.status === 200 && admin.user?.role === 'admin', 'login del administrador demo');
++  const AH = { authorization: `Bearer ${admin.accessToken}`, 'content-type': 'application/json' };
++
++  ok((await fetch(`${BASE}/admin/users`, { headers: H })).status === 403, 'estudiante no entra a /admin/users');
++  ok((await fetch(`${BASE}/admin/users`, { headers: IH })).status === 403, 'instructor no entra a /admin/users');
++
++  r = await fetch(`${BASE}/admin/users`, { headers: AH });
++  const listed = await j(r);
++  ok(r.status === 200 && Array.isArray(listed) && listed.some((u) => u.email === 'admin@example.com'), 'GET /admin/users lista al admin');
++
++  const stamp = Date.now();
++  r = await fetch(`${BASE}/admin/users`, {
++    method: 'POST',
++    headers: AH,
++    body: JSON.stringify({
++      email: `alumno-admin-${stamp}@example.com`,
++      name: 'Alumno Admin',
++      password: 'Password123',
++      role: 'student',
++    }),
++  });
++  const newStudent = await j(r);
++  ok(r.status === 201 && newStudent.role === 'student' && newStudent.id, 'admin crea un alumno');
++
++  r = await fetch(`${BASE}/admin/users`, {
++    method: 'POST',
++    headers: AH,
++    body: JSON.stringify({
++      email: `instructor-admin-${stamp}@example.com`,
++      name: 'Instructor Admin',
++      password: 'Password123',
++      role: 'instructor',
++    }),
++  });
++  const newInstr = await j(r);
++  ok(r.status === 201 && newInstr.role === 'instructor', 'admin crea un instructor');
++
++  r = await fetch(`${BASE}/admin/users`, {
++    method: 'POST',
++    headers: AH,
++    body: JSON.stringify({
++      email: `admin-admin-${stamp}@example.com`,
++      name: 'Otro Admin',
++      password: 'Password123',
++      role: 'admin',
++    }),
++  });
++  ok(r.status === 400, 'admin no puede crear otro admin por API');
++
++  r = await fetch(`${BASE}/admin/enrollments`, {
++    method: 'POST',
++    headers: AH,
++    body: JSON.stringify({ userId: newStudent.id, courseId: 'master-i' }),
++  });
++  const enr = await j(r);
++  ok(r.status === 201 && enr.enrolled?.[0]?.slug === 'master-i', 'admin matricula al alumno en Asignatura I');
++
++  r = await fetch(`${BASE}/admin/enrollments`, {
++    method: 'POST',
++    headers: AH,
++    body: JSON.stringify({ userId: newStudent.id, programSlug: 'master-iep' }),
++  });
++  const bulk = await j(r);
++  ok(r.status === 201 && (bulk.enrolled || []).length >= 11, 'admin matricula al alumno en todo el Máster');
++
++  r = await fetch(`${BASE}/admin/enrollments`, {
++    method: 'POST',
++    headers: AH,
++    body: JSON.stringify({ userId: newInstr.id, courseId: 'master-i', role: 'instructor' }),
++  });
++  ok(r.status === 201, 'admin asigna un instructor a Asignatura I');
++
++  r = await fetch(`${BASE}/admin/users/${newStudent.id}`, { headers: AH });
++  const detail = await j(r);
++  ok(r.status === 200 && detail.enrollments.some((e) => e.slug === 'master-i'), 'detalle del alumno incluye la matrícula');
++
++  const courseId = detail.enrollments.find((e) => e.slug === 'master-i')?.courseId;
++  r = await fetch(`${BASE}/admin/users/${newStudent.id}/enrollments/${courseId}`, { method: 'DELETE', headers: AH });
++  ok(r.status === 200, 'admin puede desmatricular');
++
+   // C-3: certificado exige lecciones + proyecto + examen
+   const certsMid = await j(await fetch(`${BASE}/certificates`, { headers: H }));
+   ok(certsMid.length === 0, 'sin certificado con solo 1 lección + examen suspendido');
+diff --git a/backend/simple-server.js b/backend/simple-server.js
+index f248d5e..b9b1310 100644
+--- a/backend/simple-server.js
++++ b/backend/simple-server.js
+@@ -111,6 +111,83 @@ async function getAuthUser(req) {
+ // ---------- serializadores ----------
+ const publicUser = (u) => ({ id: u.id, email: u.email, name: u.name, role: u.role });
+ 
++const CREATABLE_ROLES = new Set(['student', 'instructor', 'director_tfm']);
++const ENROLLMENT_ROLES = new Set(['student', 'instructor']);
++
++function requireAdmin(res, user) {
++  if (!user) {
++    sendJSON(res, 401, { message: 'Unauthorized' });
++    return false;
++  }
++  if (user.role !== 'admin') {
++    sendJSON(res, 403, { message: 'Forbidden' });
++    return false;
++  }
++  return true;
++}
++
++function defaultEnrollmentRole(userRole) {
++  return userRole === 'instructor' || userRole === 'director_tfm' ? 'instructor' : 'student';
++}
++
++async function resolveCoursesForEnroll(body) {
++  const found = [];
++  const seen = new Set();
++  const add = (row) => {
++    if (row && !seen.has(row.id)) {
++      seen.add(row.id);
++      found.push(row);
++    }
++  };
++  const programSlug = body.programSlug && String(body.programSlug).trim();
++  if (programSlug) {
++    const { rows } = await pool.query(
++      `SELECT * FROM courses WHERE published AND meta->>'programSlug' = $1 ORDER BY order_index, title`,
++      [programSlug],
++    );
++    rows.forEach(add);
++  }
++  const ids = [];
++  if (body.courseId) ids.push(body.courseId);
++  if (Array.isArray(body.courseIds)) ids.push(...body.courseIds);
++  for (const id of ids) {
++    add(await findCourseRow(String(id || '')));
++  }
++  return found;
++}
++
++async function enrollUserInCourse(userId, course, enrollmentRole) {
++  const ins = await pool.query(
++    `INSERT INTO enrollments (user_id, course_id, role) VALUES ($1, $2, $3)
++     ON CONFLICT (user_id, course_id) DO UPDATE SET role = EXCLUDED.role
++     RETURNING id`,
++    [userId, course.id, enrollmentRole],
++  );
++  if (enrollmentRole === 'instructor') {
++    await pool.query(`UPDATE courses SET instructor_id = $1, updated_at = now() WHERE id = $2`, [
++      userId,
++      course.id,
++    ]);
++  }
++  let tfm = false;
++  if (course.slug === 'master-tfm' && enrollmentRole === 'student') {
++    const t = await pool.query(
++      `INSERT INTO tfm_enrollments (user_id, status) VALUES ($1, 'in_progress')
++       ON CONFLICT (user_id) DO NOTHING RETURNING id`,
++      [userId],
++    );
++    tfm = t.rowCount > 0;
++  }
++  return {
++    courseId: course.id,
++    slug: course.slug,
++    title: course.title,
++    role: enrollmentRole,
++    created: ins.rowCount > 0,
++    tfm,
++  };
++}
++
+ function courseSummary(row) {
+   const total = Number(row.total || 0);
+   const completed = Number(row.completed || 0);
+@@ -2291,11 +2368,139 @@ route('PUT', '/api/notifications/:id/read', async ({ res, user, params }) => {
+   sendJSON(res, 200, { ok: true });
+ });
+ 
++// --- admin: alta de instructores/alumnos y matrícula ---
++// El rol admin no se puede crear por API (solo seed / SQL). Matricular no
++// salta la cascada de prerrequisitos: el estudiante queda inscrito pero
++// bloqueado para avanzar hasta completar la asignatura anterior.
++route('GET', '/api/admin/users', async ({ res, user, query }) => {
++  if (!requireAdmin(res, user)) return;
++  const role = query.role && String(query.role).trim();
++  const q = query.q && String(query.q).trim();
++  const limit = Math.min(Math.max(Number(query.limit) || 100, 1), 200);
++  const params = [];
++  const where = [];
++  if (role) {
++    params.push(role);
++    where.push(`u.role = $${params.length}`);
++  }
++  if (q) {
++    params.push(`%${q}%`);
++    where.push(`(u.email ILIKE $${params.length} OR u.name ILIKE $${params.length})`);
++  }
++  params.push(limit);
++  const { rows } = await pool.query(
++    `SELECT u.id, u.email, u.name, u.role, u.created_at,
++            (SELECT count(*) FROM enrollments e WHERE e.user_id = u.id) AS enrollments
++       FROM users u
++      ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
++      ORDER BY u.created_at DESC
++      LIMIT $${params.length}`,
++    params,
++  );
++  sendJSON(
++    res,
++    200,
++    rows.map((r) => ({
++      ...publicUser(r),
++      createdAt: r.created_at,
++      enrollments: Number(r.enrollments),
++    })),
++  );
++});
++
++route('POST', '/api/admin/users', async ({ res, user, body }) => {
++  if (!requireAdmin(res, user)) return;
++  const email = String(body.email || '').trim();
++  const name = String(body.name || '').trim().slice(0, 120);
++  const password = body.password;
++  const role = String(body.role || 'student').trim();
++  if (!isValidEmail(email) || !name || !isValidPassword(password)) {
++    return sendJSON(res, 400, { message: 'Datos inválidos (email, nombre y contraseña de 8+ caracteres)' });
++  }
++  if (!CREATABLE_ROLES.has(role)) {
++    return sendJSON(res, 400, { message: 'Rol no permitido. Usa student, instructor o director_tfm.' });
++  }
++  const exists = await pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
++  if (exists.rowCount) return sendJSON(res, 409, { message: 'El email ya está registrado' });
++  const pw = newPasswordHash(password);
++  const { rows } = await pool.query(
++    `INSERT INTO users (email, name, password_hash, password_salt, password_algo, role)
++     VALUES ($1, $2, $3, $4, $5, $6)
++     RETURNING id, email, name, role, created_at`,
++    [email, name, pw.hash, pw.salt, pw.algo, role],
++  );
++  sendJSON(res, 201, { ...publicUser(rows[0]), createdAt: rows[0].created_at, enrollments: 0 });
++});
++
++route('GET', '/api/admin/users/:id', async ({ res, user, params }) => {
++  if (!requireAdmin(res, user)) return;
++  if (!isUuid(params.id)) return sendJSON(res, 400, { message: 'id inválido' });
++  const u = (await pool.query('SELECT id, email, name, role, created_at FROM users WHERE id = $1', [params.id])).rows[0];
++  if (!u) return sendJSON(res, 404, { message: 'Usuario no encontrado' });
++  const { rows } = await pool.query(
++    `SELECT e.course_id, e.role, e.enrolled_at, c.slug, c.title, c.kind
++       FROM enrollments e JOIN courses c ON c.id = e.course_id
++      WHERE e.user_id = $1
++      ORDER BY c.order_index, c.title`,
++    [u.id],
++  );
++  sendJSON(res, 200, {
++    ...publicUser(u),
++    createdAt: u.created_at,
++    enrollments: rows.map((r) => ({
++      courseId: r.course_id,
++      slug: r.slug,
++      title: r.title,
++      kind: r.kind,
++      role: r.role,
++      enrolledAt: r.enrolled_at,
++    })),
++  });
++});
++
++route('POST', '/api/admin/enrollments', async ({ res, user, body }) => {
++  if (!requireAdmin(res, user)) return;
++  if (!isUuid(body.userId)) return sendJSON(res, 400, { message: 'userId inválido' });
++  const target = (await pool.query('SELECT id, role FROM users WHERE id = $1', [body.userId])).rows[0];
++  if (!target) return sendJSON(res, 404, { message: 'Usuario no encontrado' });
++  if (target.role === 'admin') {
++    return sendJSON(res, 400, { message: 'No se matricula a un administrador en cursos.' });
++  }
++  const enrollmentRole = body.role
++    ? String(body.role).trim()
++    : defaultEnrollmentRole(target.role);
++  if (!ENROLLMENT_ROLES.has(enrollmentRole)) {
++    return sendJSON(res, 400, { message: 'El rol de matrícula debe ser student o instructor.' });
++  }
++  const courses = await resolveCoursesForEnroll(body);
++  if (!courses.length) {
++    return sendJSON(res, 400, { message: 'Indica courseId, courseIds o programSlug.' });
++  }
++  const enrolled = [];
++  for (const course of courses) {
++    enrolled.push(await enrollUserInCourse(target.id, course, enrollmentRole));
++  }
++  sendJSON(res, 201, { ok: true, userId: target.id, enrolled });
++});
++
++route('DELETE', '/api/admin/users/:userId/enrollments/:courseId', async ({ res, user, params }) => {
++  if (!requireAdmin(res, user)) return;
++  if (!isUuid(params.userId) || !isUuid(params.courseId)) {
++    return sendJSON(res, 400, { message: 'id inválido' });
++  }
++  const del = await pool.query('DELETE FROM enrollments WHERE user_id = $1 AND course_id = $2 RETURNING id', [
++    params.userId,
++    params.courseId,
++  ]);
++  if (!del.rowCount) return sendJSON(res, 404, { message: 'Matrícula no encontrada' });
++  sendJSON(res, 200, { ok: true });
++});
++
+ // --- admin: sincronizar el catálogo bajo demanda (upsert NO destructivo) ---
+ // Solo admin. El seed ya no hace TRUNCATE: hace upsert por clave estable, así
+ // que ninguna entrega, nota, progreso ni certificado de estudiante se pierde.
+ route('POST', '/api/admin/reseed', async ({ res, user }) => {
+-  if (!user || user.role !== 'admin') return sendJSON(res, 403, { message: 'Forbidden' });
++  if (!requireAdmin(res, user)) return;
+   console.log(`[admin] sync de catálogo disparado por ${user.email}`);
+   await require('./db/seed')();
+   sendJSON(res, 200, { ok: true, message: 'Catálogo sincronizado (upsert no destructivo).' });
+-- 
+2.43.0
+

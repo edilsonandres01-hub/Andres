@@ -11,6 +11,7 @@ Base sobre la que se generaron: `main` en `860cd00`, salvo `dashboard/` y
 
 | Lote | Estado | Base |
 |---|---|---|
+| `admin-usuarios/` | **vigente** | `6f20fc7` |
 | `llm-nvidia/` | **vigente** | `632bf7a` |
 | `gate-prerrequisitos/` | **vigente** | `632bf7a` |
 | `dashboard/` | vigente | `632bf7a` |
@@ -191,20 +192,36 @@ Las variables de Railway ya están puestas (ver más abajo), pero **no hacen nad
 hasta que estos parches entren en `main`**: el código desplegado no entiende
 `LLM_PROVIDER=nvidia`.
 
+## `admin-usuarios/` — administrador que crea instructores, alumnos y matrículas
+
+Dos parches sobre `6f20fc7`. El rol `admin` ya existía en PostgreSQL, pero no
+había usuario, APIs ni pantalla. El seed crea `admin@example.com` /
+`Password123`; el panel `/admin` permite crear alumnos e instructores y
+matricularlos en un curso, en varios, o en todo el Máster IEP. Matricular no
+salta la cascada de prerrequisitos. Ver `admin-usuarios/APLICAR.md`.
+
+```bash
+git checkout -b cursor/admin-usuarios-matricula-21ab main
+git am /ruta/a/admin-usuarios/*.patch
+git push -u origin cursor/admin-usuarios-matricula-21ab
+```
+
 ## Orden recomendado
 
-Con `main` en `632bf7a`, los lotes que quedan por aplicar son `llm-nvidia/`,
-`plantillas/`, `dashboard/` y `gate-prerrequisitos/`:
+Con `main` en `6f20fc7`, los lotes que quedan por aplicar son `llm-nvidia/`,
+`plantillas/`, `dashboard/`, `gate-prerrequisitos/` y `admin-usuarios/`:
 
 0. **`llm-nvidia/`** — independiente; el más pequeño y el único que no toca el
    frontend salvo un literal de texto. Puede ir en cualquier posición.
 1. **`plantillas/`** — independiente de todo lo demás; no toca el frontend.
 2. **`dashboard/`** — antes que el gate, porque el conflicto se resuelve mejor en
    ese sentido (`git am -3` deja una sola pieza que resolver).
-3. **`gate-prerrequisitos/`** — al final. Es el único lote que toca el backend, el
+3. **`gate-prerrequisitos/`** — al final del grupo académico. Es el único lote que toca el backend, el
    móvil y el CI, así que conviene que sea el último en entrar y el que se valide
    sobre el árbol ya completo. Se verificó exactamente así: árbol combinado
    `dashboard` + `gate` sobre `632bf7a`, con smoke 15/15 y gate-check 30/30.
+4. **`admin-usuarios/`** — independiente en intención; choca con `dashboard/` en
+   `Dashboard.tsx` y con el gate en `simple-server.js`. Va el último.
 
 `deploy/` y `limpieza/` ya no se aplican (ver el aviso de arriba). El orden
 histórico que describían las secciones siguientes queda solo como registro.
