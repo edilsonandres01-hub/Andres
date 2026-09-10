@@ -1,6 +1,6 @@
 # `admin-usuarios/` — administrador que crea instructores, alumnos y matrículas
 
-Dos parches sobre `main` en `6f20fc7`. El rol `admin` ya existía en la base
+Tres parches sobre `main` en `6f20fc7`. El rol `admin` ya existía en la base
 de datos, pero no había usuario, APIs ni pantalla. Tras aplicarlos:
 
 1. El seed crea `admin@example.com` / `Password123` (`ON CONFLICT DO NOTHING`).
@@ -23,6 +23,7 @@ git push -u origin cursor/admin-usuarios-matricula-21ab
 |---|---|---|
 | 0001 | `feat(admin)` | Seed del admin, `GET/POST /api/admin/users`, `POST /api/admin/enrollments`, `DELETE …/enrollments/:courseId`, smoke. |
 | 0002 | `feat(ui)` | Página `/admin`, login que redirige al panel, botón en el dashboard. |
+| 0003 | `feat(deploy)` | El backend sirve el SPA. Permite desplegar el panel sin Vercel. |
 
 ## Credenciales
 
@@ -70,6 +71,19 @@ Orden sugerido:
 ```
 llm-nvidia → plantillas → dashboard → gate-prerrequisitos → admin-usuarios
 ```
+
+## En producción (2026-09-10)
+
+El panel ya está servido junto a la API:
+
+**https://campus-posgrado-v2-production.up.railway.app**
+
+Login: `admin@example.com` / `Password123`. El login redirige a `/admin`.
+
+`campus-posgrado-v2.vercel.app` sigue con el bundle anterior: este agente no
+puede pushear a `edilsonalvarez-create/campus-posgrado-v2`, que es lo que
+construye Vercel. Hasta que esos parches entren en `main`, usa la URL de
+Railway.
 
 ## Verificación
 

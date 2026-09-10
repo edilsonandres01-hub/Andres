@@ -1,7 +1,7 @@
 From 7b529762f8b9257e89acacab320cbc6058f3dbc6 Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
 Date: Thu, 10 Sep 2026 02:54:57 +0000
-Subject: [PATCH 2/2] =?UTF-8?q?feat(ui):=20panel=20de=20administraci=C3=B3?=
+Subject: [PATCH 2/3] =?UTF-8?q?feat(ui):=20panel=20de=20administraci=C3=B3?=
  =?UTF-8?q?n=20para=20crear=20usuarios=20y=20matricular?=
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
