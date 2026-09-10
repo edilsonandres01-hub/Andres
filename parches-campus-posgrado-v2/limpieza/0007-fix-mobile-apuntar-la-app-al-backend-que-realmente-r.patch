@@ -1,0 +1,63 @@
+From 887b2262bf8abfbd033e8b52f3bba300dfe1d911 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 12:49:32 +0000
+Subject: [PATCH 7/7] fix(mobile): apuntar la app al backend que realmente
+ responde
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+mobile/src/hooks/useAuth.ts tenía la URL de la API escrita a fuego, y era la
+misma que estaba en app.json y en las guías de despliegue:
+
+    https://campus-posgrado-v2-api.railway.app/api   -> 404
+    https://campus-posgrado-v2-production.up.railway.app/api -> 200 {"status":"ok"}
+
+Comprobado con curl contra ambos hosts. La app móvil, tal como estaba, no podía
+iniciar sesión contra nada.
+
+Ahora la URL se lee de app.json (`expo.extra.apiUrl`), que es donde el README de
+mobile decía que estaba, con el host correcto como valor por defecto.
+`expo-constants` ya figuraba en las dependencias.
+
+De paso, el comentario de docker-compose.yml decía "para desarrollo si no usas
+Supabase"; el proyecto no usa Supabase en ninguna parte.
+---
+ docker-compose.yml          | 2 +-
+ mobile/src/hooks/useAuth.ts | 7 ++++++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 2945a7e..d6d9119 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -1,7 +1,7 @@
+ version: '3.8'
+ 
+ services:
+-  # PostgreSQL local (para desarrollo si no usas Supabase)
++  # PostgreSQL local para desarrollo. En producción la base la da Railway.
+   postgres:
+     image: postgres:16-alpine
+     container_name: campus-postgres
+diff --git a/mobile/src/hooks/useAuth.ts b/mobile/src/hooks/useAuth.ts
+index c0ba408..d38f0b3 100644
+--- a/mobile/src/hooks/useAuth.ts
++++ b/mobile/src/hooks/useAuth.ts
+@@ -1,7 +1,12 @@
+ import AsyncStorage from '@react-native-async-storage/async-storage';
+ import axios from 'axios';
++import Constants from 'expo-constants';
+ 
+-const API_URL = 'https://campus-posgrado-v2-api.railway.app/api';
++// La URL vive en app.json (expo.extra.apiUrl) para poder apuntar a un backend
++// local sin tocar el código.
++const API_URL =
++  (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
++  'https://campus-posgrado-v2-production.up.railway.app/api';
+ 
+ export interface User {
+   id: string;
+-- 
+2.43.0
+

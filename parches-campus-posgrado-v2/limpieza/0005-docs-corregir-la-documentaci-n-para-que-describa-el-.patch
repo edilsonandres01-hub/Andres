@@ -1,0 +1,2577 @@
+From 1ba1c9af7e076b17056c63d7f7e2a11be09bda0f Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 12:46:05 +0000
+Subject: [PATCH 5/7] =?UTF-8?q?docs:=20corregir=20la=20documentaci=C3=B3n?=
+ =?UTF-8?q?=20para=20que=20describa=20el=20sistema=20realmente=20desplegad?=
+ =?UTF-8?q?o?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Todas las cifras y afirmaciones nuevas se verificaron contra una instancia en
+ejecución: PostgreSQL 16, las 15 migraciones aplicadas, backend/db/seed.js
+ejecutado y los endpoints de simple-server.js consultados en vivo.
+
+Contradicciones corregidas (afirmación anterior -> realidad):
+
+- "NestJS + TypeORM | PostgreSQL (Supabase) | JWT Auth" (README, SETUP,
+  backend/README) -> Node http nativo + pg sobre PostgreSQL. No hay NestJS,
+  TypeORM, Supabase ni Express en ninguna parte del código vivo.
+- "bcrypt password hashing", "JWT tokens", "Refresh tokens" -> scrypt con sal
+  por usuario (más un SHA-256 heredado que se re-hashea en el primer login), y
+  tokens opacos de 64 caracteres hex en la tabla `sessions`. Verificado: el
+  login real devuelve una cadena hex, no un JWT.
+- "npm run start:dev" / "start:prod" / "build" / "lint" / "test" en
+  backend/README y SETUP -> los únicos scripts que existen son start, migrate,
+  seed, extract y reset.
+- Enlaces a backend/API.md y backend/DATABASE.md desde el README -> ninguno de
+  los dos archivos existe; se sustituyen por los documentos reales.
+- JWT_SECRET / JWT_EXPIRATION / BCRYPT_ROUNDS documentados como variables de
+  entorno -> no se leen en el código; se documenta la lista real.
+- MASTER_IEP_INTEGRATION describía tres asignaturas ("Fundamentos de IA",
+  "Machine Learning Avanzado", "Deep Learning Especializado", las dos últimas
+  "en desarrollo") -> son 11 asignaturas más el TFM, con sus títulos oficiales,
+  repartidas en los tramos PRO-essentials (I-III), PROadvance (IV-IX),
+  PROexpertify (X-XI) y TFM.
+- Ponderaciones de nota inventadas (Quizzes 10 %, Proyectos 30 %, Hands-On
+  30 %, Examen final 30 %) -> no existe nota final ponderada. La certificación
+  son puertas de aprobado: 100 % de lecciones + proyecto >= 70 + examen
+  aprobado. El único esquema ponderado real es el del TFM (hitos 10/20/30/40).
+- "Examen Final: 120 minutos" -> 40 minutos, 15 preguntas sorteadas de un banco
+  de 30, 3 intentos, 24 h de espera, umbral 70.
+- "Total de cursos: 3+", "Endpoints API 25+", "Componentes web 25+",
+  "Líneas 7,000+" -> 30 cursos, 92 módulos, 400 recursos (217 lecciones, 58
+  exámenes), 20 rúbricas, 330 ítems, 58 rutas, 22 componentes y 9 páginas.
+- "Recibir calificación automática y feedback" y "Revisar análisis automático
+  de entregas" -> la nota la pone siempre un instructor por rúbrica; el LLM
+  solo escribe en grades.llm_suggestion.
+- "Al completar el Master: transcripción académica, badge de competencia,
+  portafolio de proyectos" -> no existen; se marcan como pendientes. Lo único
+  emitido son las filas de `certificates` (asignatura | tramo | programa).
+- "Mobile: Disponible en Expo Go (iOS/Android)" y el README de mobile con
+  notificaciones push, modo oscuro y CourseScreen -> la app tiene dos
+  pantallas, Login y Dashboard; el listener de notificaciones tiene el cuerpo
+  vacío y no registra ningún token; CourseScreen.tsx no existe.
+- "Fase 1 (en curso)" y "Fases 2-4 (planificadas)" -> las fases 0 a 4 están en
+  main desde 860cd00.
+- NATIVE_COURSES_SPECIFICATION: "solo native-ai-101 está desarrollado" -> los
+  tres cursos nativos tienen 0 recursos sembrados; son esqueletos los tres.
+- NATIVE_COURSES_SPECIFICATION: "no existe un planificador de repaso; en Fase 3
+  se implementa" -> ya se implementó: GET /api/me/review-plan más el componente
+  ReviewPlan, activado por desempeño (skill_mastery < 70 %), no por calendario.
+- FASE2_COMPLETADA: "Ready para migrar a NestJS completo en Fase 5" y "los
+  datos persisten en memoria" -> no hubo migración a NestJS y los datos están
+  en PostgreSQL. Se conserva el documento como instantánea histórica, con
+  cabecera que lo dice.
+- Guías de despliegue: "Root Directory: frontend" -> el vercel.json vigente
+  está en la raíz y construye con `npm --prefix frontend run build`.
+- Guías de despliegue: "/api/health debe retornar 404 (endpoint no existe pero
+  el server está activo)" -> responde 200 {"status":"ok"} y es el healthcheck
+  declarado en railway.toml; un 404 significaría despliegue caído.
+- Guías de despliegue: Dockerfile de ejemplo con `COPY backend .` y
+  `--legacy-peer-deps` en backend/ -> Railway construye el Dockerfile de la
+  raíz, que copia archivo por archivo.
+- mobile/app.json apuntaba a https://campus-posgrado-v2-api.railway.app/api,
+  que devuelve 404. El backend real es
+  https://campus-posgrado-v2-production.up.railway.app/api (200). Corregido.
+- backend/lib/llm.js citaba scripts/draft-item-bank.mjs, que no existe.
+
+Se documenta además un hallazgo operativo comprobado el 2026-09-08: la imagen
+en producción es anterior a la Fase 0 (las rutas de examen, rúbricas, foro, TFM
+y tutor responden 404 mientras /courses y /programs responden 401) y su base de
+datos está sin sembrar (/api/master-courses devuelve []). Encaja con el
+Dockerfile al que le faltaba COPY backend/lib, ya corregido: el contenedor se
+caía al arrancar, no pasaba el healthcheck y Railway mantenía viva la última
+versión sana.
+
+DEPLOY_AUTOMATIZADO.md se reduce a un aviso que apunta a DEPLOY.md en vez de
+seguir difundiendo sus afirmaciones ("Mock API", "6 endpoints", "Node.js +
+Express", "JWT"); el contenido original sigue en el historial de git.
+---
+ DEPLOY.md                       | 259 +++++++++-------
+ DEPLOYMENT_QUICK_START.md       | 202 +++---------
+ DEPLOY_AUTOMATIZADO.md          | 263 ++--------------
+ FASE2_COMPLETADA.md             |  23 +-
+ MASTER_IEP_INTEGRATION.md       | 523 ++++++++++++++++++--------------
+ NATIVE_COURSES_SPECIFICATION.md |  34 ++-
+ README.md                       | 177 +++++++----
+ SETUP.md                        | 252 +++++++--------
+ backend/README.md               | 126 +++++---
+ backend/lib/llm.js              |   4 +-
+ mobile/README.md                | 183 ++++-------
+ mobile/app.json                 |   2 +-
+ run.ps1                         |   2 +-
+ 13 files changed, 923 insertions(+), 1127 deletions(-)
+
+diff --git a/DEPLOY.md b/DEPLOY.md
+index 5c59023..ff7b43a 100644
+--- a/DEPLOY.md
++++ b/DEPLOY.md
+@@ -1,154 +1,199 @@
+-# Campus Posgrado v2.0 - Cloud Deployment Guide
++# Campus Posgrado v2.0 — Despliegue
+ 
+-**Fase 2 COMPLETADA:** Dashboard + Course View con 3 cursos de ejemplo, progreso real, y conexión API funcional.
++> **Nota de veracidad (2026-09).** Versiones anteriores de esta guía describían
++> el backend como una «API mock con 3 cursos de ejemplo» y decían que
++> `/api/health` debía responder 404. Ambas cosas son falsas hoy: el backend es
++> una API real sobre PostgreSQL con 30 cursos sembrados, y `/api/health`
++> responde `200 {"status":"ok"}` — de hecho Railway lo usa como healthcheck, así
++> que si devolviera 404 el despliegue se marcaría como caído.
+ 
+ ---
+ 
+-## 🚀 Deploy a Vercel + Railway (5 min)
++## ⚠️ Estado actual de producción (comprobado el 2026-09-08)
+ 
+-### PASO 1: Preparar repositorio Git
++**Lo que hay desplegado en Railway no es el código de `main`, y su base de datos
++está vacía.** Comprobaciones hechas contra
++`https://campus-posgrado-v2-production.up.railway.app/api`:
+ 
+-```bash
+-cd C:\Users\edilson.alvarez\Documents\campus-posgrado-v2
+-
+-# Inicializar Git
+-git init
+-git add .
+-git commit -m "Fase 2: Dashboard + Course View"
+-
+-# Crear repositorio en GitHub
+-# 1. Ir a https://github.com/new
+-# 2. Nombre: campus-posgrado-v2
+-# 3. Crear repositorio
+-# 4. Copiar el comando:
+-
+-git remote add origin https://github.com/TU-USUARIO/campus-posgrado-v2.git
+-git branch -M main
+-git push -u origin main
++| Ruta | Respuesta | Lectura |
++|---|---|---|
++| `/health` | `200 {"status":"ok"}` | El servicio está vivo. |
++| `/courses`, `/programs/master-iep`, `/certificates` | `401` | La ruta existe y pide sesión. |
++| `/quizzes/:id`, `/rubrics/:slug`, `/exams/:id/status`, `/formative/:id` | `404` | **La ruta no existe:** falta toda la Fase 1. |
++| `/events`, `/forum/threads/:id`, `/me/peer-reviews`, `/me/review-plan`, `/tfm`, `/tutor/:id` | `404` | Faltan también las Fases 3 y 4. |
++| `/master-courses` | `200 []` | **El catálogo está vacío: nunca se sembró.** |
++
++Es decir, la imagen en producción es anterior a la Fase 0 y su PostgreSQL no
++tiene ni las asignaturas ni las lecciones.
++
++La causa más probable de que los despliegues posteriores no hayan prosperado es
++que **el `Dockerfile` no copiaba `backend/lib`**, que `simple-server.js` requiere
++en su línea 8 desde la Fase 1. Reproducido replicando el contexto exacto del
++`COPY`:
++
++```
++Error: Cannot find module './lib/llm'
++    at Object.<anonymous> (/app/simple-server.js:8:13)
+ ```
+ 
++Con `restartPolicyType = "ON_FAILURE"` y un healthcheck sobre `/api/health`, un
++contenedor que se cae al arrancar nunca pasa el healthcheck, así que Railway
++mantiene viva la última versión que sí arrancó — la de antes de la Fase 1. Eso
++encaja exactamente con lo que se observa.
++
++**Para poner producción al día:** desplegar `main` con el `Dockerfile` ya
++corregido, confirmar en los logs que arranca, y sembrar el catálogo una vez con
++`railway run npm run seed`.
++
+ ---
+ 
+-### PASO 2: Deploy Frontend a Vercel
+-
+-1. Ir a https://vercel.com/new
+-2. Importar proyecto desde GitHub
+-3. Seleccionar: `campus-posgrado-v2`
+-4. Configurar:
+-   - **Framework**: Vite
+-   - **Root Directory**: `frontend`
+-   - **Build Command**: `npm run build`
+-   - **Output Directory**: `dist`
+-5. Agregar variable de entorno:
+-   ```
+-   VITE_API_URL=https://campus-backend-xxxx.railway.app/api
+-   ```
+-   (Reemplazar con URL de Railway después)
+-6. **Deploy!**
++El proyecto se despliega en dos servicios:
+ 
+-✅ Obtendrás: `https://campus-posgrado-v2.vercel.app`
++| Componente | Servicio | Archivo que manda |
++|---|---|---|
++| Frontend | Vercel | `vercel.json` (en la **raíz** del repositorio) |
++| Backend | Railway | `railway.toml` + `Dockerfile` (en la **raíz**) |
++| Base de datos | Railway PostgreSQL | — |
+ 
+ ---
+ 
+-### PASO 3: Deploy Backend a Railway
++## 1. Backend en Railway
+ 
+-1. Ir a https://railway.app/new
+-2. Crear proyecto vacío
+-3. Agregar servicio: **Dockerfile**
+-4. Crear `backend/Dockerfile`:
++`railway.toml` ya deja todo declarado:
+ 
+-```dockerfile
+-FROM node:18-alpine
+-WORKDIR /app
+-COPY backend/package*.json ./
+-RUN npm install --legacy-peer-deps
+-COPY backend .
+-EXPOSE 3001
+-CMD ["node", "simple-server.js"]
++```toml
++[build]
++builder = "DOCKERFILE"
++dockerfilePath = "Dockerfile"
++
++[deploy]
++healthcheckPath = "/api/health"
++healthcheckTimeout = 30
++restartPolicyType = "ON_FAILURE"
+ ```
+ 
+-5. Hacer push:
++Pasos:
++
++1. **New Project → Deploy from GitHub repo** y elige el repositorio. Railway
++   detecta el `Dockerfile` de la raíz por el `railway.toml`; no hace falta
++   configurar comando de build ni de arranque.
++2. **Add → Database → PostgreSQL** dentro del mismo proyecto.
++3. En el servicio del backend, **Variables**: añade
++   `DATABASE_URL = ${{Postgres.DATABASE_URL}}`. El pool activa SSL solo cuando
++   el host no es local, así que no hay nada más que tocar.
++4. Despliega. Las migraciones se aplican solas en cada arranque.
++5. **Siembra el catálogo una vez**, ya que el seed no corre por defecto:
++
++   ```bash
++   railway run npm run seed
++   ```
++
++   La alternativa es arrancar con `AUTO_SEED=true`. El seed es no destructivo
++   (upsert por `stable_key`), así que repetirlo no borra progreso ni entregas.
++
++Comprueba que está vivo:
++
+ ```bash
+-git push -u origin main
++curl https://<tu-servicio>.up.railway.app/api/health
++# {"status":"ok"}
+ ```
+ 
+-6. En Railway:
+-   - Conectar repositorio GitHub
+-   - Rama: `main`
+-   - Directorio raíz: `.`
+-   - Build command: (dejar vacío)
+-   - Start command: `node backend/simple-server.js`
++### Sobre el Dockerfile
+ 
+-✅ Obtendrás: `https://campus-backend-xxxx.railway.app`
++La imagen copia archivo por archivo, no el directorio entero:
+ 
+----
++```dockerfile
++COPY backend/simple-server.js ./simple-server.js
++COPY backend/lib ./lib
++COPY backend/db ./db
++COPY backend/scripts ./scripts
++```
+ 
+-### PASO 4: Actualizar variable de entorno en Vercel
++Es deliberado (mantiene la imagen pequeña) pero frágil: **cualquier directorio
++nuevo que `simple-server.js` requiera en tiempo de ejecución necesita su propio
++`COPY`**, o el contenedor se caerá al arrancar con `Cannot find module`. Si
++tocas esto, cámbialo también en `backend/Dockerfile`.
+ 
+-1. Ir a Vercel → proyecto campus-posgrado-v2
+-2. Settings → Environment Variables
+-3. Actualizar `VITE_API_URL`:
+-   ```
+-   https://campus-backend-xxxx.railway.app/api
+-   ```
+-4. Redeploy
++### Variables opcionales del backend
++
++| Variable | Por defecto | Para qué |
++|---|---|---|
++| `PORT` | `3001` | Railway lo inyecta por su cuenta. |
++| `AUTO_SEED` | `false` | Siembra al arrancar, además de migrar. |
++| `SEED_DEMO_DATA` | `false` | Datos de demostración. Dejar en `false` en producción. |
++| `EXAM_COOLDOWN_HOURS` | `24` | Espera entre intentos de examen. |
++| `OFFICIAL_CODE_V`, `OFFICIAL_CODE_VIII`, `OFFICIAL_CODE_TFM` | marcador interno | Códigos oficiales de esas tres asignaturas. |
++| `LLM_PROVIDER` + `ANTHROPIC_API_KEY` | `none` | Activan el tutor socrático y la asistencia de nota. |
+ 
+ ---
+ 
+-## 📊 Resultado Final
++## 2. Frontend en Vercel
+ 
+-| Componente | URL |
+-|-----------|-----|
+-| **Frontend** | https://campus-posgrado-v2.vercel.app |
+-| **Backend** | https://campus-backend-xxxx.railway.app/api |
+-| **PostgreSQL** | Railway managed |
++1. **Add New → Project** e importa el repositorio.
++2. **Root Directory: la raíz del repositorio**, no `frontend/`. El `vercel.json`
++   de la raíz ya contiene todo lo necesario:
+ 
+----
++   ```json
++   {
++     "buildCommand": "npm --prefix frontend install --no-audit --no-fund && npm --prefix frontend run build",
++     "outputDirectory": "frontend/dist",
++     "installCommand": "echo skip-root-install",
++     "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
++   }
++   ```
+ 
+-## 🔐 Test Credentials
++   (`frontend/vercel.json` solo contiene el *rewrite* de SPA y es el que se
++   usaría en el montaje alternativo con Root Directory = `frontend`.)
++3. **Environment Variables:**
+ 
+-```
+-Email: test@example.com
+-Password: Password123
+-```
+-
+----
++   ```
++   VITE_API_URL = https://<tu-servicio>.up.railway.app/api
++   ```
+ 
+-## 📋 Fase 2: Completada ✅
++   El **sufijo `/api` es obligatorio**: `src/services/api.ts` lo usa tal cual
++   como `baseURL` de Axios. Es la única variable que el frontend lee.
++4. Despliega. Si cambias `VITE_API_URL` después, hay que **redesplegar**: Vite
++   incrusta el valor en el bundle en tiempo de compilación.
+ 
+-Implementado:
+-- [x] 3 cursos de ejemplo con datos realistas
+-- [x] Sistema de progreso por estudiante
+-- [x] Dashboard con stats en tiempo real
+-- [x] CourseCard component reutilizable
+-- [x] Conexión API funcional
+-- [x] React Query para caching
+-- [x] Zustand para estado global
++El *rewrite* a `/index.html` es lo que hace que rutas como `/master-iep` o
++`/courses/master-i` funcionen al recargar la página.
+ 
+ ---
+ 
+-## 🎯 Fase 3: Próxima
++## 3. Comprobación en producción
+ 
+-- [ ] Entregas (submissions)
+-- [ ] Sistema de calificaciones
+-- [ ] Panel de admin
+-- [ ] Evaluaciones
++1. Abre el frontend y regístrate, o entra con el usuario que siembra el seed
++   (`test@example.com` / `Password123`).
++2. Ve a **Máster IEP**: deben aparecer las 11 asignaturas y el TFM en cuatro
++   tramos, con la Asignatura I desbloqueada y el resto bloqueado en cascada.
++3. Smoke test de los endpoints de evaluación:
++
++   ```bash
++   BASE=https://<tu-servicio>.up.railway.app/api node backend/scripts/smoke.mjs
++   ```
+ 
+ ---
+ 
+-## 🆘 Troubleshooting
++## 4. Resolución de problemas
++
++**Railway marca el servicio como caído.**
++Mira los logs. Si ves `Cannot find module './lib/llm'` o similar, falta un
++`COPY` en el `Dockerfile` (ver arriba). Si ves un error de conexión, revisa que
++`DATABASE_URL` esté referenciando el servicio de PostgreSQL.
++
++**El campus carga pero sale vacío, sin asignaturas.**
++Falta sembrar: `railway run npm run seed`.
+ 
+-**Railway no inicia backend:**
+-- Revisar logs: `railway logs`
+-- Asegurar que `backend/simple-server.js` existe
+-- Verificar PORT = 3001
++**El frontend no habla con el backend.**
++Comprueba que `VITE_API_URL` termina en `/api` y que redesplegaste después de
++cambiarla. El backend responde con `Access-Control-Allow-Origin: *`, así que
++CORS no debería ser el problema.
+ 
+-**Vercel no conecta con backend:**
+-- Verificar VITE_API_URL en environment variables
+-- CORS habilitado en backend
+-- Redeploy en Vercel después de cambiar variables
++**Sesión cerrada a mitad de un examen.**
++El token de acceso dura 1 hora, pero el cliente reintenta una vez con el token
++de refresco antes de cerrar sesión. Si ocurre igualmente, revisa que
++`POST /api/auth/refresh` sea accesible.
+ 
+ ---
+ 
+ **Contacto:** edilson.alvarez@sumimedical.com
+-**Repositorio:** https://github.com/tu-usuario/campus-posgrado-v2
+diff --git a/DEPLOYMENT_QUICK_START.md b/DEPLOYMENT_QUICK_START.md
+index 27c4590..817f587 100644
+--- a/DEPLOYMENT_QUICK_START.md
++++ b/DEPLOYMENT_QUICK_START.md
+@@ -1,160 +1,42 @@
+-# 🚀 DEPLOYMENT QUICK START - 5 MINUTOS
+-
+-## PASO 1: Crear GitHub Repository
+-
+-1. Ir a https://github.com/new
+-2. **Repository name:** `campus-posgrado-v2`
+-3. **Descripción:** Campus Posgrado LMS - Phase 2
+-4. **Public** (para conectar con Vercel/Railway)
+-5. **Create repository**
+-
+----
+-
+-## PASO 2: Push a GitHub (En tu máquina)
+-
+-Abre PowerShell en la carpeta del proyecto:
+-
+-```powershell
+-cd 'C:\Users\edilson.alvarez\Documents\campus-posgrado-v2'
+-
+-git init
+-git add .
+-git commit -m "Fase 2: Dashboard + Course View - Ready for cloud deployment"
+-git branch -M main
+-
+-# Reemplaza TU-USUARIO con tu usuario de GitHub
+-git remote add origin https://github.com/TU-USUARIO/campus-posgrado-v2.git
+-git push -u origin main
+-```
+-
+-**Confirma que el push fue exitoso en:** https://github.com/TU-USUARIO/campus-posgrado-v2
+-
+----
+-
+-## PASO 3: Desplegar Frontend a Vercel (2 min)
+-
+-1. Ir a https://vercel.com/new
+-2. **Import Git Repository**
+-3. Buscar: `campus-posgrado-v2`
+-4. **Import**
+-
+-### Configurar:
+-- **Root Directory:** `frontend`
+-- **Framework:** Vite
+-- **Build Command:** `npm run build`
+-- **Output Directory:** `dist`
+-
+-### Environment Variables:
+-```
+-VITE_API_URL = https://campus-posgrado-v2-api.railway.app/api
+-```
+-(Cambiar después con URL de Railway)
+-
+-**Deploy!** ✅
+-
+-**Tu URL será:** `https://campus-posgrado-v2.vercel.app`
+-
+----
+-
+-## PASO 4: Desplegar Backend a Railway (2 min)
+-
+-1. Ir a https://railway.app/new
+-2. **Deploy from GitHub**
+-3. Conectar tu cuenta GitHub
+-4. Seleccionar: `campus-posgrado-v2`
+-5. **Deploy**
+-
+-Railway detectará automáticamente el Dockerfile
+-
+-### Configurar Variables:
+-```
+-PORT=3001
+-NODE_ENV=production
+-```
+-
+-**Tu URL será:** `https://campus-posgrado-v2-api.railway.app`
+-
+----
+-
+-## PASO 5: Actualizar Vercel con URL de Railway
+-
+-1. Ir a https://vercel.com/dashboard
+-2. Proyecto: `campus-posgrado-v2`
+-3. **Settings → Environment Variables**
+-4. Editar `VITE_API_URL`:
+-   ```
+-   https://campus-posgrado-v2-api.railway.app/api
+-   ```
+-5. **Save**
+-6. **Redeploy** (ir a Deployments → More → Redeploy)
+-
+----
+-
+-## ✅ RESULTADO FINAL
+-
+-| Componente | URL | Status |
+-|-----------|-----|--------|
+-| Frontend | https://campus-posgrado-v2.vercel.app | ✅ Live |
+-| Backend | https://campus-posgrado-v2-api.railway.app | ✅ Live |
+-| Database | Railway Postgres | ✅ Connected |
+-
+----
+-
+-## 🧪 Test en Producción
+-
+-1. Abre: https://campus-posgrado-v2.vercel.app
+-2. **Register:**
+-   - Email: `prod@test.com`
+-   - Name: `Production Test`
+-   - Password: `Test123456`
+-3. **Login** con las credenciales
+-4. Deberías ver **3 cursos** en el Dashboard
+-
+----
+-
+-## 🔐 Test Credentials
+-
+-Cuenta de prueba ya lista:
+-```
+-Email: test@example.com
+-Password: Password123
+-```
+-
+----
+-
+-## 📊 URLs en Producción
+-
+-**Comparte estas URLs:**
+-- 🌐 Frontend: https://campus-posgrado-v2.vercel.app
+-- 🔌 API: https://campus-posgrado-v2-api.railway.app/api
+-
+----
+-
+-## 🆘 Si algo falla
+-
+-### Frontend no carga
+-- Vercel → Deployments → Check build logs
+-- Revisar VITE_API_URL en Environment Variables
+-
+-### Backend error
+-- Railway → Logs → Check Node.js errors
+-- Verificar que Dockerfile existe en backend/
+-
+-### API no conecta
+-- Probar: `https://campus-posgrado-v2-api.railway.app/api/health`
+-- Debe retornar status 404 (endpoint no existe pero servidor está activo)
+-
+----
+-
+-## ⏭️ SIGUIENTE: Fase 3
+-
+-Una vez deployed, continuamos con:
+-- Sistema de entregas (submissions)
+-- Calificaciones y feedback
+-- Panel de instructor
+-
+-**Tiempo estimado:** 3 horas
+-
+----
+-
+-**¡Listo para producción!** 🎉
++# Despliegue — versión corta
++
++> La guía completa, con variables de entorno y resolución de problemas, está en
++> [`DEPLOY.md`](./DEPLOY.md). Esto es solo el resumen.
++>
++> **Nota de veracidad (2026-09).** Este documento decía antes que la Root
++> Directory de Vercel debía ser `frontend`, que había que crear el repositorio
++> desde cero y que `/api/health` «debe retornar 404». Las tres cosas eran
++> incorrectas y están corregidas aquí.
++
++## 1. Backend en Railway
++
++1. **New Project → Deploy from GitHub repo** → este repositorio.
++   Railway lee `railway.toml` y construye el `Dockerfile` de la raíz. No hay que
++   configurar comando de build ni de arranque.
++2. **Add → Database → PostgreSQL** en el mismo proyecto.
++3. En el servicio del backend, **Variables**:
++   `DATABASE_URL = ${{Postgres.DATABASE_URL}}`.
++4. Tras el primer despliegue, siembra el catálogo una sola vez:
++   `railway run npm run seed`.
++
++Verificación: `curl https://<servicio>.up.railway.app/api/health` debe devolver
++`{"status":"ok"}` con código 200. Es el mismo endpoint que Railway usa como
++healthcheck.
++
++## 2. Frontend en Vercel
++
++1. **Add New → Project** → este repositorio.
++2. **Root Directory: la raíz**, no `frontend/`. El `vercel.json` de la raíz ya
++   define el build (`npm --prefix frontend run build`), la salida
++   (`frontend/dist`) y el *rewrite* de SPA.
++3. **Environment Variables:**
++   `VITE_API_URL = https://<servicio>.up.railway.app/api` — el sufijo `/api` es
++   obligatorio.
++4. Deploy. Si cambias esa variable más tarde, hay que **redesplegar**: Vite la
++   incrusta en el bundle al compilar.
++
++## 3. Comprobar
++
++Entra con `test@example.com` / `Password123` (usuario que crea el seed) y abre
++**Máster IEP**: deben verse las 11 asignaturas y el TFM en cuatro tramos, con la
++Asignatura I desbloqueada.
+diff --git a/DEPLOY_AUTOMATIZADO.md b/DEPLOY_AUTOMATIZADO.md
+index fee97c6..636d192 100644
+--- a/DEPLOY_AUTOMATIZADO.md
++++ b/DEPLOY_AUTOMATIZADO.md
+@@ -1,242 +1,27 @@
+-# 🚀 DEPLOYMENT AUTOMATIZADO - FASE 2 COMPLETA
+-
+-**Status:** ✅ CÓDIGO LISTO PARA PRODUCCIÓN  
+-**Commit:** `e9c7c75` - Fase 2: Dashboard + Course View  
+-**Archivos:** 63 cambios, 3,431 líneas  
+-
+----
+-
+-## 📋 CHECKLIST DE DESPLIEGUE (Haz estos 3 pasos)
+-
+-### ✅ PASO 1: GitHub (2 min)
++# Deploy automatizado — documento retirado
++
++> **Nota de veracidad (2026-09).** Este archivo describía el despliegue de la
++> «Fase 2» del proyecto y ya no correspondía con la realidad. Afirmaba, entre
++> otras cosas:
++>
++> - que el backend era un «Mock API» con «3 cursos de ejemplo» y 6 endpoints —
++>   hoy son 58 rutas reales sobre PostgreSQL con 30 cursos sembrados;
++> - que la autenticación era «JWT» — son tokens opacos en la tabla `sessions`;
++> - que el stack incluía «Node.js + Express» — no hay Express, es el módulo
++>   `http` nativo;
++> - que el `Dockerfile` debía estar en `backend/` — Railway construye el de la
++>   raíz, según `railway.toml`;
++> - que `/api/health` «debe retornar 404» — responde 200 y es el healthcheck
++>   configurado en Railway.
++>
++> En lugar de dejar esas afirmaciones en circulación, el contenido se retira y se
++> apunta a la guía vigente.
++
++La guía de despliegue vigente es **[`DEPLOY.md`](./DEPLOY.md)**, con la versión
++resumida en [`DEPLOYMENT_QUICK_START.md`](./DEPLOYMENT_QUICK_START.md).
++
++El historial original de este archivo sigue disponible en git:
+ 
+ ```bash
+-# 1. Crear repositorio en GitHub
+-# https://github.com/new
+-# Nombre: campus-posgrado-v2
+-# Descripción: Campus Posgrado LMS - Phase 2
+-# Public
+-# Create
+-
+-# 2. Conectar y pushear (reemplaza TU-USUARIO)
+-cd C:\Users\edilson.alvarez\Documents\campus-posgrado-v2
+-
+-git remote add origin https://github.com/TU-USUARIO/campus-posgrado-v2.git
+-git branch -M main
+-git push -u origin main
+-
+-# 3. Verifica que el push fue exitoso
+-# https://github.com/TU-USUARIO/campus-posgrado-v2
+-```
+-
+----
+-
+-### ✅ PASO 2: Vercel Frontend (2 min)
+-
+-1. **Ir a:** https://vercel.com/new
+-2. **Importar repositorio:** campus-posgrado-v2
+-3. **Root Directory:** `frontend`
+-4. **Framework:** Vite
+-5. **Build Command:** `npm run build`
+-6. **Output Directory:** `dist`
+-7. **Environment Variables:**
+-   ```
+-   VITE_API_URL=https://campus-backend-XXXX.railway.app/api
+-   ```
+-   (Actualizar después con URL de Railway)
+-8. **Deploy**
+-
+-**Tu Frontend estará en:**
+-```
+-https://campus-posgrado-v2.vercel.app
+-```
+-
+----
+-
+-### ✅ PASO 3: Railway Backend (2 min)
+-
+-1. **Ir a:** https://railway.app
+-2. **New Project**
+-3. **Deploy from GitHub**
+-4. **Seleccionar:** campus-posgrado-v2
+-5. **Deploy**
+-
+-Railway detectará automáticamente `Dockerfile`
+-
+-**Tu Backend estará en:**
+-```
+-https://campus-backend-XXXX.railway.app/api
+-```
+-
+----
+-
+-## 🔄 PASO 4: Vincular APIs (1 min)
+-
+-1. **En Vercel:**
+-   - Project → Settings → Environment Variables
+-   - Actualizar `VITE_API_URL` con URL de Railway
+-   - Redeploy
+-
+----
+-
+-## 🎉 RESULTADO FINAL
+-
+-Una vez completados los 3 pasos:
+-
+-| Componente | URL | Status |
+-|-----------|-----|--------|
+-| **Frontend** | `https://campus-posgrado-v2.vercel.app` | 🟢 Live |
+-| **Backend** | `https://campus-backend-XXXX.railway.app/api` | 🟢 Live |
+-| **Database** | Railway PostgreSQL | 🟢 Connected |
+-
+----
+-
+-## 🧪 PRUEBA EN PRODUCCIÓN
+-
+-### Opción A: Usar cuenta de prueba pre-cargada
+-```
+-Email: test@example.com
+-Password: Password123
+-```
+-
+-### Opción B: Crear nueva cuenta
+-1. Click "Regístrate aquí"
+-2. Llenar formulario
+-3. Inicia sesión
+-
+-**Deberías ver:**
+-- ✅ 3 cursos en el Dashboard
+-- ✅ Estadísticas en tiempo real
+-- ✅ Progress bars (33%, 25%, 0%)
+-- ✅ Cards clicables
+-
+----
+-
+-## 📊 FASE 2 COMPLETADA
+-
+-**Frontend:**
+-- ✅ Login/Register funcional
+-- ✅ Dashboard dinámico con 3 cursos
+-- ✅ CourseCard component
+-- ✅ Stats en tiempo real
+-- ✅ React Query + Zustand
+-- ✅ TypeScript type-safe
+-- ✅ Tailwind CSS responsive
+-
+-**Backend:**
+-- ✅ Mock API con CRUD
+-- ✅ 3 cursos de ejemplo
+-- ✅ Sistema de progreso
+-- ✅ JWT authentication
+-- ✅ CORS habilitado
+-- ✅ Docker listo
+-
+-**Database:**
+-- ✅ PostgreSQL en Railway
+-- ✅ Schema definido
+-- ✅ Data persistence
+-
+----
+-
+-## 🎯 PROXIMA FASE: Phase 3
+-
+-Una vez en producción, continuamos con:
+-
+-- **Entregas (Submissions)** - Estudiantes envían trabajos
+-- **Calificaciones (Grades)** - Instructores califican
+-- **Panel de Instructor** - Crear/editar cursos
+-- **Analytics** - Reportes de progreso
+-
+-**Timeline:** 3 horas
+-
+----
+-
+-## 🆘 TROUBLESHOOTING
+-
+-### ❌ Frontend no carga
+-- Vercel Dashboard → Deployments → Check logs
+-- Revisar `VITE_API_URL` en env variables
+-- Redeploy si fue necesario cambiar env
+-
+-### ❌ Backend error 500
+-- Railway Logs → Check Node.js errors
+-- Verificar `PORT=3001` en Railway
+-- Dockerfile debe estar en `backend/`
+-
+-### ❌ API error en llamadas
+-- Probar: `https://campus-backend-XXXX.railway.app/api/health`
+-- Debe retornar 404 (endpoint no existe pero server está activo)
+-- Revisar CORS: Backend permite origen de Vercel
+-
+-### ❌ Login falla
+-- Revisar console del navegador (DevTools)
+-- `VITE_API_URL` debe ser correcto
+-- Backend debe estar online
+-
+----
+-
+-## 📱 URLs Para Compartir
+-
+-Código listo en:
++git log --follow -p -- DEPLOY_AUTOMATIZADO.md
+ ```
+-📍 GitHub: https://github.com/TU-USUARIO/campus-posgrado-v2
+-🌐 Frontend: https://campus-posgrado-v2.vercel.app
+-🔌 Backend: https://campus-backend-XXXX.railway.app/api
+-```
+-
+----
+-
+-## 📈 ESTADÍSTICAS FINALES
+-
+-| Métrica | Valor |
+-|---------|-------|
+-| Archivos | 63 |
+-| Líneas de código | 3,431 |
+-| Componentes React | 12+ |
+-| Endpoints API | 6 |
+-| Cursos de ejemplo | 3 |
+-| Módulos | 3 |
+-| Recursos | 9+ |
+-| Base de datos | PostgreSQL |
+-| Deploy | Vercel + Railway |
+-
+----
+-
+-## ✨ CARACTERÍSTICAS FASE 2
+-
+-- [x] Autenticación JWT
+-- [x] Dashboard dinámico
+-- [x] 3 cursos con datos realistas
+-- [x] Sistema de progreso
+-- [x] React Query caching
+-- [x] TypeScript type-safe
+-- [x] Tailwind CSS
+-- [x] Docker ready
+-- [x] CORS configured
+-- [x] Production ready
+-
+----
+-
+-## 🎓 CONOCIMIENTO APLICADO
+-
+-- React 18 + TypeScript
+-- Vite bundler
+-- Tailwind CSS
+-- React Query
+-- Zustand state
+-- React Router
+-- Node.js + Express
+-- Docker containers
+-- Git workflow
+-- Cloud deployment
+-
+----
+-
+-**Campus Posgrado v2.0 - Fase 2 ✅ COMPLETADA Y EN PRODUCCIÓN**
+-
+-Siguientes pasos:
+-1. Completar 3 pasos de deploy arriba
+-2. Validar en producción
+-3. Comenzar Fase 3 (Entregas + Calificaciones)
+-
+-¡Listo para el mundo! 🌍
+diff --git a/FASE2_COMPLETADA.md b/FASE2_COMPLETADA.md
+index dd6446a..44c00c7 100644
+--- a/FASE2_COMPLETADA.md
++++ b/FASE2_COMPLETADA.md
+@@ -1,4 +1,20 @@
+-# ✅ FASE 2: Dashboard + Course View - COMPLETADA
++# ✅ FASE 2: Dashboard + Course View — COMPLETADA (documento histórico)
++
++> **Nota de veracidad (2026-09).** Esto es una **instantánea del 3 de septiembre
++> de 2026**, conservada como registro. Ya no describe el sistema actual y no
++> debe usarse como referencia. Lo que ha cambiado desde entonces:
++>
++> - El backend ya no es un mock en memoria con 3 cursos de ejemplo: es una API
++>   sobre PostgreSQL con 30 cursos sembrados, 92 módulos y 400 recursos, y los
++>   datos persisten en la base (ver `backend/db/migrations/` y `backend/db/seed.js`).
++> - No hay autenticación JWT. Las contraseñas usan scrypt y la sesión son tokens
++>   opacos guardados en la tabla `sessions`.
++> - **No hubo ni habrá migración a NestJS.** El scaffold `backend/src/**` se
++>   eliminó por código muerto: nunca se compiló ni se desplegó.
++> - Las fases 3 y 4 de este plan quedaron superadas por la transformación del
++>   Máster IEP (fases 0 a 4), que es lo que hay hoy en `main`.
++>
++> El estado real está en [`MASTER_IEP_INTEGRATION.md`](./MASTER_IEP_INTEGRATION.md).
+ 
+ ## 📊 Resumen Ejecutivo
+ 
+@@ -189,7 +205,10 @@ GET    /api/progress           ✅ Obtener progreso del estudiante
+ 
+ - Backend mock soporta múltiples usuarios (cada uno con su progreso)
+ - Datos persisten en memoria durante la sesión (reset al reiniciar)
+-- Ready para migrar a NestJS completo en Fase 5
++  — _obsoleto: hoy persisten en PostgreSQL_
++- ~~Ready para migrar a NestJS completo en Fase 5~~
++  — _no ocurrió: el backend siguió siendo `simple-server.js` y el scaffold
++  NestJS se eliminó_
+ - Todos los componentes con TypeScript strict mode
+ - Accesibilidad WCAG AA compliant
+ 
+diff --git a/MASTER_IEP_INTEGRATION.md b/MASTER_IEP_INTEGRATION.md
+index 3b5c46c..7377fbb 100644
+--- a/MASTER_IEP_INTEGRATION.md
++++ b/MASTER_IEP_INTEGRATION.md
+@@ -1,295 +1,348 @@
+-# 🎓 Master de IEP - Integración en Plataforma
++# 🎓 Máster IEP — Integración en la plataforma
+ 
+-> **Nota de veracidad (transformación Fase 0/1, 2026-09).** Este documento se
+-> corrigió para describir lo que la plataforma **hace de verdad**. Versiones
+-> anteriores anunciaban una "calificación automática con IA", "rúbricas
+-> automáticas" y "repetición espaciada" que no existían en el backend en
+-> ejecución (`backend/simple-server.js`). Estado real abajo.
++> **Nota de veracidad (2026-09).** Todo lo que este documento afirma se
++> verificó contra el sistema real: se levantó PostgreSQL 16, se aplicaron las
++> 15 migraciones de `backend/db/migrations/`, se ejecutó `backend/db/seed.js`
++> y se consultaron los endpoints de `backend/simple-server.js` en marcha. Las
++> cifras de abajo salen de esa base de datos, no de una estimación. Lo que no
++> está construido aparece marcado como **pendiente**, no omitido.
+ 
+-## Sistema LMS para el Máster IEP en IA
++---
+ 
+-### ✨ Estado real
++## Estado real
+ 
+ **Campus Posgrado v2 incluye hoy:**
+-- ✅ Plataforma web (React 18 + TypeScript + Vite) desplegada en Vercel
+-- ⚠️ App móvil (Expo) — solo Login + Dashboard; el consumo de curso es web
+-- ✅ Backend `simple-server.js` (Node http nativo + PostgreSQL) en Railway
+-- ✅ 11 asignaturas oficiales + TFM como cursos propios, agrupados por `meta.programSlug='master-iep'`
+-- ✅ 66 lecciones propias con quiz formativo, diagrama y actividad
+-- ✅ Calificación de proyectos **por rúbrica**, realizada por un instructor
+-  (con *asistencia* opcional de un LLM que propone, sin decidir — humano en el bucle)
+-- ✅ Certificado de asignatura que exige **lecciones + proyecto + examen**
+-  (no basta aprobar un examen de opción múltiple)
+-- ❌ NO hay calificación autónoma por IA. `backend/ai-grader.js` es código muerto
+-  (heurística de conteo de palabras, nunca importado) y será eliminado.
+-
+----
+ 
+-## 📚 Master de IEP - Estructura
+-
+-### Visión General
+-
+-El Master de IEP "Inteligencia Artificial y Tecnologías Disruptivas para la Innovación en la Industria 4.0" está diseñado como un programa integral de 52 semanas que cubre:
+-
+-- Fundamentos de IA y Machine Learning
+-- Deep Learning y Redes Neuronales
+-- Big Data e IoT
+-- Cloud Computing
+-- Ética y Seguridad en IA
+-
+-### Asignaturas Principales
+-
+-#### **Asignatura 1: Fundamentos de IA y Tecnologías Disruptivas**
+-- **Créditos:** 6
+-- **Duración:** 8 semanas
+-- **Nivel:** Introductorio
+-
+-**Módulos:**
+-1. **Introducción a la IA**
+-   - Historia y evolución (MIT OpenCourseWare)
+-   - Tipos de IA (Débil/Fuerte, Narrow/General)
+-   - Aplicaciones en la industria
+-
+-2. **Machine Learning - Fundamentos**
+-   - Tipos de aprendizaje (supervisado, no supervisado, refuerzo)
+-   - Google ML Crash Course
+-   - TensorFlow Playground (interactivo)
+-   - Libro: "Machine Learning for Absolute Beginners"
+-
+-3. **Deep Learning y Redes Neuronales**
+-   - Perceptrón y Backpropagation
+-   - Andrew Ng Deep Learning Specialization
+-   - Libro: "Deep Learning" (Goodfellow, Bengio, Courville)
+-   - Proyecto: CNN para clasificación de imágenes
+-
+-4. **Big Data e IoT**
+-   - Los 4 V del Big Data
+-   - Sensores inteligentes
+-   - Industria 4.0 en manufactura
+-
+-5. **Cloud Computing**
+-   - IaaS, PaaS, SaaS
+-   - AWS, Google Cloud, Azure
+-   - Labs prácticos
+-
+-6. **Ética y Seguridad en IA**
+-   - Sesgos y Fairness
+-   - "Weapons of Math Destruction" (O'Neil)
+-   - Privacidad en la era digital
+-
+-#### **Asignatura 2: Machine Learning Avanzado**
+-*(En desarrollo)*
+-- Feature Engineering
+-- Ensemble Methods
+-- Hyperparameter Tuning
+-- AutoML y MLOps
+-
+-#### **Asignatura 3: Deep Learning Especializado**
+-*(En desarrollo)*
+-- Transfer Learning
+-- GANs (Generative Adversarial Networks)
+-- NLP con Transformers
+-- Vision Transformers
++- ✅ Plataforma web (React 18 + TypeScript + Vite + Tailwind) desplegada en Vercel.
++- ✅ Backend `backend/simple-server.js` — servidor `http` nativo de Node sobre
++  PostgreSQL, con `pg` como única dependencia. Es el único servicio desplegado
++  (Railway construye el `Dockerfile` de la raíz, ver `railway.toml`).
++- ✅ 11 asignaturas oficiales + el TFM, cada una como un curso propio agrupado
++  por `meta.programSlug = 'master-iep'`.
++- ✅ 66 lecciones propias del Máster (6 por asignatura), cada una con quiz
++  formativo, diagrama, ejemplo y actividad.
++- ✅ Calificación de proyectos **por rúbrica, decidida por un instructor**, con
++  *asistencia* opcional de un LLM que propone y nunca decide.
++- ✅ Certificado de asignatura que exige lecciones + proyecto + examen a la vez.
++- ⚠️ App móvil (Expo): **solo Login y Dashboard**. El consumo del curso es por
++  web responsive. Las pantallas de curso, recurso y entrega están **pendientes**.
++- ❌ **No** hay calificación autónoma por IA. El antiguo `backend/ai-grader.js`
++  (heurística de conteo de palabras, nunca importado por nadie) se eliminó.
++- ❌ **No** hay backend NestJS. El árbol `backend/src/**` era un scaffold
++  abandonado que describía un esquema de autenticación distinto del real y se
++  eliminó junto con su `nest-cli.json` y su `tsconfig.json`.
++
++### Contenido sembrado, medido sobre la base de datos
++
++| Tabla / concepto | Cantidad real |
++|---|---|
++| Cursos (`courses`) | 30 |
++| — de tipo `program` | 14 (11 asignaturas + TFM + el contenedor `master-iep` + el módulo puente) |
++| — de tipo `aula` | 12 (recreaciones internas de cursos externos) |
++| — de tipo `native` | 3 (esqueletos, ver más abajo) |
++| — de tipo `library` | 1 (biblioteca de libros) |
++| Módulos (`modules`) | 92 |
++| Recursos (`resources`) | 400 |
++| — lecciones | 217 (66 del Máster + 151 en las aulas) |
++| — exámenes | 58 |
++| Rúbricas (`rubrics`) | 20 |
++| Bancos de ítems | 11 bancos × 30 ítems = 330 ítems |
++| Migraciones SQL | 15 |
++| Rutas HTTP en `simple-server.js` | 58 |
++| Componentes React / páginas / hooks | 22 / 9 / 9 |
+ 
+ ---
+ 
+-## 🎯 Recursos Integrados
+-
+-### Tipos de Recursos
++## Estructura del Máster
+ 
+-1. **Lecturas** (PDF descargables en español)
+-   - Capítulos de libros recomendados
+-   - Artículos académicos
+-   - Papers de investigación
++**Título oficial del programa:** «Máster en Inteligencia Artificial y Tecnologías
++Disruptivas para la Innovación en la Industria 4.0».
+ 
+-2. **Videos** (links a cursos externos)
+-   - MIT OpenCourseWare
+-   - Google ML Crash Course
+-   - Andrew Ng Specializations
+-   - YouTube educativo
++Son **11 asignaturas más el Proyecto Fin de Programa (TFM)**, repartidas en
++cuatro tramos. Los tres primeros tramos emiten cada uno su propio certificado.
+ 
+-3. **Ejercicios Prácticos**
+-   - Problemas de análisis
+-   - Implementación de algoritmos
+-   - Proyectos de integración
++### Tramo PRO-essentials
++*Certificado en Innovación y Tecnologías Disruptivas para la Transformación de la Industria 4.0*
+ 
+-4. **Labs Interactivos**
+-   - TensorFlow Playground
+-   - Google Colab
+-   - Jupyter Notebooks
++| # | Asignatura | `officialCode` |
++|---|---|---|
++| I | Artificial Intelligence | 2702799205636 |
++| II | Innovación tecnológica: Principales Tecnologías Disruptivas | 2702799205366 |
++| III | Big Data Dentro de la informática | 2702799209255 |
+ 
+-5. **Casos de Estudio**
+-   - Industria 4.0
+-   - Transformación digital
+-   - Aplicaciones reales
++### Tramo PROadvance
++*Certificado en Tecnologías Disruptivas e Inteligencia Artificial Avanzada*
+ 
+----
++| # | Asignatura | `officialCode` |
++|---|---|---|
++| IV | Metodologías Ágiles para gestión de proyectos | 2702799205392 |
++| V | Ética y regulaciones en el Uso de la IA | **IEP-V-INTERNO** (pendiente) |
++| VI | Machine Learning | 2702799208864 |
++| VII | Prompts Multimodales y Adaptación a Contextos Complejos | 2702799209304 |
++| VIII | Metodologías para el desarrollo de productos tecnológicos innovadores | **IEP-VIII-INTERNO** (pendiente) |
++| IX | Uso e Implementación de Modelos de IA Generativa en la Industria 4.0 | 2702799209220 |
+ 
+-## 📝 Sistema de Evaluación
++### Tramo PROexpertify
++*Certificado en Cloud Computing e IA para entornos Seguros*
+ 
+-### Componentes de Calificación
++| # | Asignatura | `officialCode` |
++|---|---|---|
++| X | AI Platforms | 2702799211500 |
++| XI | Principios de Inteligencia Artificial aplicada a entornos seguros | 2702799179257 |
+ 
+-1. **Quizzes** (10%)
+-   - 20 preguntas por módulo
+-   - Retroalimentación inmediata
+-   - Refuerzo de conceptos
++### Tramo TFM
++*Proyecto Fin de Programa* — `officialCode` **IEP-TFM-INTERNO** (pendiente).
+ 
+-2. **Proyectos** (30%)
+-   - Propuestas de solución
+-   - Análisis crítico
+-   - Implementación
++### Sobre los tres `officialCode` internos
+ 
+-3. **Prácticas Hands-On** (30%)
+-   - Laboratorios en Python/TensorFlow
+-   - Proyectos de código
+-   - Implementación de algoritmos
++Nueve de las doce entradas llevan el código numérico oficial del IEP. Las
++asignaturas **V** y **VIII** y el **TFM** no tienen código oficial conocido, así
++que el sistema usa un marcador interno explícito en lugar de dejar el campo
++vacío:
+ 
+-4. **Examen Final** (30%)
+-   - Evaluación integral
+-   - 120 minutos
+-   - Preguntas de análisis y aplicación
++- `backend/db/seed.js` los siembra como
++  `process.env.OFFICIAL_CODE_V || 'IEP-V-INTERNO'` (ídem `OFFICIAL_CODE_VIII` y
++  `OFFICIAL_CODE_TFM`). Basta definir esas tres variables de entorno y volver a
++  sembrar para que pasen a mostrar el código real.
++- `backend/db/migrations/010_officialcode_backfill.sql` es la red de seguridad:
++  rellena con el mismo marcador cualquier fila de producción que hubiera quedado
++  con `officialCode` nulo o vacío, sin pisar un valor ya puesto.
++- El frontend (`frontend/src/pages/MasterIEPPage.tsx`) distingue por el prefijo:
++  si el valor empieza por `IEP-` etiqueta la tarjeta como «Código interno», y en
++  cualquier otro caso como «Código oficial». Nunca muestra un hueco ni
++  `undefined`.
+ 
+-### Rúbricas de Evaluación
++**Pendiente:** que el IEP facilite los tres códigos oficiales reales, o bien
++confirme por escrito que el código interno es aceptable. No se han inventado
++valores.
+ 
+-#### Comprensión Conceptual (25%)
+-- Excelente (95): Profunda comprensión de todos los conceptos
+-- Bueno (80): Comprensión clara de conceptos principales
+-- Aceptable (65): Comprensión parcial
+-- Deficiente (40): Comprensión limitada
++### Cascada de desbloqueo
+ 
+-#### Análisis Crítico (25%)
+-- Excelente (95): Análisis profundo y perspicaz
+-- Bueno (80): Análisis adecuado
+-- Aceptable (65): Análisis básico
+-- Deficiente (40): Poco análisis
++Es una cadena lineal estricta, sembrada en `meta.prerequisiteSlug` y evaluada en
++`GET /api/programs/:slug`:
+ 
+-#### Calidad de Solución (30%)
+-- Excelente (95): Innovadora, completa y bien fundamentada
+-- Bueno (80): Sólida y bien implementada
+-- Aceptable (65): Adecuada pero con limitaciones
+-- Deficiente (40): Incompleta o mal implementada
++```
++I → II → III → IV → V → VI → VII → VIII → IX → X → XI → TFM
++```
+ 
+-#### Presentación (20%)
+-- Excelente (95): Clara, organizada y profesional
+-- Bueno (80): Clara y bien estructurada
+-- Aceptable (65): Aceptable con algunos problemas
+-- Deficiente (40): Desorganizada
++Una asignatura está `locked` mientras el progreso de la anterior no llegue al
++100 % de sus recursos. La Asignatura I no tiene prerrequisito y es la única
++desbloqueada al matricularse.
+ 
+ ---
+ 
+-## Calificación de proyectos (real)
++## Evaluación real
+ 
+-1. **Por rúbrica.** Cada asignatura + TFM tiene una rúbrica publicada (tablas
+-   `rubrics` / `rubric_criteria` / `rubric_levels`, sembradas desde
+-   `backend/db/seed-data/rubrics.js`). El estudiante la ve **antes** de entregar.
+-2. **La califica un instructor.** `PUT /api/submissions/:id/grade` recibe el
+-   nivel elegido por criterio; el servidor calcula la nota y guarda el snapshot
+-   en `grades.rubric`. La nota final la fija siempre una persona.
+-3. **Asistencia opcional de IA (humano en el bucle).** `POST
+-   /api/submissions/:id/grade-suggestion` (solo con `LLM_PROVIDER=anthropic`)
+-   devuelve una **propuesta** por criterio que se escribe en
+-   `grades.llm_suggestion` y nunca en `grades.score`. El instructor confirma o
+-   corrige antes de enviar. Sin API key, el botón no aparece.
+-4. **Certificado desacoplado.** `evaluateCourseCompletion` exige lecciones
+-   completas + proyecto ≥ 70 + examen aprobado. Ver `certificates.kind`
+-   (`asignatura` | `tramo` | `programa`) y `certificates.requirements`.
++No existe una nota final ponderada por componentes. La certificación funciona
++con **puertas de aprobado/no aprobado**, no con porcentajes.
+ 
+----
++### Exámenes
+ 
+-## 💻 Implementación Técnica
++Cada una de las 11 asignaturas tiene un examen respaldado por un banco de 30
++ítems. La configuración sembrada (`examConfigFor` en `backend/db/seed.js`) es
++idéntica para las once:
+ 
+-### Backend (Node.js)
++| Parámetro | Valor |
++|---|---|
++| Preguntas sorteadas por intento | 15 de 30, aleatorizadas |
++| Intentos máximos | 3 |
++| Espera entre intentos | 24 h (`EXAM_COOLDOWN_HOURS`) |
++| Duración | 40 minutos |
++| Umbral de aprobado | 70 |
+ 
+-- `backend/simple-server.js` — API completa (http nativo + `pg`). Único servicio desplegado.
+-- `backend/db/seed.js` — siembra **no destructiva** por clave estable (`stable_key`).
+-- `backend/db/seed-data/*` — contenido: `master-{i..xi}-lecciones.js`, `proyectos-practicos.js`,
+-  `template.json`, `books.json`, `rubrics.js`, `item-banks/`.
+-- `backend/lib/llm.js` — único punto de integración con el LLM (tutor, asistencia de nota).
+-- El árbol `backend/src/**` (NestJS) y `backend/ai-grader.js` son código muerto.
++La corrección es 100 % en servidor: `GET /api/quizzes/:id` nunca envía la
++respuesta correcta al cliente.
+ 
+-**Endpoints reales de evaluación:**
+-- `GET /api/quizzes/:id` — enunciados y opciones, **sin** respuesta correcta
+-- `POST /api/quiz-responses` — calificación de examen 100% en servidor (Fase 1: motor de intentos)
+-- `GET /api/rubrics/:slug` — rúbrica completa (criterios × niveles)
+-- `PUT /api/submissions/:id/grade` — nota por rúbrica (instructor)
+-- `POST /api/submissions/:id/grade-suggestion` — propuesta de IA (opcional; 501 si `LLM_PROVIDER=none`)
++### Proyectos
+ 
+-### Mobile (React Native / Expo)
++Cada asignatura tiene un proyecto práctico; las asignaturas III, VI, IX y X
++tienen además una práctica *hands-on* con artefactos exigidos. Se califican así:
+ 
+-Estado real: **solo Login + Dashboard**. Las pantallas de curso/recurso/entrega
+-aún no existen; el consumo del Máster es por web (responsive).
++1. **Por rúbrica.** Hay 20 rúbricas publicadas (tablas `rubrics`,
++   `rubric_criteria`, `rubric_levels`, sembradas desde
++   `backend/db/seed-data/rubrics.js`). El estudiante la ve **antes** de entregar.
++2. **La califica una persona.** `PUT /api/submissions/:id/grade` recibe el nivel
++   elegido por criterio, el servidor calcula la nota y guarda el snapshot en
++   `grades.rubric`. La nota final siempre la fija un instructor.
++3. **Asistencia de IA opcional, con humano en el bucle.**
++   `POST /api/submissions/:id/grade-suggestion` (solo con
++   `LLM_PROVIDER=anthropic` y `ANTHROPIC_API_KEY`) devuelve una **propuesta** por
++   criterio que se escribe en `grades.llm_suggestion`, jamás en `grades.score`.
++   Sin clave, la ruta responde 501 y el botón no aparece.
++
++### Certificados
++
++La tabla `certificates` tiene tres valores en `kind`:
++
++- **`asignatura`** — lo emite `evaluateCourseCompletion` y exige a la vez:
++  el 100 % de las lecciones completadas, el proyecto calificado con 70 o más, y
++  el examen aprobado. No basta con aprobar un examen de opción múltiple.
++- **`tramo`** — se emite automáticamente al certificar todas las asignaturas de
++  un mismo `meta.track`.
++- **`programa`** — se emite al certificar las 11 asignaturas y el TFM.
++
++**Pendiente:** no existen transcripción académica, insignias de competencia ni
++portafolio de proyectos. El único artefacto emitido es el registro en
++`certificates` con su desglose de requisitos.
++
++### TFM
++
++El TFM no tiene examen ni lecciones: se evalúa con **4 hitos ponderados**, cada
++uno con su rúbrica y su director asignado (`evaluateTfmCompletion`).
++
++| Hito | Peso |
++|---|---|
++| Hito 1 — Propuesta | 10 % |
++| Hito 2 — Estado del arte | 20 % |
++| Hito 3 — Revisión intermedia | 30 % |
++| Hito 4 — Memoria final y defensa | 40 % |
+ 
+ ---
+ 
+-## 📊 Estado de la transformación (auditoría → 5/5)
+-
+-Basado en `Auditoria_Master_IEP_Comite_Multidisciplinario.docx` (2,7/5 — requiere transformación).
+-
+-**Fase 0 (hecha):** fin de la fuga de respuestas del examen; seed no destructivo;
+-certificado desacoplado de un solo examen; docs corregidas; examen suspenso ya no
+-acredita progreso.
+-
+-**Fase 1 (en curso):** motor de intentos de examen con límite + cooldown + banco
+-de ítems aleatorizado; 12 rúbricas publicadas; recursos reales en las 66 lecciones;
+-quiz formativo persistente; completado real de lección; `officialCode` de V/VIII/TFM.
+-
+-**Fases 2–4 (planificadas):** tracks hands-on (III/VI/IX/X), TFM con hitos y
+-director, foro y revisión por pares, analítica de dificultad, navegación móvil,
+-tutor socrático y asistencia de nota por LLM.
++## Implementación técnica
++
++### Backend
++
++- `backend/simple-server.js` — la API completa, 58 rutas, `http` nativo + `pg`.
++  Enrutado propio por método y patrón; sin framework.
++- `backend/db/pool.js` — pool de PostgreSQL. Usa `DATABASE_URL` si existe (con
++  SSL automático fuera de localhost) y si no, las variables `DB_*`.
++- `backend/db/migrate.js` — runner idempotente que aplica
++  `backend/db/migrations/*.sql` en orden y lleva el registro en `_migrations`.
++  Corre en cada arranque.
++- `backend/db/seed.js` — siembra **no destructiva** por clave estable
++  (`stable_key`): re-ejecutarla no borra progreso ni entregas.
++- `backend/db/seed-data/*` — el contenido: `master-{i..xi}-lecciones.js`,
++  `item-banks/`, `lectura-guiada/`, `handson/`, `proyectos-practicos.js`,
++  `rubrics.js`, `tfm.js`, `template.json`, `books.json`, `aulas.json`.
++- `backend/lib/llm.js` — único punto de integración con un LLM (tutor socrático
++  y asistencia de nota). Sin dependencia npm: usa el `fetch` global de Node 18+.
++  Con `LLM_PROVIDER=none`, que es el valor por defecto, todo devuelve `null` y
++  quien llama usa su alternativa.
++
++### Autenticación (importante: no es JWT)
++
++- Las contraseñas se guardan con **scrypt** y sal por usuario. Queda un hash
++  SHA-256 heredado que solo sirve para validar contraseñas antiguas: en el
++  primer login correcto se re-hashea a scrypt automáticamente.
++- El «access token» y el «refresh token» son **cadenas opacas aleatorias de 64
++  caracteres hexadecimales** guardadas en la tabla `sessions`, con TTL de 1 hora
++  y 7 días respectivamente. No son JWT, no llevan carga útil y se pueden revocar
++  borrando la fila.
++- No se usa bcrypt, ni Passport, ni TypeORM en ninguna parte del código vivo.
++
++### Endpoints de evaluación
++
++- `GET /api/programs/:slug` — el árbol del Máster por tramos, con progreso,
++  `officialCode` y estado de bloqueo por asignatura.
++- `GET /api/quizzes/:id` — enunciados y opciones, **sin** la respuesta correcta.
++- `GET /api/exams/:resourceId/status` — intentos consumidos y cooldown.
++- `POST /api/exams/:resourceId/attempts` — abre un intento con su sorteo de ítems.
++- `POST /api/exams/attempts/:attemptId` — entrega y corrige el intento.
++- `GET /api/rubrics/:slug` — rúbrica completa (criterios × niveles).
++- `PUT /api/submissions/:id/grade` — nota por rúbrica, la pone el instructor.
++- `POST /api/submissions/:id/grade-suggestion` — propuesta del LLM; 501 si el
++  proveedor está en `none`.
++- `GET /api/me/review-plan` — repaso dirigido: los conceptos con menos del 70 %
++  de acierto en `skill_mastery`, con la lección asociada a cada uno.
++- `GET /api/tfm`, `POST /api/tfm/milestones/:slug`, `PUT /api/tfm/milestones/:subId/review` — proceso del TFM.
++- `GET /api/certificates` — certificados emitidos, con su desglose de requisitos.
++
++### Frontend
++
++Rutas reales en `frontend/src/App.tsx`:
++
++| Ruta | Página |
++|---|---|
++| `/` | `Dashboard` |
++| `/explore` | `ExploreCoursesPage` |
++| `/master-iep` | `MasterIEPPage` (el árbol del Máster por tramos) |
++| `/native-courses`, `/native-courses/:courseId` | `NativeCoursesPage` |
++| `/courses/:courseId/:resourceId?` | `CourseView` |
++| `/courses/:courseId/submissions/:resourceId?` | `SubmissionsPage` |
++| `/instructor` | `InstructorDashboard` |
++| `/login`, `/register` | `LoginPage`, `RegisterPage` |
++
++Sin sesión iniciada, cualquier ruta redirige a `/login`.
++
++### Móvil (React Native / Expo)
++
++Estado real: **solo `LoginScreen` y `DashboardScreen`**. Las pantallas de curso,
++recurso y entrega están **pendientes**; el consumo del Máster es por web.
++
++### Cursos nativos
++
++`native-ai-101`, `native-ml-101` y `native-dl-101` existen como cursos pero son
++**esqueletos**: tienen 3, 2 y 1 módulos respectivamente y cero recursos
++sembrados. No forman parte del pensum oficial del Máster. Ver
++`NATIVE_COURSES_SPECIFICATION.md`, que describe un diseño objetivo, no lo
++construido.
+ 
+ ---
+ 
+-## 🚀 Cómo Usar
++## Estado de la transformación (auditoría → 5/5)
+ 
+-### Para Estudiantes
++Basado en `Auditoria_Master_IEP_Comite_Multidisciplinario.docx` (2,7/5 — requiere
++transformación). Las fases 0 a 4 están en `main`:
+ 
+-1. **Registrarse** y seleccionar "Master de IEP"
+-2. **Navegar** por módulos y recursos
+-3. **Completar** lecturas, videos y ejercicios
+-4. **Enviar** entregas y proyectos
+-5. **Recibir** calificación automática y feedback
++- **Fase 0.** Fin de la fuga de respuestas del examen; seed no destructivo;
++  certificado desacoplado de un solo examen; un examen suspenso ya no acredita
++  progreso.
++- **Fase 1.** Motor de intentos con límite y cooldown; bancos de ítems
++  aleatorizados; rúbricas publicadas; recursos reales en las 66 lecciones; quiz
++  formativo persistente; completado real de lección.
++- **Fase 2.** Tracks hands-on (III, VI, IX, X); proceso del TFM con hitos y
++  director; lectura guiada en las asignaturas densas.
++- **Fase 3.** Analítica de dificultad, foro por asignatura, revisión por pares,
++  repaso dirigido y renderer completo de lección.
++- **Fase 4.** Tutor socrático por lección y asistencia de nota por LLM, ambos
++  detrás de `LLM_PROVIDER` y desactivados por defecto.
+ 
+-### Para Instructores
+-
+-1. **Crear** preguntas de quiz
+-2. **Configurar** rúbricas personalizadas
+-3. **Revisar** análisis automático de entregas
+-4. **Proporcionar** feedback adicional si es necesario
+-5. **Trackear** progreso de estudiantes
++**Pendiente:** las pantallas de curso en la app móvil, el contenido de los tres
++cursos nativos y los tres `officialCode` oficiales de V, VIII y TFM.
+ 
+ ---
+ 
+-## 📈 Datos
++## Cómo se usa
+ 
+-| Métrica | Valor |
+-|---------|-------|
+-| Total de cursos | 3+ (Master completo) |
+-| Módulos por asignatura | 6 |
+-| Recursos integrados | 20+ por módulo |
+-| Componentes web | 25+ |
+-| Endpoints API | 25+ |
+-| Líneas de código | 7,000+ |
++### Estudiante
+ 
+----
++1. Registrarse y entrar en «Máster IEP» (`/master-iep`).
++2. Recorrer las asignaturas en orden: cada una se abre al completar la anterior.
++3. Completar las 6 lecciones de la asignatura, con su quiz formativo.
++4. Entregar el proyecto práctico, habiendo leído antes su rúbrica.
++5. Presentar el examen (3 intentos, 24 h entre uno y otro, aprueba con 70).
++6. Al cumplir las tres condiciones, el certificado de asignatura se emite solo.
+ 
+-## 🎓 Certificación
++### Instructor
+ 
+-Al completar el Master, los estudiantes reciben:
+-- ✅ Certificado digital de la plataforma
+-- ✅ Transcripción académica
+-- ✅ Badge de competencia
+-- ✅ Portafolio de proyectos
++1. Revisar las entregas pendientes en `/instructor`.
++2. Calificar por rúbrica, eligiendo un nivel por criterio.
++3. Opcionalmente, pedir una propuesta al LLM y corregirla antes de confirmar.
++4. Hacer seguimiento del progreso y de la analítica de dificultad por asignatura.
++5. Dirigir y revisar los hitos del TFM de los estudiantes asignados.
+ 
+ ---
+ 
+-## 📱 Disponibilidad
++## Despliegue
++
++| Componente | Dónde | URL real |
++|---|---|---|
++| Frontend | Vercel (`vercel.json`: construye `frontend/`, salida `frontend/dist`) | `https://campus-posgrado-v2.vercel.app` |
++| Backend | Railway (`railway.toml`: `Dockerfile` de la raíz, healthcheck `/api/health`) | `https://campus-posgrado-v2-production.up.railway.app` |
++| Base de datos | PostgreSQL gestionado por Railway | — |
++
++El frontend se conecta mediante la variable `VITE_API_URL`, que debe apuntar al
++backend **incluyendo el sufijo `/api`**. Es la única variable que lee el
++frontend.
+ 
+-- **Web:** https://campus-posgrado-v2.vercel.app
+-- **Backend API:** https://campus-posgrado-v2-api.railway.app/api
+-- **Mobile:** Disponible en Expo Go (iOS/Android)
++> **Aviso.** A fecha del 2026-09-08, lo desplegado en Railway es una imagen
++> anterior a la Fase 0 y su base de datos está sin sembrar: las rutas de examen,
++> rúbricas, foro, TFM y tutor responden 404 y `/api/master-courses` devuelve
++> `[]`. Nada de lo descrito en este documento está visible en producción todavía.
++> El diagnóstico y los pasos para corregirlo están en [`DEPLOY.md`](./DEPLOY.md).
+ 
+ ---
+ 
+-**Proyecto completado: Campus Posgrado v2.0 + Master de IEP Integrado**  
+-**Estado: Production Ready**  
+-**Última actualización: Septiembre 2026**
++**Última actualización: septiembre de 2026 — verificado contra una instancia en
++ejecución.**
+diff --git a/NATIVE_COURSES_SPECIFICATION.md b/NATIVE_COURSES_SPECIFICATION.md
+index 0b4269a..0dd9ccf 100644
+--- a/NATIVE_COURSES_SPECIFICATION.md
++++ b/NATIVE_COURSES_SPECIFICATION.md
+@@ -1,13 +1,22 @@
+ # 📚 Especificación de Cursos Nativos de Excelencia
+ 
+-> **Nota de veracidad (2026-09).** Este documento describe un **diseño objetivo**,
+-> no el estado implementado. Hoy en `backend/db/seed-data/native-curriculum.json`
+-> solo `native-ai-101` está desarrollado (3 módulos); `native-ml-101` y
+-> `native-dl-101` son esqueletos. **No existen** en la plataforma: repetición
+-> espaciada, revisión de "mapa mental", ensayo de metacognición, visualizaciones
+-> interactivas ni calificación automática por IA. Las secciones marcadas
+-> _(aspiracional)_ abajo no están construidas. Los cursos nativos son un recurso
+-> complementario y no forman parte del pensum oficial del Máster.
++> **Nota de veracidad (2026-09, verificada contra la base de datos sembrada).**
++> Este documento describe un **diseño objetivo**, no el estado implementado.
++>
++> Los tres cursos de `backend/db/seed-data/native-curriculum.json` son
++> **esqueletos**: `native-ai-101` tiene 3 módulos, `native-ml-101` tiene 2 y
++> `native-dl-101` tiene 1, y **ninguno de los tres tiene un solo recurso
++> sembrado** (0 lecciones, 0 vídeos, 0 ejercicios, 0 proyectos). Es decir, hoy no
++> hay contenido nativo que consumir; lo que sí tiene contenido propio son las 66
++> lecciones de las 11 asignaturas del Máster y las 12 aulas (151 lecciones).
++>
++> **No existen** en la plataforma: revisión de «mapa mental», ensayo de
++> metacognición, visualizaciones interactivas ni calificación automática por IA.
++> Las secciones marcadas _(aspiracional)_ abajo no están construidas.
++>
++> Los cursos nativos son un recurso complementario y **no forman parte del pensum
++> oficial del Máster**. El estado real del programa está en
++> [`MASTER_IEP_INTEGRATION.md`](./MASTER_IEP_INTEGRATION.md).
+ 
+ ## Filosofía
+ 
+@@ -481,9 +490,12 @@ Presentación (10%)
+ - Quiz de repaso después de 1 semana
+ - Quiz de repaso después de 1 mes
+ - Conexión con temas relacionados
+-- _Estado real: no existe un planificador de repaso. En Fase 3 se implementa un
+-  "repaso dirigido" que, tras un examen suspenso, exige revisar las lecciones de
+-  los conceptos fallados antes de reintentar._
++- _Estado real: no hay repaso programado por calendario, y sigue siendo
++  aspiracional. Lo que sí existe desde la Fase 3 es el **repaso dirigido**
++  (`GET /api/me/review-plan` y el componente `ReviewPlan`): a partir de la tabla
++  `skill_mastery`, lista los conceptos con menos del 70 % de acierto y enlaza la
++  lección concreta de cada uno. Se activa por desempeño, no por el paso del
++  tiempo._
+ 
+ ### 2. Active Recall
+ - Preguntas antes de mostrar respuesta
+diff --git a/README.md b/README.md
+index 9c0292b..51c1175 100644
+--- a/README.md
++++ b/README.md
+@@ -1,115 +1,172 @@
+ # Campus Posgrado v2.0
+ 
+-Plataforma LMS (Learning Management System) moderna para gestión de programas de posgrado.
++Plataforma LMS (Learning Management System) para el Máster del IEP en
++Inteligencia Artificial y Tecnologías Disruptivas para la Innovación en la
++Industria 4.0.
+ 
+-**Stack:** React 18 + TypeScript + Tailwind CSS | NestJS + TypeORM | PostgreSQL (Supabase) | JWT Auth
++**Stack real:** React 18 + TypeScript + Vite + Tailwind CSS · Node `http` nativo
+++ `pg` · PostgreSQL · sesiones opacas en base de datos.
++
++> No hay NestJS, TypeORM, Supabase, JWT ni bcrypt en este proyecto. Si lees eso
++> en algún sitio, está desactualizado: el backend es un único archivo
++> `backend/simple-server.js` sobre el módulo `http` de Node, con `pg` como su
++> única dependencia de producción.
+ 
+ ---
+ 
+-## Estructura del Proyecto
++## Estructura del proyecto
+ 
+ ```
+ campus-posgrado-v2/
+-├── frontend/          # React + Vite application
+-├── backend/           # NestJS API server
+-├── docker-compose.yml # Development environment
+-├── README.md
+-└── .gitignore
++├── frontend/            # React + Vite (se despliega en Vercel)
++├── backend/
++│   ├── simple-server.js # La API completa: 58 rutas, http nativo + pg
++│   ├── lib/llm.js       # Único punto de integración con un LLM (opcional)
++│   ├── db/
++│   │   ├── pool.js      # Pool de PostgreSQL
++│   │   ├── migrate.js   # Runner idempotente de migraciones
++│   │   ├── migrations/  # 15 archivos .sql, se aplican en cada arranque
++│   │   ├── seed.js      # Siembra no destructiva por stable_key
++│   │   └── seed-data/   # Lecciones, bancos de ítems, rúbricas, aulas
++│   └── scripts/         # Utilidades: extracción de contenido y smoke test
++├── mobile/              # Expo: solo Login y Dashboard (resto pendiente)
++├── Dockerfile           # Imagen del backend; es la que construye Railway
++├── railway.toml         # Configuración de despliegue del backend
++├── vercel.json          # Configuración de despliegue del frontend
++└── docker-compose.yml   # PostgreSQL + pgAdmin para desarrollo local
+ ```
+ 
+ ---
+ 
+-## Setup Rápido
++## Puesta en marcha
++
++### 1. Base de datos
+ 
+-### 1. Clonar repositorio
+ ```bash
+-git clone <repo-url>
+-cd campus-posgrado-v2
++docker compose up -d          # PostgreSQL en :5432 y pgAdmin en :5050
+ ```
+ 
+-### 2. Configurar Backend (Fase 1)
++### 2. Backend
++
+ ```bash
+ cd backend
+-npm install
+-cp .env.example .env  # Configurar Supabase
+-npm run dev
++npm install                   # instala solo pg
++cp .env.example .env          # los valores por defecto ya apuntan al docker-compose
++npm run reset                 # aplica las migraciones y siembra el catálogo
++npm start                     # http://localhost:3001/api
+ ```
+ 
+-El backend corre en `http://localhost:3001`
++Las migraciones son idempotentes y vuelven a correr en cada arranque; el seed es
++no destructivo, así que `npm run seed` no borra progreso ni entregas.
++
++### 3. Frontend
+ 
+-### 3. Configurar Frontend (Fase 1)
+ ```bash
+ cd frontend
+ npm install
+-cp .env.example .env  # Configurar API URL
+-npm run dev
++cp .env.example .env          # VITE_API_URL=http://localhost:3001/api
++npm run dev                   # http://localhost:5173
+ ```
+ 
+-El frontend corre en `http://localhost:5173`
++### Usuarios que siembra el seed
++
++| Correo | Contraseña | Rol |
++|---|---|---|
++| `test@example.com` | `Password123` | estudiante |
++| `instructor@example.com` | `Password123` | instructor |
+ 
+ ---
+ 
+-## Fases de Desarrollo
++## Scripts
++
++### `backend/`
++
++| Script | Qué hace |
++|---|---|
++| `npm start` | Arranca la API (`node simple-server.js`) |
++| `npm run migrate` | Aplica las migraciones pendientes |
++| `npm run seed` | Siembra el catálogo (no destructivo) |
++| `npm run reset` | `migrate` y después `seed` |
++| `npm run extract` | Extrae contenido del HTML legado (`LEGACY_HTML`) |
++
++Smoke test de los endpoints de evaluación, con el servidor en marcha:
+ 
+-- **FASE 1** (2 semanas): Infraestructura + Autenticación
+-- **FASE 2** (3 semanas): Dashboard + Course View
+-- **FASE 3** (3 semanas): Entregas + Evaluación + Admin
+-- **FASE 4** (2 semanas): Instructor UI + Wizard
+-- **FASE 5** (2 semanas): Pulido + Deploy
++```bash
++BASE=http://localhost:3001/api node backend/scripts/smoke.mjs
++```
++
++### `frontend/`
++
++`npm run dev`, `npm run build`, `npm run preview`, `npm run lint`,
++`npm run type-check`.
+ 
+ ---
+ 
+-## Tecnologías Principales
++## Tecnologías
+ 
+ ### Frontend
+-- React 18
+-- TypeScript
+-- Vite (bundler)
++- React 18 y TypeScript
++- Vite
+ - Tailwind CSS
+ - React Router v6
+-- Zustand (state management)
+-- React Query / TanStack Query
+-- Axios (HTTP client)
++- Zustand (estado de sesión)
++- TanStack Query (caché de datos del servidor)
++- Axios
++- `react-markdown` y `mermaid` (renderizado de lecciones y diagramas)
+ 
+ ### Backend
+-- NestJS
+-- TypeScript
+-- TypeORM (database)
+-- PostgreSQL (via Supabase)
+-- JWT (authentication)
+-- bcrypt (password hashing)
+-- Class Validator (DTOs)
+-
+-### Base de Datos
+-- PostgreSQL (Supabase)
+-- Migrations (TypeORM)
+-
+-### Auth
+-- JWT tokens
+-- bcrypt password hashing
+-- Refresh tokens
+-- Role-based access control (RBAC)
++- Node 18+ (módulo `http` nativo, sin framework)
++- `pg` — única dependencia de producción
++- PostgreSQL
++- Migraciones en SQL plano, con runner propio
++- LLM opcional vía `fetch` global, sin SDK
++
++### Autenticación
++- Contraseñas con **scrypt** y sal por usuario. El hash SHA-256 heredado solo
++  sirve para validar contraseñas antiguas y se re-hashea a scrypt en el primer
++  login correcto.
++- Tokens **opacos** de 64 caracteres hexadecimales guardados en la tabla
++  `sessions`: acceso con TTL de 1 hora, refresco de 7 días. No son JWT y se
++  revocan borrando la fila.
++- Control de acceso por rol (`student`, `instructor`, `admin`).
++
++---
++
++## Despliegue
++
++| Componente | Servicio | Configuración |
++|---|---|---|
++| Frontend | Vercel | `vercel.json` — construye `frontend/`, publica `frontend/dist` |
++| Backend | Railway | `railway.toml` — `Dockerfile` de la raíz, healthcheck `/api/health` |
++| Base de datos | Railway PostgreSQL | `DATABASE_URL` (SSL automático fuera de localhost) |
++
++Detalle en [`DEPLOY.md`](./DEPLOY.md).
+ 
+ ---
+ 
+ ## Documentación
+ 
+-- [Frontend Setup](./frontend/README.md)
+-- [Backend Setup](./backend/README.md)
+-- [API Docs](./backend/API.md)
+-- [Database Schema](./backend/DATABASE.md)
++- [`MASTER_IEP_INTEGRATION.md`](./MASTER_IEP_INTEGRATION.md) — el programa, la
++  evaluación y la certificación tal como están implementados.
++- [`SETUP.md`](./SETUP.md) — puesta en marcha en detalle y resolución de problemas.
++- [`DEPLOY.md`](./DEPLOY.md) — despliegue en Vercel y Railway.
++- [`NATIVE_COURSES_SPECIFICATION.md`](./NATIVE_COURSES_SPECIFICATION.md) — diseño
++  objetivo de los cursos nativos; **no** describe lo construido.
++- [`FASE2_COMPLETADA.md`](./FASE2_COMPLETADA.md) — nota histórica de septiembre
++  de 2026, superada por las fases posteriores.
++- [`backend/README.md`](./backend/README.md), [`mobile/README.md`](./mobile/README.md)
+ 
+ ---
+ 
+ ## Contribuir
+ 
+-1. Crear rama desde `main`
+-2. Hacer cambios
+-3. Crear pull request
+-4. Code review + merge
++1. Crear una rama desde `main`.
++2. Hacer los cambios.
++3. Abrir un pull request.
++4. Revisión y merge.
+ 
+ ---
+ 
+ ## Licencia
+ 
+-Propiedad de Sumi Medical
++Propiedad de Sumi Medical.
+diff --git a/SETUP.md b/SETUP.md
+index 8233fa2..35ecc16 100644
+--- a/SETUP.md
++++ b/SETUP.md
+@@ -1,228 +1,212 @@
+-# Campus Posgrado v2.0 - Setup Guide
++# Campus Posgrado v2.0 — Guía de puesta en marcha
+ 
+-## Fase 1: Infraestructura + Autenticación ✅
+-
+-Estructura del proyecto creada con:
+-- ✅ React + TypeScript frontend (Vite)
+-- ✅ NestJS + TypeORM backend
+-- ✅ PostgreSQL database schema
+-- ✅ JWT authentication
+-- ✅ Login/Register pages
++> **Nota de veracidad (2026-09).** Versiones anteriores de este documento
++> describían un backend NestJS + TypeORM con JWT y Supabase. Nunca fue así en el
++> código desplegado: el backend es `backend/simple-server.js`, un servidor
++> `http` nativo de Node sobre PostgreSQL, con `pg` como única dependencia.
+ 
+ ---
+ 
+-## 1. Prerequisitos
++## 1. Requisitos
+ 
+-- **Node.js** 18+ ([descargar](https://nodejs.org/))
+-- **npm** o **yarn**
++- **Node.js** 18 o superior — se usa el `fetch` global, así que 16 no sirve.
++- **npm**
+ - **Git**
+-- **PostgreSQL** 14+ o **Supabase** account
++- **PostgreSQL** 14 o superior, o Docker para levantarlo.
+ 
+ ---
+ 
+-## 2. Setup Backend
+-
+-### 2.1 Configurar base de datos
++## 2. Base de datos
+ 
+-**Opción A: PostgreSQL Local**
++### Opción A: Docker (recomendada en local)
+ 
+ ```bash
+-# Levantar PostgreSQL con Docker Compose
+-docker-compose up -d
++docker compose up -d
++```
+ 
+-# Crear base de datos (si no existe)
++Levanta PostgreSQL en `localhost:5432` (usuario `postgres`, contraseña
++`postgres`, base `campus_posgrado`) y pgAdmin en `localhost:5050`.
++
++### Opción B: PostgreSQL ya instalado
++
++```bash
+ createdb -U postgres campus_posgrado
+ ```
+ 
+-**Opción B: Supabase (Recomendado)**
++En producción, Railway proporciona la base de datos y su `DATABASE_URL`. El pool
++activa SSL automáticamente cuando el host no es local.
+ 
+-1. Ir a https://supabase.com
+-2. Crear nuevo proyecto
+-3. Copiar conexión PostgreSQL
++---
+ 
+-### 2.2 Instalar dependencias backend
++## 3. Backend
+ 
+ ```bash
+ cd backend
+ npm install
+-```
+-
+-### 2.3 Configurar variables de entorno
+-
+-```bash
+ cp .env.example .env
+ ```
+ 
+-Editar `.env` con tus credenciales:
++Los valores por defecto de `.env.example` ya coinciden con el `docker-compose`,
++así que normalmente no hay que tocar nada. Las variables de base de datos son:
+ 
+ ```env
+-DB_HOST=localhost          # O host de Supabase
++DATABASE_URL=postgresql://postgres:postgres@localhost:5432/campus_posgrado
++# o, si DATABASE_URL está vacía:
++DB_HOST=localhost
+ DB_PORT=5432
+-DB_USERNAME=postgres       # Tu usuario
+-DB_PASSWORD=postgres       # Tu password
++DB_USERNAME=postgres
++DB_PASSWORD=postgres
+ DB_DATABASE=campus_posgrado
+-JWT_SECRET=cambiar-esto-en-produccion
+-JWT_EXPIRATION=3600
+ PORT=3001
+-FRONTEND_URL=http://localhost:5173
+ ```
+ 
+-### 2.4 Iniciar servidor backend
++No hay `JWT_SECRET` ni `BCRYPT_ROUNDS`: las contraseñas se guardan con scrypt y
++la sesión son tokens opacos en la tabla `sessions`.
++
++Aplica las migraciones y siembra el catálogo:
++
++```bash
++npm run reset     # equivale a: npm run migrate && npm run seed
++```
++
++Y arranca:
+ 
+ ```bash
+-npm run start:dev
++npm start
+ ```
+ 
+-✅ Backend corriendo en `http://localhost:3001/api`
++✅ Backend en `http://localhost:3001/api`. Comprueba con
++`curl http://localhost:3001/api/health`, que debe responder `{"status":"ok"}`.
+ 
+----
++Las migraciones se aplican también en cada arranque y son idempotentes. El seed
++es no destructivo (upsert por `stable_key`), así que volver a ejecutarlo no
++borra progreso ni entregas.
+ 
+-## 3. Setup Frontend
++---
+ 
+-### 3.1 Instalar dependencias
++## 4. Frontend
+ 
+ ```bash
+ cd ../frontend
+ npm install
+-```
+-
+-### 3.2 Configurar variables de entorno
+-
+-```bash
+ cp .env.example .env
+ ```
+ 
+-Contenido de `.env`:
++Contenido de `.env` — es la única variable que el frontend lee:
+ 
+ ```env
+ VITE_API_URL=http://localhost:3001/api
+-VITE_APP_NAME=Campus Posgrado
+-VITE_JWT_TOKEN_KEY=auth_token
+ ```
+ 
+-### 3.3 Iniciar servidor frontend
+-
+ ```bash
+ npm run dev
+ ```
+ 
+-✅ Frontend corriendo en `http://localhost:5173`
++✅ Frontend en `http://localhost:5173`.
+ 
+ ---
+ 
+-## 4. Prueba de Login
++## 5. Primer inicio de sesión
++
++El seed crea dos usuarios de servicio:
+ 
+-1. Abre http://localhost:5173
+-2. Haz clic en "Regístrate aquí"
+-3. Completa el formulario:
+-   - Email: `test@example.com`
+-   - Nombre: `Test User`
+-   - Contraseña: `password123`
+-4. Regístrate
+-5. Vuelve a login con las credenciales
++| Correo | Contraseña | Rol |
++|---|---|---|
++| `test@example.com` | `Password123` | estudiante |
++| `instructor@example.com` | `Password123` | instructor |
+ 
+-✅ Deberías ver el Dashboard
++Entra con el primero y ve a **Máster IEP** (`/master-iep`): verás las 11
++asignaturas y el TFM agrupados en sus cuatro tramos, con la Asignatura I
++desbloqueada y el resto en cascada.
++
++También puedes registrar una cuenta nueva desde «Regístrate aquí». La contraseña
++debe tener entre 8 y 128 caracteres.
+ 
+ ---
+ 
+-## 5. Próximos Pasos (Fase 2)
++## 6. Atajo en Windows
+ 
+-En Fase 2 implementaremos:
+-- [ ] Endpoints CRUD para Cursos
+-- [ ] Endpoints CRUD para Módulos y Recursos
+-- [ ] Dashboard con datos reales
+-- [ ] Course View con tabs
+-- [ ] API de Progreso
++`setup.ps1` hace todo lo anterior de una vez: levanta el `docker-compose`, crea
++los dos `.env`, instala dependencias, aplica migraciones con seed y arranca
++ambos servidores. `start-servers.ps1` solo arranca los servidores de un entorno
++ya preparado.
+ 
+ ---
+ 
+-## Troubleshooting
++## 7. Resolución de problemas
+ 
+-### Error: "EADDRINUSE: address already in use :::3001"
++### `EADDRINUSE: address already in use :::3001`
+ 
+-Puerto 3001 ya está en uso. Cambia en `.env`:
++El puerto está ocupado. Cambia `PORT` en `backend/.env` y actualiza
++`VITE_API_URL` en `frontend/.env` para que coincidan.
+ 
+-```env
+-PORT=3002
+-```
++### `connect ECONNREFUSED 127.0.0.1:5432`
++
++PostgreSQL no está corriendo: `docker compose up -d`.
++
++### `password authentication failed`
++
++Revisa las credenciales de `backend/.env` contra las del `docker-compose.yml`.
++
++### `Cannot find module './lib/llm'` al arrancar en un contenedor
++
++El `Dockerfile` no copió `backend/lib`. Ambos Dockerfiles copian archivo por
++archivo, así que cualquier directorio nuevo que `simple-server.js` requiera en
++tiempo de ejecución necesita su propio `COPY`.
++
++### El campus arranca vacío, sin asignaturas
++
++Falta sembrar: `npm run seed` en `backend/`, o arrancar con `AUTO_SEED=true`.
++
++---
+ 
+-### Error: "connect ECONNREFUSED 127.0.0.1:5432"
++## 8. Comprobación de humo
+ 
+-PostgreSQL no está corriendo. Usa Docker:
++Con el servidor en marcha y el catálogo sembrado:
+ 
+ ```bash
+-docker-compose up -d
++BASE=http://localhost:3001/api node backend/scripts/smoke.mjs
+ ```
+ 
+-### Error: "Password authentication failed"
+-
+-Revisa credenciales en `.env` y que PostgreSQL está corriendo.
++Recorre los endpoints de evaluación (registro, examen con su motor de intentos,
++rúbricas y entregas) e informa de cada comprobación.
+ 
+ ---
+ 
+-## Estructura de Archivos
++## 9. Estructura de archivos
+ 
+ ```
+ campus-posgrado-v2/
+ ├── backend/
+-│   ├── src/
+-│   │   ├── modules/
+-│   │   │   ├── auth/          # Autenticación
+-│   │   │   ├── users/         # Usuarios
+-│   │   │   ├── courses/       # Cursos (stub)
+-│   │   │   ├── resources/     # Recursos (stub)
+-│   │   │   ├── submissions/   # Entregas (stub)
+-│   │   │   ├── grades/        # Calificaciones (stub)
+-│   │   │   └── progress/      # Progreso (stub)
+-│   │   ├── app.module.ts
+-│   │   └── main.ts
++│   ├── simple-server.js      # La API completa (58 rutas)
++│   ├── lib/llm.js            # Integración opcional con un LLM
++│   ├── db/
++│   │   ├── pool.js
++│   │   ├── migrate.js
++│   │   ├── migrations/       # 15 .sql
++│   │   ├── seed.js
++│   │   └── seed-data/
++│   ├── scripts/
+ │   ├── .env.example
+ │   ├── package.json
+ │   └── README.md
+ │
+ ├── frontend/
+ │   ├── src/
+-│   │   ├── pages/
+-│   │   │   ├── LoginPage.tsx
+-│   │   │   ├── RegisterPage.tsx
+-│   │   │   ├── Dashboard.tsx
+-│   │   │   └── CourseView.tsx
+-│   │   ├── services/
+-│   │   │   ├── api.ts
+-│   │   │   └── auth.ts
+-│   │   ├── state/
+-│   │   │   └── store.ts        # Zustand store
++│   │   ├── pages/            # 9 páginas
++│   │   ├── components/       # 22 componentes
++│   │   ├── hooks/            # 9 hooks
++│   │   ├── services/api.ts
++│   │   ├── state/store.ts    # Zustand
+ │   │   ├── App.tsx
+-│   │   ├── main.tsx
+-│   │   └── index.css
++│   │   └── main.tsx
+ │   ├── .env.example
+-│   ├── package.json
+-│   └── README.md
++│   └── package.json
+ │
++├── mobile/                   # Expo: solo Login y Dashboard
++├── Dockerfile                # Imagen del backend, la que usa Railway
++├── railway.toml
++├── vercel.json
+ ├── docker-compose.yml
+-├── README.md
+-├── SETUP.md
+-└── .gitignore
++└── README.md
+ ```
+-
+----
+-
+-## Siguientes Pasos
+-
+-1. **Push a GitHub** (crear nuevo repositorio)
+-   ```bash
+-   git init
+-   git add .
+-   git commit -m "Fase 1: Infraestructura + Autenticación"
+-   git remote add origin <tu-repo>
+-   git push -u origin main
+-   ```
+-
+-2. **Fase 2: Dashboard + Course View** (comenzar en 1 semana)
+-   - Implementar endpoints CRUD
+-   - Crear componentes de curso
+-   - Conectar con API
+-
+----
+-
+-**¡Listo! Campus Posgrado v2.0 Fase 1 está completa.** 🚀
+diff --git a/backend/README.md b/backend/README.md
+index a52d441..3b3ae1a 100644
+--- a/backend/README.md
++++ b/backend/README.md
+@@ -1,69 +1,99 @@
+-# Campus Posgrado - Backend
++# Campus Posgrado — Backend
+ 
+-NestJS + TypeScript API server for Campus Posgrado LMS.
++API del LMS. Es un servidor `http` nativo de Node sobre PostgreSQL, escrito en
++CommonJS. **No es NestJS**: no hay TypeORM, ni JWT, ni bcrypt, ni Passport, ni
++compilación TypeScript. `pg` es la única dependencia de producción.
+ 
+-## Setup
++## Requisitos
+ 
+-### Prerequisites
++- Node.js 18 o superior (se usa el `fetch` global).
++- PostgreSQL 14 o superior.
+ 
+-- Node.js 18+
+-- PostgreSQL (or Supabase)
+-
+-### Installation
++## Puesta en marcha
+ 
+ ```bash
+ npm install
+-cp .env.example .env
+-# Edit .env with your database credentials
+-npm run start:dev
++cp .env.example .env   # los valores por defecto apuntan al docker-compose de la raíz
++npm run reset          # migraciones + seed
++npm start              # http://localhost:3001/api
+ ```
+ 
+-## Environment Variables
++## Variables de entorno
+ 
+-```
+-DB_HOST=localhost
+-DB_PORT=5432
+-DB_USERNAME=postgres
+-DB_PASSWORD=postgres
+-DB_DATABASE=campus_posgrado
+-JWT_SECRET=your-secret-key
+-JWT_EXPIRATION=3600
+-PORT=3001
+-```
++Solo se leen las que aparecen en `.env.example`. Las más relevantes:
+ 
+-## Scripts
++| Variable | Por defecto | Para qué |
++|---|---|---|
++| `DATABASE_URL` | — | Cadena de conexión completa. Activa SSL si el host no es local. |
++| `DB_HOST` / `DB_PORT` / `DB_USERNAME` / `DB_PASSWORD` / `DB_DATABASE` | `localhost` / `5432` / `postgres` / `postgres` / `campus_posgrado` | Alternativa a `DATABASE_URL`. |
++| `PG_POOL_MAX` | `10` | Tamaño máximo del pool. |
++| `PORT` | `3001` | Puerto del servidor. |
++| `AUTO_SEED` | `false` | Ejecuta también el seed al arrancar. |
++| `SEED_DEMO_DATA` | `false` | Añade entregas y progreso de demostración. |
++| `EXAM_COOLDOWN_HOURS` | `24` | Espera entre intentos de examen. |
++| `OFFICIAL_CODE_V` / `OFFICIAL_CODE_VIII` / `OFFICIAL_CODE_TFM` | marcador interno | Códigos oficiales de esas tres asignaturas. |
++| `LLM_PROVIDER` | `none` | `none` o `anthropic`. Con `none`, el tutor cae a su FAQ y la asistencia de nota responde 501. |
++| `ANTHROPIC_API_KEY` | — | Necesaria si `LLM_PROVIDER=anthropic`. |
++
++No existen `JWT_SECRET` ni `BCRYPT_ROUNDS`: ver «Autenticación» más abajo.
+ 
+-- `npm run start:dev` - Start dev server with hot reload
+-- `npm run start:prod` - Start production server
+-- `npm run build` - Build for production
+-- `npm run lint` - Run ESLint
+-- `npm run test` - Run tests
++## Scripts
+ 
+-## API Documentation
++| Script | Qué hace |
++|---|---|
++| `npm start` | `node simple-server.js` |
++| `npm run migrate` | Aplica `db/migrations/*.sql` pendientes |
++| `npm run seed` | Siembra el catálogo, de forma no destructiva |
++| `npm run reset` | `migrate` y después `seed` |
++| `npm run extract` | Extrae contenido del HTML legado (`LEGACY_HTML`) |
+ 
+-### Auth Endpoints
++No hay `start:dev`, `start:prod`, `build`, `lint` ni `test`: el backend no se
++compila y todavía no tiene suite de pruebas automatizadas (**pendiente**). Lo
++más parecido es el smoke test de los endpoints de evaluación, que se lanza con
++el servidor ya en marcha:
+ 
+-- `POST /api/auth/register` - Register new user
+-- `POST /api/auth/login` - Login user
+-- `POST /api/auth/refresh` - Refresh access token
+-- `GET /api/auth/me` - Get current user
++```bash
++BASE=http://localhost:3001/api node scripts/smoke.mjs
++```
+ 
+-## Project Structure
++## Estructura
+ 
+ ```
+-src/
+-├── modules/        # Feature modules (auth, courses, etc)
+-├── common/         # Guards, decorators, pipes
+-├── config/         # Configuration files
+-├── app.module.ts   # Root module
+-└── main.ts         # Entry point
++backend/
++├── simple-server.js   # La API completa: 58 rutas, enrutado propio
++├── lib/llm.js         # Integración opcional con un LLM (tutor, asistencia de nota)
++├── db/
++│   ├── pool.js        # Pool de PostgreSQL
++│   ├── migrate.js     # Runner idempotente, registra en la tabla _migrations
++│   ├── migrations/    # 15 archivos .sql numerados
++│   ├── seed.js        # Siembra por stable_key (upsert, no borra)
++│   └── seed-data/     # Lecciones, bancos de ítems, rúbricas, aulas, TFM
++├── scripts/           # extract-legacy-content.mjs, smoke.mjs
++└── Dockerfile         # Imagen equivalente a la de la raíz, para uso aislado
+ ```
+ 
+-## Technologies
++Railway construye el `Dockerfile` **de la raíz** del repositorio, no este. Si
++añades un directorio nuevo con código que `simple-server.js` requiera en tiempo
++de ejecución, hay que declararlo con un `COPY` en **ambos** Dockerfiles.
++
++## Autenticación
++
++- Contraseñas con **scrypt** y sal por usuario. Queda un hash SHA-256 heredado
++  que solo sirve para validar contraseñas antiguas: en el primer login correcto
++  se re-hashea a scrypt.
++- Los tokens de acceso y de refresco son **cadenas opacas aleatorias** de 64
++  caracteres hexadecimales, guardadas en la tabla `sessions` con TTL de 1 hora y
++  7 días. No son JWT, no llevan carga útil y se revocan borrando la fila.
++- La cabecera es `Authorization: Bearer <token>`.
++
++### Endpoints de autenticación
++
++- `POST /api/auth/register`
++- `POST /api/auth/login`
++- `POST /api/auth/refresh`
++- `GET  /api/auth/me`
++- `POST /api/auth/logout`
+ 
+-- NestJS
+-- TypeScript
+-- TypeORM
+-- PostgreSQL
+-- JWT
+-- bcrypt
++El resto de rutas (programa, cursos, progreso, exámenes, rúbricas, entregas,
++TFM, foro, revisión por pares, analítica, tutor, certificados y notificaciones)
++está documentado en [`../MASTER_IEP_INTEGRATION.md`](../MASTER_IEP_INTEGRATION.md).
+diff --git a/backend/lib/llm.js b/backend/lib/llm.js
+index 9a5bad6..c191ef1 100644
+--- a/backend/lib/llm.js
++++ b/backend/lib/llm.js
+@@ -3,7 +3,7 @@
+ //
+ //   LLM_PROVIDER = 'none' (def.) | 'anthropic'
+ //   LLM_MODEL    = 'claude-sonnet-5' (def.)   -> tutor y asistencia de nota
+-//   LLM_MODEL_HEAVY = 'claude-opus-5' (def.)  -> borrador de banco de ítems (offline)
++//   LLM_MODEL_HEAVY = 'claude-opus-5' (def.)  -> borrador de banco de ítems
+ //   ANTHROPIC_API_KEY
+ //
+ // Cuando PROVIDER='none' todo devuelve null y quien llama usa su fallback
+@@ -107,7 +107,7 @@ async function gradeSuggestion({ rubric, submissionText }) {
+   }
+ }
+ 
+-// --- Borrador de ítems de banco (offline, scripts/draft-item-bank.mjs) ---
++// --- Borrador de ítems de banco (uso offline; aún no hay script que lo invoque) ---
+ async function draftItems({ lesson, n = 6, skillTag }) {
+   if (!enabled()) return [];
+   const system = [
+diff --git a/mobile/README.md b/mobile/README.md
+index 0e27edb..ab84232 100644
+--- a/mobile/README.md
++++ b/mobile/README.md
+@@ -1,154 +1,83 @@
+-# Campus Posgrado Mobile App
++# Campus Posgrado Mobile
+ 
+-Aplicación móvil multiplataforma (iOS + Android) para Campus Posgrado LMS.
++App de Expo (iOS + Android) para Campus Posgrado.
+ 
+-## Features
++> **Nota de veracidad (2026-09).** Este README anunciaba antes funcionalidades
++> que no existen en `src/`. Lo que hay realmente son **dos pantallas**:
++> `LoginScreen` y `DashboardScreen`. El consumo del Máster (lecciones, exámenes,
++> entregas, certificados) es **solo por web responsive**.
+ 
+-- ✅ Autenticación multi-user con JWT
+-- ✅ Dashboard con cursos y progreso
+-- ✅ Sync offline con AsyncStorage
+-- ✅ Notificaciones push con Expo Notifications
+-- ✅ Responsive design para móviles
+-- ✅ Dark mode ready
++## Qué está implementado
+ 
+-## Tech Stack
++- ✅ Login contra `POST /auth/login`, con la sesión persistida en AsyncStorage
++  y restaurada al abrir la app (`restoreSession`).
++- ✅ Dashboard con la lista de cursos y el progreso.
++- ✅ Caché local de `/courses` y `/progress` en AsyncStorage, con vuelta a la
++  caché si la petición falla (`src/hooks/useCourses.ts`).
+ 
+-- **Framework:** React Native con Expo
+-- **State Management:** Zustand
+-- **Navigation:** React Navigation
+-- **Storage:** AsyncStorage (offline sync)
+-- **API:** Axios con interceptores
+-- **Notifications:** Expo Notifications
++## Qué NO está implementado
+ 
+-## Setup
++- ❌ Pantalla de curso, de recurso o de lección. `CourseScreen.tsx` no existe.
++- ❌ Entregas de trabajos, exámenes, rúbricas, foro y certificados.
++- ❌ Notificaciones push. `expo-notifications` está instalado y hay un
++  `setNotificationHandler` con un listener registrado en `src/App.tsx`, pero el
++  listener tiene el cuerpo vacío y **no se registra ningún token de push**, así
++  que nunca llega ninguna notificación.
++- ❌ Modo oscuro.
++- ❌ Sincronización offline de escritura: la caché es de solo lectura, no hay
++  cola de operaciones pendientes.
+ 
+-### Prerequisites
++## Autenticación
+ 
+-- Node.js 16+
+-- npm o yarn
+-- Expo CLI: `npm install -g expo-cli`
+-- Expo Go app (iOS/Android) o Android emulator/iOS simulator
++No es JWT. `POST /auth/login` devuelve dos cadenas opacas de 64 caracteres
++hexadecimales, guardadas en la tabla `sessions` del backend, que se envían como
++`Authorization: Bearer <token>`. El de acceso caduca en 1 hora y el de refresco
++en 7 días.
+ 
+-### Installation
++## Stack
+ 
+-```bash
+-cd mobile
+-npm install
+-```
++- Expo 49, React Native 0.72
++- React Navigation (stack + bottom tabs)
++- Zustand para el estado de sesión
++- Axios
++- AsyncStorage
+ 
+-### Running the App
++## Puesta en marcha
+ 
+-**Development (Expo Go):**
+ ```bash
++cd mobile
++npm install
+ npm start
+ ```
+ 
+-Then:
+-- iOS: Press `i` to open in iOS Simulator
+-- Android: Press `a` to open in Android emulator
+-- QR Code: Scan with Expo Go app
+-
+-**Build for Production:**
+-```bash
+-# iOS
+-eas build --platform ios
+-
+-# Android
+-eas build --platform android
+-```
+-
+-## Project Structure
+-
+-```
+-mobile/
+-├── src/
+-│   ├── screens/
+-│   │   ├── LoginScreen.tsx
+-│   │   ├── DashboardScreen.tsx
+-│   │   └── CourseScreen.tsx (preparado)
+-│   ├── hooks/
+-│   │   ├── useAuth.ts
+-│   │   └── useCourses.ts
+-│   ├── store/
+-│   │   └── authStore.ts
+-│   └── App.tsx
+-├── app.json (Expo config)
+-├── package.json
+-└── index.ts (entry point)
+-```
+-
+-## Features por Implementar
++Después: `i` para el simulador de iOS, `a` para el emulador de Android, o
++escanear el QR con Expo Go.
+ 
+-- [ ] Pantalla de cursos detallado
+-- [ ] Entregas de tareas
+-- [ ] Quiz interactivos
+-- [ ] Certificados
+-- [ ] Push notifications automáticas
+-- [ ] Dark mode
+-- [ ] Gestos de navegación (swipe)
++## Configuración de la API
+ 
+-## Testing Accounts
++La URL vive en `app.json`, en `expo.extra.apiUrl`. Para desarrollo contra un
++backend local, cámbiala por la IP de tu máquina en la red local (no
++`localhost`, que en el dispositivo apunta al propio dispositivo):
+ 
+-**Student:**
+-- Email: `test@example.com`
+-- Password: `Password123`
+-
+-**Instructor:**
+-- Email: `instructor@example.com`
+-- Password: `Password123`
+-
+-## API Integration
+-
+-La app se conecta a:
+-```
+-https://campus-posgrado-v2-api.railway.app/api
++```json
++"extra": { "apiUrl": "http://192.168.x.x:3001/api" }
+ ```
+ 
+-Endpoints utilizados:
+-- `POST /auth/login`
+-- `GET /auth/me`
+-- `GET /courses`
+-- `GET /progress`
+-
+-## Offline Support
+-
+-- ✅ Caché local de cursos y progreso
+-- ✅ Las llamadas online se sincronizar automáticamente
+-- ✅ Los datos en caché se muestran en modo offline
+-- ✅ Pull-to-refresh para actualizar datos
+-
+-## Deployment
+-
+-### iOS App Store
+-
+-```bash
+-eas build --platform ios
+-eas submit --platform ios
+-```
+-
+-### Google Play Store
+-
+-```bash
+-eas build --platform android
+-eas submit --platform android
+-```
++Endpoints que la app usa hoy: `POST /auth/login`, `GET /auth/me`,
++`GET /courses`, `GET /courses/:id`, `GET /progress`.
+ 
+-## Troubleshooting
++## Cuentas de prueba
+ 
+-### App no carga
+-1. Ejecutar `npm install` nuevamente
+-2. Limpiar caché: `expo r -c`
+-3. Verificar que API_URL en `app.json` es correcta
++| Correo | Contraseña | Rol |
++|---|---|---|
++| `test@example.com` | `Password123` | estudiante |
++| `instructor@example.com` | `Password123` | instructor |
+ 
+-### AsyncStorage error
+-- En development: usar Expo Go
+-- Para producción: las build nativas incluyen AsyncStorage automáticamente
++## Compilación para tiendas
+ 
+-### Notificaciones no llegan
+-- Verificar permisos en configuración del dispositivo
+-- En iOS: Settings > Notifications > Campus Posgrado
+-- En Android: Settings > Apps > Campus Posgrado > Notifications
++No hay configuración de EAS (`eas.json`) en el repositorio, así que
++`eas build` todavía no funciona tal cual. Está **pendiente**.
+ 
+-## License
++## Licencia
+ 
+-MIT
++Propiedad de Sumi Medical.
+diff --git a/mobile/app.json b/mobile/app.json
+index 783b1ef..f6b72bc 100644
+--- a/mobile/app.json
++++ b/mobile/app.json
+@@ -39,7 +39,7 @@
+       ]
+     ],
+     "extra": {
+-      "apiUrl": "https://campus-posgrado-v2-api.railway.app/api"
++      "apiUrl": "https://campus-posgrado-v2-production.up.railway.app/api"
+     }
+   }
+ }
+diff --git a/run.ps1 b/run.ps1
+index 7c315eb..9c0e80a 100644
+--- a/run.ps1
++++ b/run.ps1
+@@ -15,7 +15,7 @@ Start-Sleep -Seconds 3
+ 
+ Write-Host ""
+ Write-Host "====================================" -ForegroundColor Green
+-Write-Host "CAMPUS POSGRADO v2.0 - PHASE 2" -ForegroundColor Green
++Write-Host "CAMPUS POSGRADO v2.0" -ForegroundColor Green
+ Write-Host "====================================" -ForegroundColor Green
+ Write-Host ""
+ Write-Host "Frontend:  http://localhost:5173" -ForegroundColor Cyan
+-- 
+2.43.0
+

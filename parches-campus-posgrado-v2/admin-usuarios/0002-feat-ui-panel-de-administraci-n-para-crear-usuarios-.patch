@@ -1,0 +1,639 @@
+From 7b529762f8b9257e89acacab320cbc6058f3dbc6 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Thu, 10 Sep 2026 02:54:57 +0000
+Subject: [PATCH 2/3] =?UTF-8?q?feat(ui):=20panel=20de=20administraci=C3=B3?=
+ =?UTF-8?q?n=20para=20crear=20usuarios=20y=20matricular?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Ruta /admin, formulario de alta (alumno/instructor/director TFM) y
+matrícula por curso o de todo el Máster IEP. El login de admin entra
+al panel; un alumno no ve el acceso ni puede abrir /admin.
+---
+ frontend/src/App.tsx                  |   9 +
+ frontend/src/hooks/useAdmin.ts        | 104 +++++++
+ frontend/src/hooks/useCourses.ts      |   3 +
+ frontend/src/pages/AdminDashboard.tsx | 396 ++++++++++++++++++++++++++
+ frontend/src/pages/Dashboard.tsx      |  14 +-
+ frontend/src/pages/LoginPage.tsx      |   3 +-
+ frontend/src/services/auth.ts         |   2 +-
+ 7 files changed, 527 insertions(+), 4 deletions(-)
+ create mode 100644 frontend/src/hooks/useAdmin.ts
+ create mode 100644 frontend/src/pages/AdminDashboard.tsx
+
+diff --git a/frontend/src/App.tsx b/frontend/src/App.tsx
+index eb25215..be1031e 100644
+--- a/frontend/src/App.tsx
++++ b/frontend/src/App.tsx
+@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard'
+ const CourseView = lazy(() => import('./pages/CourseView'))
+ const SubmissionsPage = lazy(() => import('./pages/SubmissionsPage').then(m => ({ default: m.SubmissionsPage })))
+ const InstructorDashboard = lazy(() => import('./pages/InstructorDashboard').then(m => ({ default: m.InstructorDashboard })))
++const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+ const ExploreCoursesPage = lazy(() => import('./pages/ExploreCoursesPage').then(m => ({ default: m.ExploreCoursesPage })))
+ const MasterIEPPage = lazy(() => import('./pages/MasterIEPPage').then(m => ({ default: m.MasterIEPPage })))
+ const NativeCoursesPage = lazy(() => import('./pages/NativeCoursesPage').then(m => ({ default: m.NativeCoursesPage })))
+@@ -49,6 +50,14 @@ function App() {
+               <Route path="/courses/:courseId/submissions/:resourceId?" element={<Suspense fallback={<LoadingSpinner />}><SubmissionsPage /></Suspense>} />
+               <Route path="/courses/:courseId/:resourceId?" element={<Suspense fallback={<LoadingSpinner />}><CourseView /></Suspense>} />
+               <Route path="/instructor" element={<Suspense fallback={<LoadingSpinner />}><InstructorDashboard /></Suspense>} />
++              <Route
++                path="/admin"
++                element={
++                  user.role === 'admin'
++                    ? <Suspense fallback={<LoadingSpinner />}><AdminDashboard /></Suspense>
++                    : <Navigate to="/" replace />
++                }
++              />
+               <Route path="*" element={<Navigate to="/" replace />} />
+             </>
+           )}
+diff --git a/frontend/src/hooks/useAdmin.ts b/frontend/src/hooks/useAdmin.ts
+new file mode 100644
+index 0000000..cf87d24
+--- /dev/null
++++ b/frontend/src/hooks/useAdmin.ts
+@@ -0,0 +1,104 @@
++import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
++import { api } from '../services/api'
++
++export type AdminRole = 'student' | 'instructor' | 'director_tfm' | 'admin'
++export type EnrollmentRole = 'student' | 'instructor'
++
++export interface AdminUser {
++  id: string
++  email: string
++  name: string
++  role: AdminRole
++  createdAt?: string
++  enrollments: number
++}
++
++export interface AdminEnrollment {
++  courseId: string
++  slug: string
++  title: string
++  kind: string
++  role: EnrollmentRole
++  enrolledAt: string
++}
++
++export interface AdminUserDetail extends Omit<AdminUser, 'enrollments'> {
++  enrollments: AdminEnrollment[]
++}
++
++export function useAdminUsers(filters: { role?: string; q?: string }) {
++  return useQuery<AdminUser[]>({
++    queryKey: ['admin-users', filters],
++    queryFn: async () => {
++      const response = await api.get<AdminUser[]>('/admin/users', {
++        params: {
++          role: filters.role || undefined,
++          q: filters.q || undefined,
++        },
++      })
++      return response.data
++    },
++  })
++}
++
++export function useAdminUser(userId: string | null) {
++  return useQuery<AdminUserDetail>({
++    queryKey: ['admin-user', userId],
++    queryFn: async () => {
++      const response = await api.get<AdminUserDetail>(`/admin/users/${userId}`)
++      return response.data
++    },
++    enabled: !!userId,
++  })
++}
++
++export function useCreateAdminUser() {
++  const qc = useQueryClient()
++  return useMutation({
++    mutationFn: async (body: { email: string; name: string; password: string; role: Exclude<AdminRole, 'admin'> }) => {
++      const response = await api.post<AdminUser>('/admin/users', body)
++      return response.data
++    },
++    onSuccess: () => {
++      qc.invalidateQueries({ queryKey: ['admin-users'] })
++    },
++  })
++}
++
++export function useAdminEnroll() {
++  const qc = useQueryClient()
++  return useMutation({
++    mutationFn: async (body: {
++      userId: string
++      courseId?: string
++      courseIds?: string[]
++      programSlug?: string
++      role?: EnrollmentRole
++    }) => {
++      const response = await api.post<{
++        ok: boolean
++        userId: string
++        enrolled: { courseId: string; slug: string; title: string; role: string; created: boolean }[]
++      }>('/admin/enrollments', body)
++      return response.data
++    },
++    onSuccess: (_data, vars) => {
++      qc.invalidateQueries({ queryKey: ['admin-users'] })
++      qc.invalidateQueries({ queryKey: ['admin-user', vars.userId] })
++      qc.invalidateQueries({ queryKey: ['courses'] })
++    },
++  })
++}
++
++export function useAdminUnenroll() {
++  const qc = useQueryClient()
++  return useMutation({
++    mutationFn: async (vars: { userId: string; courseId: string }) => {
++      await api.delete(`/admin/users/${vars.userId}/enrollments/${vars.courseId}`)
++    },
++    onSuccess: (_data, vars) => {
++      qc.invalidateQueries({ queryKey: ['admin-users'] })
++      qc.invalidateQueries({ queryKey: ['admin-user', vars.userId] })
++    },
++  })
++}
+diff --git a/frontend/src/hooks/useCourses.ts b/frontend/src/hooks/useCourses.ts
+index e1eb80e..e9f7084 100644
+--- a/frontend/src/hooks/useCourses.ts
++++ b/frontend/src/hooks/useCourses.ts
+@@ -8,6 +8,9 @@ export interface Course {
+   imageUrl?: string
+   published: boolean
+   instructorId?: string
++  slug?: string
++  kind?: string
++  meta?: { programSlug?: string; [key: string]: any }
+   modules?: any[]
+   progress: {
+     completed: number
+diff --git a/frontend/src/pages/AdminDashboard.tsx b/frontend/src/pages/AdminDashboard.tsx
+new file mode 100644
+index 0000000..b1fc00b
+--- /dev/null
++++ b/frontend/src/pages/AdminDashboard.tsx
+@@ -0,0 +1,396 @@
++import { FormEvent, useMemo, useState } from 'react'
++import { useNavigate } from 'react-router-dom'
++import { useAuthStore } from '../state/store'
++import { useCourses } from '../hooks/useCourses'
++import {
++  useAdminEnroll,
++  useAdminUnenroll,
++  useAdminUser,
++  useAdminUsers,
++  useCreateAdminUser,
++  type AdminRole,
++  type EnrollmentRole,
++} from '../hooks/useAdmin'
++
++const ROLE_LABEL: Record<string, string> = {
++  student: 'Alumno',
++  instructor: 'Instructor',
++  director_tfm: 'Director TFM',
++  admin: 'Administrador',
++}
++
++function errorMessage(err: any, fallback: string) {
++  return err?.response?.data?.message || err?.message || fallback
++}
++
++export default function AdminDashboard() {
++  const navigate = useNavigate()
++  const user = useAuthStore((s) => s.user)
++  const { logout } = useAuthStore()
++
++  const [roleFilter, setRoleFilter] = useState('')
++  const [search, setSearch] = useState('')
++  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
++
++  const [name, setName] = useState('')
++  const [email, setEmail] = useState('')
++  const [password, setPassword] = useState('')
++  const [newRole, setNewRole] = useState<Exclude<AdminRole, 'admin'>>('student')
++  const [formMsg, setFormMsg] = useState<string | null>(null)
++  const [formErr, setFormErr] = useState<string | null>(null)
++
++  const [picked, setPicked] = useState<Record<string, boolean>>({})
++  const [enrollAllMaster, setEnrollAllMaster] = useState(false)
++  const [enrollRole, setEnrollRole] = useState<EnrollmentRole | ''>('')
++  const [enrollMsg, setEnrollMsg] = useState<string | null>(null)
++  const [enrollErr, setEnrollErr] = useState<string | null>(null)
++
++  const users = useAdminUsers({ role: roleFilter, q: search })
++  const detail = useAdminUser(selectedUserId)
++  const courses = useCourses()
++  const createUser = useCreateAdminUser()
++  const enroll = useAdminEnroll()
++  const unenroll = useAdminUnenroll()
++
++  const grouped = useMemo(() => {
++    const list = courses.data || []
++    const master = list.filter((c) => c.meta?.programSlug === 'master-iep' || c.slug?.startsWith('master-'))
++    const masterIds = new Set(master.map((c) => c.id))
++    const aulas = list.filter((c) => c.kind === 'aula')
++    const other = list.filter((c) => !masterIds.has(c.id) && c.kind !== 'aula')
++    return { master, aulas, other }
++  }, [courses.data])
++
++  if (user?.role !== 'admin') {
++    return (
++      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
++        <div className="text-center">
++          <p className="text-gray-500 mb-4">No tienes acceso a esta página</p>
++          <button onClick={() => navigate('/')} className="text-primary-600 hover:underline">
++            Volver al dashboard
++          </button>
++        </div>
++      </div>
++    )
++  }
++
++  const handleCreate = async (e: FormEvent) => {
++    e.preventDefault()
++    setFormMsg(null)
++    setFormErr(null)
++    try {
++      const created = await createUser.mutateAsync({ name, email, password, role: newRole })
++      setFormMsg(`${ROLE_LABEL[created.role]} creado: ${created.email}`)
++      setName('')
++      setEmail('')
++      setPassword('')
++      setSelectedUserId(created.id)
++    } catch (err) {
++      setFormErr(errorMessage(err, 'No se pudo crear el usuario'))
++    }
++  }
++
++  const handleEnroll = async (e: FormEvent) => {
++    e.preventDefault()
++    if (!selectedUserId) return
++    setEnrollMsg(null)
++    setEnrollErr(null)
++    const courseIds = Object.keys(picked).filter((id) => picked[id])
++    if (!enrollAllMaster && courseIds.length === 0) {
++      setEnrollErr('Elige al menos un curso o marca «Todo el Máster».')
++      return
++    }
++    try {
++      const body: {
++        userId: string
++        courseIds?: string[]
++        programSlug?: string
++        role?: EnrollmentRole
++      } = { userId: selectedUserId }
++      if (enrollAllMaster) body.programSlug = 'master-iep'
++      if (courseIds.length) body.courseIds = courseIds
++      if (enrollRole) body.role = enrollRole
++      const result = await enroll.mutateAsync(body)
++      const n = result?.enrolled?.length || 0
++      setEnrollMsg(`Matrícula actualizada (${n} curso${n === 1 ? '' : 's'}).`)
++      setPicked({})
++      setEnrollAllMaster(false)
++    } catch (err) {
++      setEnrollErr(errorMessage(err, 'No se pudo matricular'))
++    }
++  }
++
++  const selected = detail.data
++  const enrolledIds = new Set((selected?.enrollments || []).map((e) => e.courseId))
++
++  const renderCourseGroup = (title: string, items: typeof grouped.master) => {
++    if (!items.length) return null
++    return (
++      <div className="mb-4">
++        <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2">{title}</p>
++        <div className="space-y-1 max-h-56 overflow-y-auto border border-gray-200 rounded-lg p-2 bg-white">
++          {items.map((c) => (
++            <label key={c.id} className="flex items-start gap-2 text-sm px-1 py-1 rounded hover:bg-gray-50">
++              <input
++                type="checkbox"
++                className="mt-1"
++                checked={!!picked[c.id]}
++                disabled={enrolledIds.has(c.id)}
++                onChange={(e) => setPicked((prev) => ({ ...prev, [c.id]: e.target.checked }))}
++              />
++              <span>
++                <span className="text-gray-900">{c.title}</span>
++                {enrolledIds.has(c.id) && (
++                  <span className="ml-2 text-xs text-green-700">ya matriculado</span>
++                )}
++              </span>
++            </label>
++          ))}
++        </div>
++      </div>
++    )
++  }
++
++  return (
++    <div className="min-h-screen bg-gray-50">
++      <header className="bg-white shadow">
++        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
++          <div>
++            <h1 className="text-2xl font-bold text-gray-900">Panel de Administración</h1>
++            <p className="text-sm text-gray-500">Crea instructores y alumnos y matrícalos en los cursos</p>
++          </div>
++          <div className="flex items-center gap-3">
++            <span className="text-gray-700">{user.name}</span>
++            <button onClick={() => navigate('/')} className="text-primary-600 hover:underline font-medium">
++              Dashboard
++            </button>
++            <button
++              onClick={() => {
++                logout()
++                navigate('/login')
++              }}
++              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
++            >
++              Cerrar sesión
++            </button>
++          </div>
++        </div>
++      </header>
++
++      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
++        <section className="lg:col-span-5 space-y-6">
++          <div className="bg-white rounded-lg shadow p-6">
++            <h2 className="text-lg font-semibold text-gray-900 mb-4">Crear usuario</h2>
++            {formMsg && <p className="mb-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">{formMsg}</p>}
++            {formErr && <p className="mb-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{formErr}</p>}
++            <form onSubmit={handleCreate} className="space-y-3">
++              <div>
++                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
++                <input
++                  id="admin-create-name"
++                  value={name}
++                  onChange={(e) => setName(e.target.value)}
++                  required
++                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
++                />
++              </div>
++              <div>
++                <label className="block text-sm font-medium text-gray-700 mb-1">Correo</label>
++                <input
++                  id="admin-create-email"
++                  type="email"
++                  value={email}
++                  onChange={(e) => setEmail(e.target.value)}
++                  required
++                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
++                />
++              </div>
++              <div>
++                <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
++                <input
++                  id="admin-create-password"
++                  type="password"
++                  value={password}
++                  onChange={(e) => setPassword(e.target.value)}
++                  minLength={8}
++                  required
++                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
++                />
++              </div>
++              <div>
++                <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
++                <select
++                  id="admin-create-role"
++                  value={newRole}
++                  onChange={(e) => setNewRole(e.target.value as Exclude<AdminRole, 'admin'>)}
++                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
++                >
++                  <option value="student">Alumno</option>
++                  <option value="instructor">Instructor</option>
++                  <option value="director_tfm">Director TFM</option>
++                </select>
++              </div>
++              <button
++                type="submit"
++                disabled={createUser.isPending}
++                className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50"
++              >
++                {createUser.isPending ? 'Creando…' : 'Crear usuario'}
++              </button>
++            </form>
++          </div>
++
++          <div className="bg-white rounded-lg shadow p-6">
++            <h2 className="text-lg font-semibold text-gray-900 mb-4">Usuarios</h2>
++            <div className="flex gap-2 mb-3">
++              <input
++                value={search}
++                onChange={(e) => setSearch(e.target.value)}
++                placeholder="Buscar nombre o email"
++                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
++              />
++              <select
++                value={roleFilter}
++                onChange={(e) => setRoleFilter(e.target.value)}
++                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
++              >
++                <option value="">Todos</option>
++                <option value="student">Alumnos</option>
++                <option value="instructor">Instructores</option>
++                <option value="director_tfm">Directores TFM</option>
++                <option value="admin">Admins</option>
++              </select>
++            </div>
++            {users.isLoading ? (
++              <p className="text-gray-500 text-sm">Cargando…</p>
++            ) : (
++              <ul className="divide-y divide-gray-100 max-h-[28rem] overflow-y-auto">
++                {(users.data || []).map((u) => (
++                  <li key={u.id}>
++                    <button
++                      type="button"
++                      onClick={() => {
++                        setSelectedUserId(u.id)
++                        setEnrollMsg(null)
++                        setEnrollErr(null)
++                        setPicked({})
++                        setEnrollAllMaster(false)
++                        setEnrollRole(u.role === 'instructor' || u.role === 'director_tfm' ? 'instructor' : 'student')
++                      }}
++                      className={`w-full text-left px-3 py-3 rounded-lg ${
++                        selectedUserId === u.id ? 'bg-primary-50' : 'hover:bg-gray-50'
++                      }`}
++                    >
++                      <div className="flex justify-between gap-2">
++                        <span className="font-medium text-gray-900">{u.name}</span>
++                        <span className="text-xs text-gray-500">{ROLE_LABEL[u.role] || u.role}</span>
++                      </div>
++                      <p className="text-sm text-gray-600">{u.email}</p>
++                      <p className="text-xs text-gray-400 mt-1">{u.enrollments} matrícula{u.enrollments === 1 ? '' : 's'}</p>
++                    </button>
++                  </li>
++                ))}
++              </ul>
++            )}
++          </div>
++        </section>
++
++        <section className="lg:col-span-7 space-y-6">
++          {!selectedUserId ? (
++            <div className="bg-white rounded-lg shadow p-10 text-center text-gray-500">
++              Elige un usuario para ver y gestionar sus matrículas.
++            </div>
++          ) : (
++            <>
++              <div className="bg-white rounded-lg shadow p-6">
++                <h2 className="text-lg font-semibold text-gray-900">
++                  {selected?.name || 'Usuario'}
++                </h2>
++                <p className="text-sm text-gray-600">{selected?.email}</p>
++                <p className="text-sm text-gray-500 mt-1">
++                  {selected ? ROLE_LABEL[selected.role] : ''} · {selected?.enrollments.length ?? 0} cursos
++                </p>
++
++                <h3 className="font-medium text-gray-900 mt-6 mb-2">Matrículas</h3>
++                {detail.isLoading ? (
++                  <p className="text-sm text-gray-500">Cargando…</p>
++                ) : !selected?.enrollments.length ? (
++                  <p className="text-sm text-gray-500">Todavía no está matriculado en ningún curso.</p>
++                ) : (
++                  <ul className="divide-y divide-gray-100">
++                    {selected.enrollments.map((e) => (
++                      <li key={e.courseId} className="py-2 flex items-center justify-between gap-3">
++                        <div>
++                          <p className="text-sm text-gray-900">{e.title}</p>
++                          <p className="text-xs text-gray-500">
++                            {e.slug} · {ROLE_LABEL[e.role] || e.role}
++                          </p>
++                        </div>
++                        <button
++                          type="button"
++                          onClick={() => unenroll.mutate({ userId: selected.id, courseId: e.courseId })}
++                          className="text-sm text-red-600 hover:underline"
++                        >
++                          Quitar
++                        </button>
++                      </li>
++                    ))}
++                  </ul>
++                )}
++              </div>
++
++              {selected?.role !== 'admin' && (
++                <div className="bg-white rounded-lg shadow p-6">
++                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Matricular en cursos</h2>
++                  {enrollMsg && (
++                    <p className="mb-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">{enrollMsg}</p>
++                  )}
++                  {enrollErr && (
++                    <p className="mb-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">{enrollErr}</p>
++                  )}
++                  <form onSubmit={handleEnroll}>
++                    <label className="flex items-center gap-2 mb-4 text-sm font-medium text-gray-800">
++                      <input
++                        id="admin-enroll-master"
++                        type="checkbox"
++                        checked={enrollAllMaster}
++                        onChange={(e) => setEnrollAllMaster(e.target.checked)}
++                      />
++                      Matricular en todo el Máster IEP (11 asignaturas + TFM)
++                    </label>
++                    {renderCourseGroup('Máster IEP', grouped.master)}
++                    {renderCourseGroup('Aulas', grouped.aulas)}
++                    {renderCourseGroup('Otros cursos', grouped.other)}
++                    <div className="mt-4">
++                      <label className="block text-sm font-medium text-gray-700 mb-1">Rol en el curso</label>
++                      <select
++                        id="admin-enroll-role"
++                        value={enrollRole}
++                        onChange={(e) => setEnrollRole(e.target.value as EnrollmentRole | '')}
++                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
++                      >
++                        <option value="">Automático según el usuario</option>
++                        <option value="student">Alumno</option>
++                        <option value="instructor">Instructor del curso</option>
++                      </select>
++                      <p className="text-xs text-gray-500 mt-1">
++                        Un instructor matriculado como instructor pasa a ser el responsable del curso.
++                      </p>
++                    </div>
++                    <button
++                      type="submit"
++                      disabled={enroll.isPending}
++                      className="mt-4 w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50"
++                    >
++                      {enroll.isPending ? 'Matriculando…' : 'Matricular'}
++                    </button>
++                  </form>
++                </div>
++              )}
++            </>
++          )}
++        </section>
++      </main>
++    </div>
++  )
++}
+diff --git a/frontend/src/pages/Dashboard.tsx b/frontend/src/pages/Dashboard.tsx
+index 04f041b..e2451cf 100644
+--- a/frontend/src/pages/Dashboard.tsx
++++ b/frontend/src/pages/Dashboard.tsx
+@@ -41,7 +41,15 @@ export default function Dashboard() {
+               🎓
+             </button>
+             <span className="text-gray-700 dark:text-gray-300">{user?.name}</span>
+-            {user?.role !== 'student' && (
++            {user?.role === 'admin' && (
++              <button
++                onClick={() => navigate('/admin')}
++                className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition"
++              >
++                Panel de Administración
++              </button>
++            )}
++            {user?.role && user.role !== 'student' && user.role !== 'admin' && (
+               <button
+                 onClick={() => navigate('/instructor')}
+                 className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition"
+@@ -69,7 +77,9 @@ export default function Dashboard() {
+               <p className="text-primary-100">
+                 {user?.role === 'student'
+                   ? `Estás matriculado en ${progress?.totalCourses ?? 0} de ${courses?.length ?? 0} cursos del catálogo. Tu progreso general es ${progress?.averageProgress || 0}%.`
+-                  : 'Gestiona tus cursos y estudiantes.'}
++                  : user?.role === 'admin'
++                    ? 'Crea instructores y alumnos y matrícalos en los cursos.'
++                    : 'Gestiona tus cursos y estudiantes.'}
+               </p>
+             </div>
+             {user?.role === 'student' && (
+diff --git a/frontend/src/pages/LoginPage.tsx b/frontend/src/pages/LoginPage.tsx
+index 61129e5..fc5fb7f 100644
+--- a/frontend/src/pages/LoginPage.tsx
++++ b/frontend/src/pages/LoginPage.tsx
+@@ -15,7 +15,8 @@ export default function LoginPage() {
+       setLoading(true)
+       setError(null)
+       await authService.login({ email, password })
+-      navigate('/')
++      const role = useAuthStore.getState().user?.role
++      navigate(role === 'admin' ? '/admin' : '/')
+     } catch (err: any) {
+       setError(err.response?.data?.message || 'Error al iniciar sesión')
+     } finally {
+diff --git a/frontend/src/services/auth.ts b/frontend/src/services/auth.ts
+index 21cd844..7674b77 100644
+--- a/frontend/src/services/auth.ts
++++ b/frontend/src/services/auth.ts
+@@ -19,7 +19,7 @@ export interface AuthResponse {
+     id: string
+     email: string
+     name: string
+-    role: 'student' | 'instructor' | 'admin'
++    role: 'student' | 'instructor' | 'director_tfm' | 'admin'
+   }
+ }
+ 
+-- 
+2.43.0
+

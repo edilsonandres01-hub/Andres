@@ -1,0 +1,269 @@
+From bf32cac35c123963f87eeb48ace8b1eac58ded1a Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursor@example.com>
+Date: Tue, 8 Sep 2026 20:21:18 +0000
+Subject: [PATCH 4/4] =?UTF-8?q?ci:=20a=C3=B1adir=20el=20gate=20de=20prerre?=
+ =?UTF-8?q?quisitos=20y=20la=20cach=C3=A9=20del=20m=C3=B3vil=20al=20workfl?=
+ =?UTF-8?q?ow?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Dos comprobaciones nuevas después del smoke, sobre el mismo servidor y la
+misma base ya sembrada:
+
+- `npm run gate-check` (backend/scripts/gate-check.mjs): estudiante nuevo con
+  solo la I abierta, las vías de evasión devolviendo 403, el instructor exento
+  y la cascada abriéndose al completar la I y la II.
+- `mobile/scripts/cache-gate-check.mjs`: la política de caché descarta lo
+  rancio y el payload real declara `locked`.
+---
+ .github/workflows/ci.yml       |   7 ++
+ backend/package.json           |   1 +
+ backend/scripts/gate-check.mjs | 205 +++++++++++++++++++++++++++++++++
+ 3 files changed, 213 insertions(+)
+ create mode 100644 backend/scripts/gate-check.mjs
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index e9f75d5..455aac8 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -60,6 +60,13 @@ jobs:
+           exit 1
+       - name: Smoke
+         run: npm test
++      - name: Gate de prerrequisitos (cascada del Máster IEP)
++        run: npm run gate-check
++      - name: Caché del móvil frente al gate
++        working-directory: mobile
++        run: node --experimental-strip-types scripts/cache-gate-check.mjs
++        env:
++          BASE: http://127.0.0.1:3001/api
+ 
+   frontend:
+     name: Frontend build
+diff --git a/backend/package.json b/backend/package.json
+index f1c942f..f1dd0d4 100644
+--- a/backend/package.json
++++ b/backend/package.json
+@@ -16,6 +16,7 @@
+     "extract": "node scripts/extract-legacy-content.mjs",
+     "reset": "node db/migrate.js && node db/seed.js",
+     "smoke": "node scripts/smoke.mjs",
++    "gate-check": "node scripts/gate-check.mjs",
+     "test": "node scripts/smoke.mjs"
+   },
+   "dependencies": {
+diff --git a/backend/scripts/gate-check.mjs b/backend/scripts/gate-check.mjs
+new file mode 100644
+index 0000000..6515edb
+--- /dev/null
++++ b/backend/scripts/gate-check.mjs
+@@ -0,0 +1,205 @@
++// Verificación end-to-end del gate de prerrequisitos del Máster IEP.
++//
++//   BASE=http://localhost:3001/api \
++//   DATABASE_URL=postgres://postgres:postgres@localhost:5432/campus_posgrado \
++//   node scripts/gate-check.mjs
++//
++// Comprueba tres cosas:
++//   1. Un estudiante nuevo solo puede AVANZAR en la Asignatura I.
++//   2. Las asignaturas bloqueadas se pueden CONSULTAR (200 + locked) pero toda
++//      escritura devuelve 403 PREREQUISITE_LOCKED: progreso, actividad, quiz
++//      formativo, intento de examen, entrega de proyecto, quiz legado y TFM.
++//   3. La cascada se abre escalón a escalón al completar cada asignatura.
++//
++// Necesita DATABASE_URL solo para leer la clave del banco de ítems (un
++// estudiante real aprueba el examen estudiando; el arnés no puede "estudiar").
++// No escribe nada en la BD por fuera de la API.
++import pg from 'pg';
++
++const BASE = process.env.BASE || 'http://localhost:3001/api';
++let pass = 0;
++let fail = 0;
++const ok = (cond, msg, extra) => {
++  if (cond) {
++    pass += 1;
++    console.log('  ✓', msg);
++  } else {
++    fail += 1;
++    console.log('  ✗', msg, extra !== undefined ? `\n      → ${JSON.stringify(extra).slice(0, 400)}` : '');
++  }
++};
++const section = (t) => console.log(`\n${t}`);
++
++const pool = new pg.Pool({
++  connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/campus_posgrado',
++});
++
++async function call(method, path, headers, body) {
++  const r = await fetch(`${BASE}${path}`, {
++    method,
++    headers,
++    body: body === undefined ? undefined : JSON.stringify(body),
++  });
++  const text = await r.text();
++  let data;
++  try {
++    data = JSON.parse(text);
++  } catch {
++    data = text;
++  }
++  return { status: r.status, data };
++}
++
++const isGateDenial = (r) => r.status === 403 && r.data && r.data.code === 'PREREQUISITE_LOCKED';
++
++async function programState(H) {
++  const { data } = await call('GET', '/programs/master-iep', H);
++  const byslug = {};
++  for (const t of data.tracks) for (const a of t.asignaturas) byslug[a.slug] = a;
++  return byslug;
++}
++
++// Lleva una asignatura al 100 % por las vías legítimas de la API.
++async function completeCourse(slug, H, IH) {
++  const student = (await call('GET', `/courses/${slug}`, H)).data;
++  const teacher = (await call('GET', `/courses/${slug}`, IH)).data;
++  const keyById = new Map(teacher.modules.flatMap((m) => m.resources).map((r) => [r.id, r]));
++
++  for (const r of student.modules.flatMap((m) => m.resources)) {
++    const cj = keyById.get(r.id).contentJson || {};
++    if (r.type === 'lesson') {
++      if (cj.exercise && cj.exercise.text) {
++        await call('POST', `/activity/${r.id}`, H, { content: 'Respuesta a la actividad, con más de veinte caracteres.' });
++      }
++      if (Array.isArray(cj.quiz) && cj.quiz.length) {
++        await call('POST', `/formative/${r.id}`, H, { answers: cj.quiz.map((q, i) => ({ i, choice: q.a })) });
++      }
++      if (!(cj.exercise && cj.exercise.text) && !(Array.isArray(cj.quiz) && cj.quiz.length)) {
++        await call('POST', '/progress', H, { resourceId: r.id });
++      }
++    } else if (r.type === 'project' || r.type === 'assignment') {
++      const sub = await call('POST', '/submissions', H, {
++        resourceId: r.id, courseId: student.id, content: 'Entrega del proyecto de la asignatura.',
++      });
++      await call('PUT', `/submissions/${sub.data.id}/grade`, IH, { grade: 92, feedback: 'Correcto.' });
++    } else if (r.type === 'exam') {
++      const at = (await call('POST', `/exams/${r.id}/attempts`, H)).data;
++      const { rows } = await pool.query('SELECT id, correct_index FROM item_bank_questions WHERE id = ANY($1)', [
++        (at.questions || []).map((q) => q.id),
++      ]);
++      const key = new Map(rows.map((x) => [x.id, x.correct_index]));
++      await call('POST', `/exams/attempts/${at.attemptId}`, H, {
++        answers: (at.questions || []).map((q) => ({ questionId: q.id, choice: key.get(q.id) })),
++      });
++    } else {
++      await call('POST', '/progress', H, { resourceId: r.id });
++    }
++  }
++  return (await call('GET', `/courses/${slug}`, H)).data.progress;
++}
++
++async function main() {
++  const email = `gate${Date.now()}@example.com`;
++  const reg = await call('POST', '/auth/register', { 'content-type': 'application/json' }, {
++    email, name: 'Gate Check', password: 'Password123',
++  });
++  const H = { authorization: `Bearer ${reg.data.accessToken}`, 'content-type': 'application/json' };
++  const instr = await call('POST', '/auth/login', { 'content-type': 'application/json' }, {
++    email: 'instructor@example.com', password: 'Password123',
++  });
++  const IH = { authorization: `Bearer ${instr.data.accessToken}`, 'content-type': 'application/json' };
++
++  section('1. Estudiante nuevo: solo la Asignatura I está abierta');
++  const st0 = await programState(H);
++  ok(st0['master-i'].locked === false, 'master-i abierta');
++  const rest = Object.keys(st0).filter((s) => s !== 'master-i');
++  ok(rest.every((s) => st0[s].locked === true), 'II–XI y TFM bloqueadas', rest.filter((s) => !st0[s].locked));
++  ok(!!st0['master-ii'].lockedReason, 'el bloqueo viene con motivo legible');
++
++  section('2. El listado genérico (Explorar Cursos / móvil) declara locked');
++  const list = (await call('GET', '/courses', H)).data;
++  const li = list.find((c) => c.slug === 'master-i');
++  const lii = list.find((c) => c.slug === 'master-ii');
++  ok('locked' in lii, 'GET /courses serializa el campo locked');
++  ok(lii.locked === true && li.locked === false, 'GET /courses: I abierta, II bloqueada');
++  ok(lii.prerequisiteTitle === li.title, 'GET /courses: nombra el prerrequisito incumplido');
++
++  section('3. Modo consulta (P-17): leer una asignatura bloqueada sigue dando 200');
++  const view = await call('GET', '/courses/master-ii', H);
++  ok(view.status === 200, 'GET /courses/master-ii → 200 (URL directa)');
++  ok(view.data.locked === true, 'el detalle se declara bloqueado');
++  ok(view.data.modules.flatMap((m) => m.resources).length > 0, 'el material se sirve completo');
++
++  section('4. Vías de evasión desde una asignatura bloqueada: todas 403');
++  const res2 = view.data.modules.flatMap((m) => m.resources);
++  const lesson2 = res2.find((r) => r.type === 'lesson');
++  const exam2 = res2.find((r) => r.type === 'exam');
++  const proj2 = res2.find((r) => r.type === 'project' || r.type === 'assignment');
++  const manual2 = res2.find((r) => ['reading', 'video', 'book', 'docs', 'lecture', 'exercise', 'tool'].includes(r.type));
++  const iLesson2 = (await call('GET', '/courses/master-ii', IH)).data.modules
++    .flatMap((m) => m.resources).find((r) => r.id === lesson2.id);
++
++  let r = await call('POST', '/progress', H, { resourceId: manual2.id });
++  ok(isGateDenial(r), 'POST /progress → 403 PREREQUISITE_LOCKED', r);
++  r = await call('POST', `/activity/${lesson2.id}`, H, { content: 'Entrega de la actividad de una lección bloqueada.' });
++  ok(isGateDenial(r), 'POST /activity/:id → 403', r);
++  r = await call('POST', `/formative/${lesson2.id}`, H, {
++    answers: (iLesson2.contentJson.quiz || []).map((q, i) => ({ i, choice: q.a })),
++  });
++  ok(isGateDenial(r), 'POST /formative/:id (con la clave correcta) → 403', r);
++  r = await call('POST', `/exams/${exam2.id}/attempts`, H);
++  ok(isGateDenial(r), 'POST /exams/:id/attempts → 403 (no se abre el examen de 15 preguntas)', r);
++  r = await call('POST', '/submissions', H, { resourceId: proj2.id, courseId: view.data.id, content: 'Entrega bloqueada.' });
++  ok(isGateDenial(r), 'POST /submissions → 403', r);
++  r = await call('POST', '/quiz-responses', H, { quizId: exam2.id, answers: [] });
++  ok(isGateDenial(r), 'POST /quiz-responses (vía legada) → 403', r);
++  r = await call('POST', '/tfm/enroll', H);
++  ok(isGateDenial(r), 'POST /tfm/enroll → 403', r);
++  r = await call('POST', '/tfm/milestones/tfm-propuesta', H, { content: 'Propuesta de TFM con longitud más que suficiente.' });
++  ok(isGateDenial(r), 'POST /tfm/milestones/:slug → 403', r);
++  const status2 = (await call('GET', `/exams/${exam2.id}/status`, H)).data;
++  ok(status2.canStart === false && status2.locked === true, 'GET /exams/:id/status: canStart=false y locked=true', status2);
++
++  section('5. Ninguna de esas llamadas dejó progreso');
++  const after = (await call('GET', '/courses/master-ii', H)).data;
++  ok(after.progress.completed === 0, 'master-ii sigue en 0 recursos completados', after.progress);
++
++  section('6. Instructor: exento del gate');
++  const ilist = (await call('GET', '/courses', IH)).data.find((c) => c.slug === 'master-ii');
++  ok(ilist.locked === false, 'GET /courses: el instructor no ve bloqueos');
++  const iprog = await programState(IH);
++  ok(Object.values(iprog).every((a) => a.locked === false), 'GET /programs: el instructor ve las 12 abiertas');
++  const iexam = (await call('GET', `/exams/${exam2.id}/status`, IH)).data;
++  ok(iexam.locked === false, 'GET /exams/:id/status: sin bloqueo para el instructor');
++
++  section('7. Cascada: al completar la I se abre la II');
++  const p1 = await completeCourse('master-i', H, IH);
++  ok(p1.percentage === 100, `master-i al 100 % (${p1.completed}/${p1.total})`, p1);
++  const st1 = await programState(H);
++  ok(st1['master-ii'].locked === false, 'master-ii se abrió');
++  ok(st1['master-iii'].locked === true, 'master-iii sigue bloqueada');
++  r = await call('POST', `/exams/${exam2.id}/attempts`, H);
++  ok(r.status === 200 && Array.isArray(r.data.questions), 'ahora sí se puede abrir el examen de la II', r.status);
++
++  section('8. Segundo escalón: al completar la II se abre la III');
++  const p2 = await completeCourse('master-ii', H, IH);
++  ok(p2.percentage === 100, `master-ii al 100 % (${p2.completed}/${p2.total})`, p2);
++  const st2 = await programState(H);
++  ok(st2['master-iii'].locked === false, 'master-iii se abrió');
++  ok(st2['master-iv'].locked === true, 'master-iv sigue bloqueada');
++  r = await call('POST', '/progress', H, {
++    resourceId: (await call('GET', '/courses/master-iv', H)).data.modules
++      .flatMap((m) => m.resources).find((x) => ['book', 'video', 'tool', 'docs', 'reading', 'lecture'].includes(x.type)).id,
++  });
++  ok(isGateDenial(r), 'la IV sigue devolviendo 403 en las escrituras', r);
++
++  console.log(`\n${pass} ok, ${fail} fallo(s)`);
++  await pool.end();
++  process.exit(fail ? 1 : 0);
++}
++
++main().catch(async (e) => {
++  console.error('ERROR', e);
++  await pool.end().catch(() => {});
++  process.exit(1);
++});
+-- 
+2.43.0
+

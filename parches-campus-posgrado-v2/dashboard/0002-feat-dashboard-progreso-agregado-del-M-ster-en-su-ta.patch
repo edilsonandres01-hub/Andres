@@ -1,0 +1,84 @@
+From 2e4002c0cc3011bc5b3c72e21fae47167b48a035 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 19:26:53 +0000
+Subject: [PATCH 2/2] =?UTF-8?q?feat(dashboard):=20progreso=20agregado=20de?=
+ =?UTF-8?q?l=20M=C3=A1ster=20en=20su=20tarjeta=20de=20acceso?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Al dejar de listar las 12 asignaturas, la única referencia al Máster en
+el panel era un bloque estático sin ningún dato de avance. Ahora muestra
+el progreso del programa completo, no el de una asignatura suelta:
+asignaturas terminadas sobre las 11 del plan, el porcentaje global de
+`GET /api/programs/master-iep` con su barra, el recuento de lecciones y
+cuál es la siguiente asignatura desbloqueada.
+
+La consulta solo se lanza para estudiantes, que son los únicos que ven
+el bloque.
+---
+ frontend/src/pages/Dashboard.tsx | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+diff --git a/frontend/src/pages/Dashboard.tsx b/frontend/src/pages/Dashboard.tsx
+index 7de2172..3977139 100644
+--- a/frontend/src/pages/Dashboard.tsx
++++ b/frontend/src/pages/Dashboard.tsx
+@@ -2,6 +2,7 @@ import { useState } from 'react'
+ import { useNavigate } from 'react-router-dom'
+ import { useAuthStore } from '../state/store'
+ import { useCourses, useProgress, belongsToProgram } from '../hooks/useCourses'
++import { useProgram } from '../hooks/usePrograms'
+ import CourseCard from '../components/CourseCard'
+ import { NotificationBell } from '../components/NotificationBell'
+ import { CertificatesList } from '../components/CertificatesList'
+@@ -13,6 +14,7 @@ export default function Dashboard() {
+   const { user, logout } = useAuthStore()
+   const { data: courses, isLoading: coursesLoading } = useCourses()
+   const { data: progress } = useProgress()
++  const { data: master } = useProgram(user?.role === 'student' ? 'master-iep' : '')
+   const [showCertificates, setShowCertificates] = useState(false)
+ 
+   const handleLogout = () => {
+@@ -28,6 +30,11 @@ export default function Dashboard() {
+   const activeCourses = myCourses.filter(c => c.progress.percentage < 100)
+   const completedCourses = myCourses.filter(c => c.progress.percentage === 100)
+ 
++  const masterAsignaturas = (master?.tracks || []).flatMap(t => t.asignaturas)
++  const masterSinTfm = masterAsignaturas.filter(a => a.track !== 'TFM')
++  const masterCompletadas = masterSinTfm.filter(a => a.progress.percentage === 100).length
++  const masterSiguiente = masterAsignaturas.find(a => !a.locked && a.progress.percentage < 100)
++
+   return (
+     <div className="min-h-screen bg-gray-50">
+       {/* Header */}
+@@ -99,6 +106,26 @@ export default function Dashboard() {
+                 11 asignaturas + Proyecto Fin de Programa, en 3 certificados: PRO-essentials, PROadvance,
+                 PROexpertify.
+               </p>
++              {master && (
++                <div className="mb-4">
++                  <div className="flex justify-between text-sm text-red-100 mb-1">
++                    <span>
++                      {masterCompletadas} de {masterSinTfm.length} asignaturas completadas
++                    </span>
++                    <span>{master.progress.percentage}%</span>
++                  </div>
++                  <div className="w-full bg-red-900/40 rounded-full h-2">
++                    <div
++                      className="bg-white h-2 rounded-full transition-all"
++                      style={{ width: `${master.progress.percentage}%` }}
++                    />
++                  </div>
++                  <p className="text-xs text-red-200 mt-2">
++                    {master.progress.completed}/{master.progress.total} lecciones ·{' '}
++                    {masterSiguiente ? `Siguiente: ${masterSiguiente.title}` : 'Programa completado'}
++                  </p>
++                </div>
++              )}
+               <div className="flex items-center gap-2 text-red-200">
+                 <span>Ver programa completo →</span>
+               </div>
+-- 
+2.43.0
+

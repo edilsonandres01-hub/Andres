@@ -1,0 +1,1080 @@
+From 742db1e581841e20b30f67754d1681f93b50b8c2 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 12:30:50 +0000
+Subject: [PATCH 1/7] chore(backend): eliminar el scaffold NestJS muerto
+ (backend/src/**)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+El árbol backend/src/** era un scaffold de NestJS abandonado: nunca se
+compiló, nunca se desplegó y ningún archivo del repositorio lo importa.
+
+Evidencia de que está muerto:
+- El Dockerfile raíz (el que usa Railway, railway.toml -> dockerfilePath)
+  solo copia simple-server.js, db/ y scripts/. Nunca copia src/.
+- backend/Dockerfile hace lo mismo.
+- backend/package.json declara main: simple-server.js, su único script de
+  arranque es 'node simple-server.js' y su única dependencia es 'pg'
+  (no hay @nestjs/*, typeorm, bcrypt, passport, class-validator ni rxjs
+  instalados, así que este árbol ni siquiera podría compilar).
+- vercel.json solo construye frontend/.
+- Ningún require()/import de backend/src en simple-server.js, db/*,
+  lib/*, scripts/* ni en frontend/ o mobile/.
+- No hay configuración de CI en el repositorio.
+
+Además desinformaba: describía autenticación con bcrypt + JWT + refresh
+tokens con TypeORM, cuando el servidor real usa scrypt (con hash sha256
+legado que se re-hashea en el primer login) y tokens opacos en la tabla
+'sessions'.
+---
+ backend/src/app.module.ts                     | 80 ---------------
+ backend/src/main.ts                           | 40 --------
+ backend/src/modules/auth/auth.controller.ts   | 31 ------
+ backend/src/modules/auth/auth.module.ts       | 22 -----
+ backend/src/modules/auth/auth.service.ts      | 99 -------------------
+ backend/src/modules/auth/dto/login.dto.ts     | 10 --
+ backend/src/modules/auth/dto/register.dto.ts  | 16 ---
+ .../src/modules/auth/guards/jwt-auth.guard.ts |  5 -
+ .../modules/auth/strategies/jwt.strategy.ts   | 19 ----
+ backend/src/modules/courses/courses.module.ts | 12 ---
+ .../modules/courses/entities/course.entity.ts | 56 -----------
+ .../courses/entities/enrollment.entity.ts     | 49 ---------
+ .../modules/courses/entities/module.entity.ts | 49 ---------
+ .../modules/grades/entities/grade.entity.ts   | 46 ---------
+ backend/src/modules/grades/grades.module.ts   | 10 --
+ .../progress/entities/progress.entity.ts      | 41 --------
+ .../src/modules/progress/progress.module.ts   | 10 --
+ .../resources/entities/resource.entity.ts     | 60 -----------
+ .../src/modules/resources/resources.module.ts | 10 --
+ .../submissions/entities/submission.entity.ts | 59 -----------
+ .../modules/submissions/submissions.module.ts | 10 --
+ .../src/modules/users/entities/user.entity.ts | 55 -----------
+ backend/src/modules/users/users.module.ts     | 11 ---
+ backend/src/modules/users/users.service.ts    | 53 ----------
+ 24 files changed, 853 deletions(-)
+ delete mode 100644 backend/src/app.module.ts
+ delete mode 100644 backend/src/main.ts
+ delete mode 100644 backend/src/modules/auth/auth.controller.ts
+ delete mode 100644 backend/src/modules/auth/auth.module.ts
+ delete mode 100644 backend/src/modules/auth/auth.service.ts
+ delete mode 100644 backend/src/modules/auth/dto/login.dto.ts
+ delete mode 100644 backend/src/modules/auth/dto/register.dto.ts
+ delete mode 100644 backend/src/modules/auth/guards/jwt-auth.guard.ts
+ delete mode 100644 backend/src/modules/auth/strategies/jwt.strategy.ts
+ delete mode 100644 backend/src/modules/courses/courses.module.ts
+ delete mode 100644 backend/src/modules/courses/entities/course.entity.ts
+ delete mode 100644 backend/src/modules/courses/entities/enrollment.entity.ts
+ delete mode 100644 backend/src/modules/courses/entities/module.entity.ts
+ delete mode 100644 backend/src/modules/grades/entities/grade.entity.ts
+ delete mode 100644 backend/src/modules/grades/grades.module.ts
+ delete mode 100644 backend/src/modules/progress/entities/progress.entity.ts
+ delete mode 100644 backend/src/modules/progress/progress.module.ts
+ delete mode 100644 backend/src/modules/resources/entities/resource.entity.ts
+ delete mode 100644 backend/src/modules/resources/resources.module.ts
+ delete mode 100644 backend/src/modules/submissions/entities/submission.entity.ts
+ delete mode 100644 backend/src/modules/submissions/submissions.module.ts
+ delete mode 100644 backend/src/modules/users/entities/user.entity.ts
+ delete mode 100644 backend/src/modules/users/users.module.ts
+ delete mode 100644 backend/src/modules/users/users.service.ts
+
+diff --git a/backend/src/app.module.ts b/backend/src/app.module.ts
+deleted file mode 100644
+index af132f9..0000000
+--- a/backend/src/app.module.ts
++++ /dev/null
+@@ -1,80 +0,0 @@
+-import { Module } from '@nestjs/common';
+-import { ConfigModule, ConfigService } from '@nestjs/config';
+-import { TypeOrmModule } from '@nestjs/typeorm';
+-import { JwtModule } from '@nestjs/jwt';
+-
+-// Modules
+-import { AuthModule } from './modules/auth/auth.module';
+-import { UsersModule } from './modules/users/users.module';
+-import { CoursesModule } from './modules/courses/courses.module';
+-import { ResourcesModule } from './modules/resources/resources.module';
+-import { SubmissionsModule } from './modules/submissions/submissions.module';
+-import { GradesModule } from './modules/grades/grades.module';
+-import { ProgressModule } from './modules/progress/progress.module';
+-
+-// Database entities
+-import { User } from './modules/users/entities/user.entity';
+-import { Course } from './modules/courses/entities/course.entity';
+-import { Module as CourseModule } from './modules/courses/entities/module.entity';
+-import { Resource } from './modules/resources/entities/resource.entity';
+-import { Submission } from './modules/submissions/entities/submission.entity';
+-import { Grade } from './modules/grades/entities/grade.entity';
+-import { Progress } from './modules/progress/entities/progress.entity';
+-import { Enrollment } from './modules/courses/entities/enrollment.entity';
+-
+-@Module({
+-  imports: [
+-    // Configuration
+-    ConfigModule.forRoot({
+-      isGlobal: true,
+-      envFilePath: '.env',
+-    }),
+-
+-    // Database
+-    TypeOrmModule.forRootAsync({
+-      inject: [ConfigService],
+-      useFactory: (configService: ConfigService) => ({
+-        type: 'postgres',
+-        host: configService.get('DB_HOST', 'localhost'),
+-        port: configService.get('DB_PORT', 5432),
+-        username: configService.get('DB_USERNAME', 'postgres'),
+-        password: configService.get('DB_PASSWORD', 'postgres'),
+-        database: configService.get('DB_DATABASE', 'campus_posgrado'),
+-        entities: [
+-          User,
+-          Course,
+-          CourseModule,
+-          Resource,
+-          Submission,
+-          Grade,
+-          Progress,
+-          Enrollment,
+-        ],
+-        synchronize: process.env.NODE_ENV === 'development',
+-        logging: process.env.NODE_ENV === 'development',
+-      }),
+-    }),
+-
+-    // JWT
+-    JwtModule.registerAsync({
+-      global: true,
+-      inject: [ConfigService],
+-      useFactory: (configService: ConfigService) => ({
+-        secret: configService.get('JWT_SECRET', 'dev-secret-key'),
+-        signOptions: {
+-          expiresIn: configService.get('JWT_EXPIRATION', '3600s'),
+-        },
+-      }),
+-    }),
+-
+-    // Feature modules
+-    AuthModule,
+-    UsersModule,
+-    CoursesModule,
+-    ResourcesModule,
+-    SubmissionsModule,
+-    GradesModule,
+-    ProgressModule,
+-  ],
+-})
+-export class AppModule {}
+diff --git a/backend/src/main.ts b/backend/src/main.ts
+deleted file mode 100644
+index 57e4524..0000000
+--- a/backend/src/main.ts
++++ /dev/null
+@@ -1,40 +0,0 @@
+-import { NestFactory } from '@nestjs/core';
+-import { ValidationPipe } from '@nestjs/common';
+-import { AppModule } from './app.module';
+-
+-async function bootstrap() {
+-  const app = await NestFactory.create(AppModule);
+-
+-  // Global validation pipe
+-  app.useGlobalPipes(
+-    new ValidationPipe({
+-      whitelist: true,
+-      forbidNonWhitelisted: true,
+-      transform: true,
+-      transformOptions: {
+-        enableImplicitConversion: true,
+-      },
+-    }),
+-  );
+-
+-  // CORS configuration
+-  app.enableCors({
+-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+-    credentials: true,
+-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+-    allowedHeaders: ['Content-Type', 'Authorization'],
+-  });
+-
+-  // Global API prefix
+-  app.setGlobalPrefix('api');
+-
+-  const port = process.env.PORT || 3001;
+-  await app.listen(port);
+-
+-  console.log(`✅ Campus Posgrado API running on http://localhost:${port}/api`);
+-}
+-
+-bootstrap().catch((err) => {
+-  console.error('❌ Error starting server:', err);
+-  process.exit(1);
+-});
+diff --git a/backend/src/modules/auth/auth.controller.ts b/backend/src/modules/auth/auth.controller.ts
+deleted file mode 100644
+index f70002f..0000000
+--- a/backend/src/modules/auth/auth.controller.ts
++++ /dev/null
+@@ -1,31 +0,0 @@
+-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+-import { AuthService } from './auth.service';
+-import { RegisterDto } from './dto/register.dto';
+-import { LoginDto } from './dto/login.dto';
+-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+-
+-@Controller('auth')
+-export class AuthController {
+-  constructor(private readonly authService: AuthService) {}
+-
+-  @Post('register')
+-  async register(@Body() registerDto: RegisterDto) {
+-    return this.authService.register(registerDto);
+-  }
+-
+-  @Post('login')
+-  async login(@Body() loginDto: LoginDto) {
+-    return this.authService.login(loginDto);
+-  }
+-
+-  @Post('refresh')
+-  async refresh(@Body() body: { refreshToken: string }) {
+-    return this.authService.refreshToken(body.refreshToken);
+-  }
+-
+-  @UseGuards(JwtAuthGuard)
+-  @Get('me')
+-  async getCurrentUser(@Request() req) {
+-    return req.user;
+-  }
+-}
+diff --git a/backend/src/modules/auth/auth.module.ts b/backend/src/modules/auth/auth.module.ts
+deleted file mode 100644
+index c6d0c04..0000000
+--- a/backend/src/modules/auth/auth.module.ts
++++ /dev/null
+@@ -1,22 +0,0 @@
+-import { Module } from '@nestjs/common';
+-import { JwtModule } from '@nestjs/jwt';
+-import { PassportModule } from '@nestjs/passport';
+-import { AuthController } from './auth.controller';
+-import { AuthService } from './auth.service';
+-import { JwtStrategy } from './strategies/jwt.strategy';
+-import { UsersModule } from '../users/users.module';
+-
+-@Module({
+-  imports: [
+-    PassportModule,
+-    JwtModule.register({
+-      secret: process.env.JWT_SECRET || 'dev-secret-key',
+-      signOptions: { expiresIn: '3600s' },
+-    }),
+-    UsersModule,
+-  ],
+-  controllers: [AuthController],
+-  providers: [AuthService, JwtStrategy],
+-  exports: [AuthService],
+-})
+-export class AuthModule {}
+diff --git a/backend/src/modules/auth/auth.service.ts b/backend/src/modules/auth/auth.service.ts
+deleted file mode 100644
+index 25359fc..0000000
+--- a/backend/src/modules/auth/auth.service.ts
++++ /dev/null
+@@ -1,99 +0,0 @@
+-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+-import { JwtService } from '@nestjs/jwt';
+-import * as bcrypt from 'bcrypt';
+-import { UsersService } from '../users/users.service';
+-import { RegisterDto } from './dto/register.dto';
+-import { LoginDto } from './dto/login.dto';
+-import { User } from '../users/entities/user.entity';
+-
+-@Injectable()
+-export class AuthService {
+-  constructor(
+-    private readonly usersService: UsersService,
+-    private readonly jwtService: JwtService,
+-  ) {}
+-
+-  async register(registerDto: RegisterDto) {
+-    const { email, password, name } = registerDto;
+-
+-    // Check if user already exists
+-    const existingUser = await this.usersService.findByEmail(email);
+-    if (existingUser) {
+-      throw new ConflictException('El correo ya está registrado');
+-    }
+-
+-    // Hash password
+-    const hashedPassword = await bcrypt.hash(password, 10);
+-
+-    // Create user
+-    const user = await this.usersService.create({
+-      email,
+-      name,
+-      passwordHash: hashedPassword,
+-      role: 'student', // Default role
+-    });
+-
+-    return {
+-      id: user.id,
+-      email: user.email,
+-      name: user.name,
+-      role: user.role,
+-    };
+-  }
+-
+-  async login(loginDto: LoginDto) {
+-    const { email, password } = loginDto;
+-
+-    // Find user
+-    const user = await this.usersService.findByEmail(email);
+-    if (!user) {
+-      throw new UnauthorizedException('Credenciales inválidas');
+-    }
+-
+-    // Verify password
+-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+-    if (!isPasswordValid) {
+-      throw new UnauthorizedException('Credenciales inválidas');
+-    }
+-
+-    // Generate tokens
+-    const payload = { sub: user.id, email: user.email, role: user.role };
+-    const accessToken = this.jwtService.sign(payload);
+-    const refreshToken = this.jwtService.sign(payload, {
+-      expiresIn: '7d',
+-    });
+-
+-    return {
+-      accessToken,
+-      refreshToken,
+-      user: {
+-        id: user.id,
+-        email: user.email,
+-        name: user.name,
+-        role: user.role,
+-      },
+-    };
+-  }
+-
+-  async validateUser(payload: any): Promise<User> {
+-    return this.usersService.findById(payload.sub);
+-  }
+-
+-  async refreshToken(refreshToken: string) {
+-    try {
+-      const payload = this.jwtService.verify(refreshToken);
+-      const user = await this.usersService.findById(payload.sub);
+-
+-      if (!user) {
+-        throw new UnauthorizedException('Usuario no encontrado');
+-      }
+-
+-      const newPayload = { sub: user.id, email: user.email, role: user.role };
+-      const accessToken = this.jwtService.sign(newPayload);
+-
+-      return { accessToken };
+-    } catch {
+-      throw new UnauthorizedException('Token de actualización inválido');
+-    }
+-  }
+-}
+diff --git a/backend/src/modules/auth/dto/login.dto.ts b/backend/src/modules/auth/dto/login.dto.ts
+deleted file mode 100644
+index ba45ea1..0000000
+--- a/backend/src/modules/auth/dto/login.dto.ts
++++ /dev/null
+@@ -1,10 +0,0 @@
+-import { IsEmail, IsString, MinLength } from 'class-validator';
+-
+-export class LoginDto {
+-  @IsEmail()
+-  email: string;
+-
+-  @IsString()
+-  @MinLength(8)
+-  password: string;
+-}
+diff --git a/backend/src/modules/auth/dto/register.dto.ts b/backend/src/modules/auth/dto/register.dto.ts
+deleted file mode 100644
+index 493c8e5..0000000
+--- a/backend/src/modules/auth/dto/register.dto.ts
++++ /dev/null
+@@ -1,16 +0,0 @@
+-import { IsEmail, IsString, MinLength, MaxLength } from 'class-validator';
+-
+-export class RegisterDto {
+-  @IsEmail()
+-  email: string;
+-
+-  @IsString()
+-  @MinLength(2)
+-  @MaxLength(100)
+-  name: string;
+-
+-  @IsString()
+-  @MinLength(8)
+-  @MaxLength(50)
+-  password: string;
+-}
+diff --git a/backend/src/modules/auth/guards/jwt-auth.guard.ts b/backend/src/modules/auth/guards/jwt-auth.guard.ts
+deleted file mode 100644
+index 2155290..0000000
+--- a/backend/src/modules/auth/guards/jwt-auth.guard.ts
++++ /dev/null
+@@ -1,5 +0,0 @@
+-import { Injectable } from '@nestjs/common';
+-import { AuthGuard } from '@nestjs/passport';
+-
+-@Injectable()
+-export class JwtAuthGuard extends AuthGuard('jwt') {}
+diff --git a/backend/src/modules/auth/strategies/jwt.strategy.ts b/backend/src/modules/auth/strategies/jwt.strategy.ts
+deleted file mode 100644
+index 4f5d9c6..0000000
+--- a/backend/src/modules/auth/strategies/jwt.strategy.ts
++++ /dev/null
+@@ -1,19 +0,0 @@
+-import { Injectable } from '@nestjs/common';
+-import { PassportStrategy } from '@nestjs/passport';
+-import { ExtractJwt, Strategy } from 'passport-jwt';
+-import { AuthService } from '../auth.service';
+-
+-@Injectable()
+-export class JwtStrategy extends PassportStrategy(Strategy) {
+-  constructor(private authService: AuthService) {
+-    super({
+-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+-      ignoreExpiration: false,
+-      secretOrKey: process.env.JWT_SECRET || 'dev-secret-key',
+-    });
+-  }
+-
+-  async validate(payload: any) {
+-    return this.authService.validateUser(payload);
+-  }
+-}
+diff --git a/backend/src/modules/courses/courses.module.ts b/backend/src/modules/courses/courses.module.ts
+deleted file mode 100644
+index 36c3560..0000000
+--- a/backend/src/modules/courses/courses.module.ts
++++ /dev/null
+@@ -1,12 +0,0 @@
+-import { Module } from '@nestjs/common';
+-import { TypeOrmModule } from '@nestjs/typeorm';
+-import { Course } from './entities/course.entity';
+-import { Module as CourseModule } from './entities/module.entity';
+-import { Enrollment } from './entities/enrollment.entity';
+-
+-@Module({
+-  imports: [TypeOrmModule.forFeature([Course, CourseModule, Enrollment])],
+-  providers: [],
+-  controllers: [],
+-})
+-export class CoursesModule {}
+diff --git a/backend/src/modules/courses/entities/course.entity.ts b/backend/src/modules/courses/entities/course.entity.ts
+deleted file mode 100644
+index b0615be..0000000
+--- a/backend/src/modules/courses/entities/course.entity.ts
++++ /dev/null
+@@ -1,56 +0,0 @@
+-import {
+-  Entity,
+-  PrimaryGeneratedColumn,
+-  Column,
+-  CreateDateColumn,
+-  UpdateDateColumn,
+-  ManyToOne,
+-  OneToMany,
+-  ForeignKey,
+-} from 'typeorm';
+-import { User } from '../../users/entities/user.entity';
+-import { Module as CourseModule } from './module.entity';
+-import { Enrollment } from './enrollment.entity';
+-
+-@Entity('courses')
+-export class Course {
+-  @PrimaryGeneratedColumn('uuid')
+-  id: string;
+-
+-  @Column()
+-  title: string;
+-
+-  @Column({ type: 'text', nullable: true })
+-  description: string;
+-
+-  @Column({ nullable: true })
+-  imageUrl: string;
+-
+-  @ForeignKey(() => User)
+-  @Column({ nullable: true })
+-  instructorId: string;
+-
+-  @ManyToOne(() => User, (user) => user.coursesCreated, { nullable: true })
+-  instructor: User;
+-
+-  @Column({ default: false })
+-  published: boolean;
+-
+-  @CreateDateColumn()
+-  createdAt: Date;
+-
+-  @UpdateDateColumn()
+-  updatedAt: Date;
+-
+-  // Relations
+-  @OneToMany(() => CourseModule, (module) => module.course, {
+-    cascade: true,
+-    eager: true,
+-  })
+-  modules: CourseModule[];
+-
+-  @OneToMany(() => Enrollment, (enrollment) => enrollment.course, {
+-    cascade: true,
+-  })
+-  enrollments: Enrollment[];
+-}
+diff --git a/backend/src/modules/courses/entities/enrollment.entity.ts b/backend/src/modules/courses/entities/enrollment.entity.ts
+deleted file mode 100644
+index 4010b73..0000000
+--- a/backend/src/modules/courses/entities/enrollment.entity.ts
++++ /dev/null
+@@ -1,49 +0,0 @@
+-import {
+-  Entity,
+-  PrimaryGeneratedColumn,
+-  Column,
+-  CreateDateColumn,
+-  ManyToOne,
+-  ForeignKey,
+-  Unique,
+-} from 'typeorm';
+-import { User } from '../../users/entities/user.entity';
+-import { Course } from './course.entity';
+-
+-export enum EnrollmentRole {
+-  STUDENT = 'student',
+-  TEACHING_ASSISTANT = 'ta',
+-}
+-
+-@Entity('enrollments')
+-@Unique(['userId', 'courseId'])
+-export class Enrollment {
+-  @PrimaryGeneratedColumn('uuid')
+-  id: string;
+-
+-  @ForeignKey(() => User)
+-  @Column()
+-  userId: string;
+-
+-  @ManyToOne(() => User, (user) => user.enrollments, { onDelete: 'CASCADE' })
+-  user: User;
+-
+-  @ForeignKey(() => Course)
+-  @Column()
+-  courseId: string;
+-
+-  @ManyToOne(() => Course, (course) => course.enrollments, {
+-    onDelete: 'CASCADE',
+-  })
+-  course: Course;
+-
+-  @Column({
+-    type: 'enum',
+-    enum: EnrollmentRole,
+-    default: EnrollmentRole.STUDENT,
+-  })
+-  role: EnrollmentRole;
+-
+-  @CreateDateColumn()
+-  enrolledAt: Date;
+-}
+diff --git a/backend/src/modules/courses/entities/module.entity.ts b/backend/src/modules/courses/entities/module.entity.ts
+deleted file mode 100644
+index c7b9463..0000000
+--- a/backend/src/modules/courses/entities/module.entity.ts
++++ /dev/null
+@@ -1,49 +0,0 @@
+-import {
+-  Entity,
+-  PrimaryGeneratedColumn,
+-  Column,
+-  CreateDateColumn,
+-  UpdateDateColumn,
+-  ManyToOne,
+-  OneToMany,
+-  ForeignKey,
+-} from 'typeorm';
+-import { Course } from './course.entity';
+-import { Resource } from '../../resources/entities/resource.entity';
+-
+-@Entity('modules')
+-export class Module {
+-  @PrimaryGeneratedColumn('uuid')
+-  id: string;
+-
+-  @ForeignKey(() => Course)
+-  @Column()
+-  courseId: string;
+-
+-  @ManyToOne(() => Course, (course) => course.modules, {
+-    onDelete: 'CASCADE',
+-  })
+-  course: Course;
+-
+-  @Column()
+-  title: string;
+-
+-  @Column({ type: 'text', nullable: true })
+-  description: string;
+-
+-  @Column({ default: 1 })
+-  order: number;
+-
+-  @CreateDateColumn()
+-  createdAt: Date;
+-
+-  @UpdateDateColumn()
+-  updatedAt: Date;
+-
+-  // Relations
+-  @OneToMany(() => Resource, (resource) => resource.module, {
+-    cascade: true,
+-    eager: true,
+-  })
+-  resources: Resource[];
+-}
+diff --git a/backend/src/modules/grades/entities/grade.entity.ts b/backend/src/modules/grades/entities/grade.entity.ts
+deleted file mode 100644
+index f1d8e62..0000000
+--- a/backend/src/modules/grades/entities/grade.entity.ts
++++ /dev/null
+@@ -1,46 +0,0 @@
+-import {
+-  Entity,
+-  PrimaryGeneratedColumn,
+-  Column,
+-  CreateDateColumn,
+-  UpdateDateColumn,
+-  ManyToOne,
+-  OneToOne,
+-  ForeignKey,
+-} from 'typeorm';
+-import { User } from '../../users/entities/user.entity';
+-import { Submission } from '../../submissions/entities/submission.entity';
+-
+-@Entity('grades')
+-export class Grade {
+-  @PrimaryGeneratedColumn('uuid')
+-  id: string;
+-
+-  @ForeignKey(() => Submission)
+-  @Column({ unique: true })
+-  submissionId: string;
+-
+-  @OneToOne(() => Submission, (submission) => submission.grade, {
+-    onDelete: 'CASCADE',
+-  })
+-  submission: Submission;
+-
+-  @ForeignKey(() => User)
+-  @Column()
+-  gradedById: string;
+-
+-  @ManyToOne(() => User, (user) => user.gradesGiven, { onDelete: 'SET NULL' })
+-  gradedBy: User;
+-
+-  @Column({ type: 'numeric', precision: 5, scale: 2 })
+-  score: number;
+-
+-  @Column({ type: 'text', nullable: true })
+-  feedback: string;
+-
+-  @CreateDateColumn()
+-  gradedAt: Date;
+-
+-  @UpdateDateColumn()
+-  updatedAt: Date;
+-}
+diff --git a/backend/src/modules/grades/grades.module.ts b/backend/src/modules/grades/grades.module.ts
+deleted file mode 100644
+index 42f26c7..0000000
+--- a/backend/src/modules/grades/grades.module.ts
++++ /dev/null
+@@ -1,10 +0,0 @@
+-import { Module } from '@nestjs/common';
+-import { TypeOrmModule } from '@nestjs/typeorm';
+-import { Grade } from './entities/grade.entity';
+-
+-@Module({
+-  imports: [TypeOrmModule.forFeature([Grade])],
+-  providers: [],
+-  controllers: [],
+-})
+-export class GradesModule {}
+diff --git a/backend/src/modules/progress/entities/progress.entity.ts b/backend/src/modules/progress/entities/progress.entity.ts
+deleted file mode 100644
+index cfad4e0..0000000
+--- a/backend/src/modules/progress/entities/progress.entity.ts
++++ /dev/null
+@@ -1,41 +0,0 @@
+-import {
+-  Entity,
+-  PrimaryGeneratedColumn,
+-  Column,
+-  CreateDateColumn,
+-  ManyToOne,
+-  ForeignKey,
+-  Unique,
+-} from 'typeorm';
+-import { User } from '../../users/entities/user.entity';
+-import { Resource } from '../../resources/entities/resource.entity';
+-
+-@Entity('progress')
+-@Unique(['userId', 'resourceId'])
+-export class Progress {
+-  @PrimaryGeneratedColumn('uuid')
+-  id: string;
+-
+-  @ForeignKey(() => User)
+-  @Column()
+-  userId: string;
+-
+-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+-  user: User;
+-
+-  @ForeignKey(() => Resource)
+-  @Column()
+-  resourceId: string;
+-
+-  @ManyToOne(() => Resource, { onDelete: 'CASCADE' })
+-  resource: Resource;
+-
+-  @Column({ default: false })
+-  completed: boolean;
+-
+-  @Column({ type: 'timestamp', nullable: true })
+-  completedAt: Date;
+-
+-  @CreateDateColumn()
+-  createdAt: Date;
+-}
+diff --git a/backend/src/modules/progress/progress.module.ts b/backend/src/modules/progress/progress.module.ts
+deleted file mode 100644
+index 35783d6..0000000
+--- a/backend/src/modules/progress/progress.module.ts
++++ /dev/null
+@@ -1,10 +0,0 @@
+-import { Module } from '@nestjs/common';
+-import { TypeOrmModule } from '@nestjs/typeorm';
+-import { Progress } from './entities/progress.entity';
+-
+-@Module({
+-  imports: [TypeOrmModule.forFeature([Progress])],
+-  providers: [],
+-  controllers: [],
+-})
+-export class ProgressModule {}
+diff --git a/backend/src/modules/resources/entities/resource.entity.ts b/backend/src/modules/resources/entities/resource.entity.ts
+deleted file mode 100644
+index 5e9bc43..0000000
+--- a/backend/src/modules/resources/entities/resource.entity.ts
++++ /dev/null
+@@ -1,60 +0,0 @@
+-import {
+-  Entity,
+-  PrimaryGeneratedColumn,
+-  Column,
+-  CreateDateColumn,
+-  UpdateDateColumn,
+-  ManyToOne,
+-  ForeignKey,
+-} from 'typeorm';
+-import { Module as CourseModule } from '../../courses/entities/module.entity';
+-
+-export enum ResourceType {
+-  LECTURE = 'lecture',
+-  VIDEO = 'video',
+-  EXERCISE = 'exercise',
+-  ASSIGNMENT = 'assignment',
+-  EXAM = 'exam',
+-}
+-
+-@Entity('resources')
+-export class Resource {
+-  @PrimaryGeneratedColumn('uuid')
+-  id: string;
+-
+-  @ForeignKey(() => CourseModule)
+-  @Column()
+-  moduleId: string;
+-
+-  @ManyToOne(() => CourseModule, (module) => module.resources, {
+-    onDelete: 'CASCADE',
+-  })
+-  module: CourseModule;
+-
+-  @Column()
+-  title: string;
+-
+-  @Column({
+-    type: 'enum',
+-    enum: ResourceType,
+-  })
+-  type: ResourceType;
+-
+-  @Column({ type: 'text', nullable: true })
+-  content: string;
+-
+-  @Column({ nullable: true })
+-  url: string;
+-
+-  @Column({ nullable: true })
+-  source: string; // Autor, libro, etc.
+-
+-  @Column({ default: 1 })
+-  order: number;
+-
+-  @CreateDateColumn()
+-  createdAt: Date;
+-
+-  @UpdateDateColumn()
+-  updatedAt: Date;
+-}
+diff --git a/backend/src/modules/resources/resources.module.ts b/backend/src/modules/resources/resources.module.ts
+deleted file mode 100644
+index 0ff1429..0000000
+--- a/backend/src/modules/resources/resources.module.ts
++++ /dev/null
+@@ -1,10 +0,0 @@
+-import { Module } from '@nestjs/common';
+-import { TypeOrmModule } from '@nestjs/typeorm';
+-import { Resource } from './entities/resource.entity';
+-
+-@Module({
+-  imports: [TypeOrmModule.forFeature([Resource])],
+-  providers: [],
+-  controllers: [],
+-})
+-export class ResourcesModule {}
+diff --git a/backend/src/modules/submissions/entities/submission.entity.ts b/backend/src/modules/submissions/entities/submission.entity.ts
+deleted file mode 100644
+index cfd9ed0..0000000
+--- a/backend/src/modules/submissions/entities/submission.entity.ts
++++ /dev/null
+@@ -1,59 +0,0 @@
+-import {
+-  Entity,
+-  PrimaryGeneratedColumn,
+-  Column,
+-  CreateDateColumn,
+-  UpdateDateColumn,
+-  ManyToOne,
+-  OneToOne,
+-  ForeignKey,
+-} from 'typeorm';
+-import { User } from '../../users/entities/user.entity';
+-import { Resource } from '../../resources/entities/resource.entity';
+-import { Grade } from '../../grades/entities/grade.entity';
+-
+-export enum SubmissionStatus {
+-  DRAFT = 'draft',
+-  SUBMITTED = 'submitted',
+-  GRADED = 'graded',
+-}
+-
+-@Entity('submissions')
+-export class Submission {
+-  @PrimaryGeneratedColumn('uuid')
+-  id: string;
+-
+-  @ForeignKey(() => User)
+-  @Column()
+-  userId: string;
+-
+-  @ManyToOne(() => User, (user) => user.submissions, { onDelete: 'CASCADE' })
+-  user: User;
+-
+-  @ForeignKey(() => Resource)
+-  @Column()
+-  resourceId: string;
+-
+-  @ManyToOne(() => Resource, { onDelete: 'CASCADE' })
+-  resource: Resource;
+-
+-  @Column({ type: 'text' })
+-  content: string;
+-
+-  @Column({
+-    type: 'enum',
+-    enum: SubmissionStatus,
+-    default: SubmissionStatus.DRAFT,
+-  })
+-  status: SubmissionStatus;
+-
+-  @CreateDateColumn()
+-  submittedAt: Date;
+-
+-  @UpdateDateColumn()
+-  updatedAt: Date;
+-
+-  // Relations
+-  @OneToOne(() => Grade, (grade) => grade.submission, { nullable: true })
+-  grade: Grade;
+-}
+diff --git a/backend/src/modules/submissions/submissions.module.ts b/backend/src/modules/submissions/submissions.module.ts
+deleted file mode 100644
+index 5d60577..0000000
+--- a/backend/src/modules/submissions/submissions.module.ts
++++ /dev/null
+@@ -1,10 +0,0 @@
+-import { Module } from '@nestjs/common';
+-import { TypeOrmModule } from '@nestjs/typeorm';
+-import { Submission } from './entities/submission.entity';
+-
+-@Module({
+-  imports: [TypeOrmModule.forFeature([Submission])],
+-  providers: [],
+-  controllers: [],
+-})
+-export class SubmissionsModule {}
+diff --git a/backend/src/modules/users/entities/user.entity.ts b/backend/src/modules/users/entities/user.entity.ts
+deleted file mode 100644
+index 57b46ef..0000000
+--- a/backend/src/modules/users/entities/user.entity.ts
++++ /dev/null
+@@ -1,55 +0,0 @@
+-import {
+-  Entity,
+-  PrimaryGeneratedColumn,
+-  Column,
+-  CreateDateColumn,
+-  UpdateDateColumn,
+-  OneToMany,
+-} from 'typeorm';
+-import { Course } from '../../courses/entities/course.entity';
+-import { Enrollment } from '../../courses/entities/enrollment.entity';
+-import { Submission } from '../../submissions/entities/submission.entity';
+-import { Grade } from '../../grades/entities/grade.entity';
+-
+-export enum UserRole {
+-  STUDENT = 'student',
+-  INSTRUCTOR = 'instructor',
+-  ADMIN = 'admin',
+-}
+-
+-@Entity('users')
+-export class User {
+-  @PrimaryGeneratedColumn('uuid')
+-  id: string;
+-
+-  @Column({ unique: true })
+-  email: string;
+-
+-  @Column()
+-  name: string;
+-
+-  @Column()
+-  passwordHash: string;
+-
+-  @Column({ type: 'enum', enum: UserRole, default: UserRole.STUDENT })
+-  role: UserRole;
+-
+-  @CreateDateColumn()
+-  createdAt: Date;
+-
+-  @UpdateDateColumn()
+-  updatedAt: Date;
+-
+-  // Relations
+-  @OneToMany(() => Course, (course) => course.instructor)
+-  coursesCreated: Course[];
+-
+-  @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
+-  enrollments: Enrollment[];
+-
+-  @OneToMany(() => Submission, (submission) => submission.user)
+-  submissions: Submission[];
+-
+-  @OneToMany(() => Grade, (grade) => grade.gradedBy)
+-  gradesGiven: Grade[];
+-}
+diff --git a/backend/src/modules/users/users.module.ts b/backend/src/modules/users/users.module.ts
+deleted file mode 100644
+index f8cc930..0000000
+--- a/backend/src/modules/users/users.module.ts
++++ /dev/null
+@@ -1,11 +0,0 @@
+-import { Module } from '@nestjs/common';
+-import { TypeOrmModule } from '@nestjs/typeorm';
+-import { User } from './entities/user.entity';
+-import { UsersService } from './users.service';
+-
+-@Module({
+-  imports: [TypeOrmModule.forFeature([User])],
+-  providers: [UsersService],
+-  exports: [UsersService],
+-})
+-export class UsersModule {}
+diff --git a/backend/src/modules/users/users.service.ts b/backend/src/modules/users/users.service.ts
+deleted file mode 100644
+index 4ffd71e..0000000
+--- a/backend/src/modules/users/users.service.ts
++++ /dev/null
+@@ -1,53 +0,0 @@
+-import { Injectable, NotFoundException } from '@nestjs/common';
+-import { InjectRepository } from '@nestjs/typeorm';
+-import { Repository } from 'typeorm';
+-import { User } from './entities/user.entity';
+-
+-@Injectable()
+-export class UsersService {
+-  constructor(
+-    @InjectRepository(User)
+-    private usersRepository: Repository<User>,
+-  ) {}
+-
+-  async create(userData: Partial<User>): Promise<User> {
+-    const user = this.usersRepository.create(userData);
+-    return this.usersRepository.save(user);
+-  }
+-
+-  async findById(id: string): Promise<User> {
+-    const user = await this.usersRepository.findOne({ where: { id } });
+-    if (!user) {
+-      throw new NotFoundException('Usuario no encontrado');
+-    }
+-    return user;
+-  }
+-
+-  async findByEmail(email: string): Promise<User | null> {
+-    return this.usersRepository.findOne({ where: { email } });
+-  }
+-
+-  async update(id: string, userData: Partial<User>): Promise<User> {
+-    await this.usersRepository.update(id, userData);
+-    return this.findById(id);
+-  }
+-
+-  async delete(id: string): Promise<void> {
+-    const result = await this.usersRepository.delete(id);
+-    if (result.affected === 0) {
+-      throw new NotFoundException('Usuario no encontrado');
+-    }
+-  }
+-
+-  async findAll(skip = 0, take = 10): Promise<[User[], number]> {
+-    return this.usersRepository.findAndCount({
+-      skip,
+-      take,
+-      order: { createdAt: 'DESC' },
+-    });
+-  }
+-
+-  async findByRole(role: string): Promise<User[]> {
+-    return this.usersRepository.find({ where: { role: role as any } });
+-  }
+-}
+-- 
+2.43.0
+
