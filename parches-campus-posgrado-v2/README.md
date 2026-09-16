@@ -11,6 +11,7 @@ Base sobre la que se generaron: `main` en `860cd00`, salvo `dashboard/` y
 
 | Lote | Estado | Base |
 |---|---|---|
+| `actividad-leccion/` | **vigente** | `bde8fb7` |
 | `admin-usuarios/` | **vigente** | `6f20fc7` |
 | `llm-nvidia/` | **vigente** | `632bf7a` |
 | `gate-prerrequisitos/` | **vigente** | `632bf7a` |
@@ -41,8 +42,25 @@ conservan solo como registro de la investigación. Producción ya arranca: los
 endpoints `/api/tfm`, `/api/exams/:id/status` y `/api/me/review-plan` responden 401
 (existen y piden sesión) en lugar de 404.
 
-**Sigue vigente:** `plantillas/` (no está en `main`; los cuatro
+**Sigue vigente:** `actividad-leccion/` (textarea de Actividad que arrastraba
+el texto de la lección anterior), `plantillas/` (no está en `main`; los cuatro
 `notebookTemplateUrl` siguen a `null`) y `dashboard/` (generado sobre `632bf7a`).
+
+## `actividad-leccion/` — el textarea de Actividad no arrastra texto entre lecciones
+
+Un parche sobre `bde8fb7`. Al pasar del Carril A al Carril B (u otra lección),
+el apartado Actividad (20 min) seguía mostrando el texto de la lección anterior
+con «✓ Guardada». El backend ya guarda por `resource_id`; el fallo era que
+`LessonFormative` reutilizaba el estado local y solo lo rellenaba si la lección
+nueva ya tenía entrega. Ver `actividad-leccion/APLICAR.md`.
+
+Independiente del resto de lotes: solo toca dos ficheros del frontend.
+
+```bash
+git checkout -b cursor/fix-actividad-leccion-21ab main
+git am /ruta/a/actividad-leccion/*.patch
+git push -u origin cursor/fix-actividad-leccion-21ab
+```
 
 ## `deploy/` — arreglo crítico de despliegue
 
@@ -208,11 +226,12 @@ git push -u origin cursor/admin-usuarios-matricula-21ab
 
 ## Orden recomendado
 
-Con `main` en `6f20fc7`, los lotes que quedan por aplicar son `llm-nvidia/`,
-`plantillas/`, `dashboard/`, `gate-prerrequisitos/` y `admin-usuarios/`:
+Con `main` en `bde8fb7`, los lotes que quedan por aplicar son `actividad-leccion/`,
+`llm-nvidia/`, `plantillas/`, `dashboard/`, `gate-prerrequisitos/` y
+`admin-usuarios/`:
 
-0. **`llm-nvidia/`** — independiente; el más pequeño y el único que no toca el
-   frontend salvo un literal de texto. Puede ir en cualquier posición.
+0. **`actividad-leccion/`** — independiente; dos ficheros del frontend. Cierra
+   el arrastre de texto de Actividad entre lecciones.
 1. **`plantillas/`** — independiente de todo lo demás; no toca el frontend.
 2. **`dashboard/`** — antes que el gate, porque el conflicto se resuelve mejor en
    ese sentido (`git am -3` deja una sola pieza que resolver).
