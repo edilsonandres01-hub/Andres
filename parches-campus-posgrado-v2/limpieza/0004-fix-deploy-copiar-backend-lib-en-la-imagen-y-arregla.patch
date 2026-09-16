@@ -1,0 +1,138 @@
+From 01412757b056892d2f23200e54cead2462be07a9 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 12:33:40 +0000
+Subject: [PATCH 4/7] fix(deploy): copiar backend/lib en la imagen y arreglar
+ los scripts de arranque
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Dos fallos reales que salieron al auditar las referencias del código muerto:
+
+1. El Dockerfile no copiaba backend/lib. simple-server.js hace
+   require('./lib/llm') en su línea 8, así que la imagen que construye
+   Railway se cae al arrancar. Reproducido replicando el contexto exacto
+   del COPY (package.json + simple-server.js + db/ + scripts/):
+
+     Error: Cannot find module './lib/llm'
+     at Object.<anonymous> (/app/simple-server.js:8:13)
+
+   Con 'COPY backend/lib ./lib' el mismo montaje arranca y solo falla al
+   conectar con PostgreSQL, que es lo esperado sin base de datos.
+   backend/Dockerfile tenía el mismo olvido y se corrige igual.
+
+2. setup.ps1 y start-servers.ps1 lanzaban 'npm run start:dev', un script
+   que solo existía en el package.json del scaffold NestJS. El
+   backend/package.json real solo define start, migrate, seed, extract y
+   reset, así que ambos scripts fallaban con 'Missing script: start:dev'.
+   Ahora usan 'npm start' y setup.ps1 aplica antes 'npm run reset'
+   (migraciones + seed), sin lo cual el campus arranca sin catálogo.
+
+Además, el .env de backend que genera setup.ps1 ya no escribe JWT_SECRET
+ni JWT_EXPIRATION, y el de frontend ya no escribe VITE_JWT_TOKEN_KEY ni
+VITE_JWT_REFRESH_KEY: ninguna de las cuatro se lee en el código (el
+frontend solo declara VITE_API_URL en src/vite-env.d.ts).
+frontend/.env.example se reduce a esa única variable por lo mismo.
+---
+ Dockerfile            |  1 +
+ backend/Dockerfile    |  1 +
+ frontend/.env.example | 11 ++---------
+ setup.ps1             | 11 ++++-------
+ start-servers.ps1     |  2 +-
+ 5 files changed, 9 insertions(+), 17 deletions(-)
+
+diff --git a/Dockerfile b/Dockerfile
+index 61386ae..8b058f0 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -7,6 +7,7 @@ RUN npm install --omit=dev --no-audit --no-fund
+ 
+ # Código + migraciones + datos de seed
+ COPY backend/simple-server.js ./simple-server.js
++COPY backend/lib ./lib
+ COPY backend/db ./db
+ COPY backend/scripts ./scripts
+ 
+diff --git a/backend/Dockerfile b/backend/Dockerfile
+index f88bcb2..9ee2328 100644
+--- a/backend/Dockerfile
++++ b/backend/Dockerfile
+@@ -5,6 +5,7 @@ COPY package.json package-lock.json* ./
+ RUN npm install --omit=dev --no-audit --no-fund
+ 
+ COPY simple-server.js ./simple-server.js
++COPY lib ./lib
+ COPY db ./db
+ COPY scripts ./scripts
+ 
+diff --git a/frontend/.env.example b/frontend/.env.example
+index 92c0955..47c1030 100644
+--- a/frontend/.env.example
++++ b/frontend/.env.example
+@@ -1,10 +1,3 @@
+-# API Configuration
++# Única variable que el frontend lee (ver src/vite-env.d.ts y src/services/api.ts).
++# En producción apunta al backend de Railway, incluyendo el sufijo /api.
+ VITE_API_URL=http://localhost:3001/api
+-
+-# App Configuration
+-VITE_APP_NAME=Campus Posgrado
+-VITE_APP_VERSION=1.0.0
+-
+-# Auth
+-VITE_JWT_TOKEN_KEY=auth_token
+-VITE_JWT_REFRESH_KEY=refresh_token
+diff --git a/setup.ps1 b/setup.ps1
+index 9c55228..37ea68d 100644
+--- a/setup.ps1
++++ b/setup.ps1
+@@ -32,10 +32,7 @@ DB_PORT=5432
+ DB_USERNAME=postgres
+ DB_PASSWORD=postgres
+ DB_DATABASE=campus_posgrado
+-JWT_SECRET=dev-secret-key-change-in-production
+-JWT_EXPIRATION=3600
+ PORT=3001
+-FRONTEND_URL=http://localhost:5173
+ NODE_ENV=development
+ "@ | Out-File -FilePath $backendEnv -Encoding UTF8
+     Write-Host "   ✅ .env backend creado"
+@@ -61,8 +58,6 @@ if (-not (Test-Path $frontendEnv)) {
+     @"
+ VITE_API_URL=http://localhost:3001/api
+ VITE_APP_NAME=Campus Posgrado
+-VITE_JWT_TOKEN_KEY=auth_token
+-VITE_JWT_REFRESH_KEY=refresh_token
+ "@ | Out-File -FilePath $frontendEnv -Encoding UTF8
+     Write-Host "   ✅ .env frontend creado"
+ } else {
+@@ -82,9 +77,11 @@ Write-Host "4️⃣ Levantando servidores..." -ForegroundColor Yellow
+ Write-Host ""
+ 
+ # Backend en background
+-Write-Host "   - Iniciando Backend (puerto 3001)..." -ForegroundColor Cyan
++Write-Host "   - Aplicando migraciones y sembrando el catálogo..." -ForegroundColor Cyan
+ Push-Location "$projectRoot\backend"
+-Start-Process -NoNewWindow -FilePath "npm" -ArgumentList "run", "start:dev" -PassThru | Out-Null
++npm run reset | Out-Null
++Write-Host "   - Iniciando Backend (puerto 3001)..." -ForegroundColor Cyan
++Start-Process -NoNewWindow -FilePath "npm" -ArgumentList "start" -PassThru | Out-Null
+ Pop-Location
+ Start-Sleep -Seconds 3
+ Write-Host "   ✅ Backend iniciado" -ForegroundColor Green
+diff --git a/start-servers.ps1 b/start-servers.ps1
+index 8f32e79..f9b791e 100644
+--- a/start-servers.ps1
++++ b/start-servers.ps1
+@@ -6,7 +6,7 @@ Write-Host "Starting Campus Posgrado..." -ForegroundColor Cyan
+ 
+ # Backend
+ Write-Host "Starting Backend (port 3001)..." -ForegroundColor Yellow
+-Start-Process -NoNewWindow -WorkingDirectory "$projectRoot\backend" -FilePath "npm" -ArgumentList "run", "start:dev"
++Start-Process -NoNewWindow -WorkingDirectory "$projectRoot\backend" -FilePath "npm" -ArgumentList "start"
+ Start-Sleep -Seconds 2
+ 
+ # Frontend
+-- 
+2.43.0
+

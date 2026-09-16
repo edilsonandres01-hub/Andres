@@ -1,0 +1,738 @@
+From 9635f73a6caf7e74d03347e2f6ddd3c96d155580 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 13:15:12 +0000
+Subject: [PATCH 4/5] =?UTF-8?q?plantillas:=20memoria=20del=20TFM=20(estruc?=
+ =?UTF-8?q?tura,=20extensi=C3=B3n,=20r=C3=BAbrica=20y=20entregas=20por=20h?=
+ =?UTF-8?q?ito)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ backend/db/seed-data/tfm-memoria.md | 714 ++++++++++++++++++++++++++++
+ 1 file changed, 714 insertions(+)
+ create mode 100644 backend/db/seed-data/tfm-memoria.md
+
+diff --git a/backend/db/seed-data/tfm-memoria.md b/backend/db/seed-data/tfm-memoria.md
+new file mode 100644
+index 0000000..014d316
+--- /dev/null
++++ b/backend/db/seed-data/tfm-memoria.md
+@@ -0,0 +1,714 @@
++# Plantilla de la memoria del Trabajo Fin de Máster
++
++**Máster IEP en Inteligencia Artificial y Tecnologías Disruptivas para la Innovación en la Industria 4.0**
++Proyecto Fin de Programa (TFM) · Documento de referencia para los cuatro hitos
++
++---
++
++## Cómo se usa este documento
++
++Esta plantilla es a la vez el **índice obligatorio** de tu memoria, la **guía de extensión** de cada
++apartado y el **mapa de la rúbrica**: junto a cada sección aparece el criterio con el que se califica
++y los puntos que vale. No hay nada que se evalúe y que no esté aquí, ni hay nada aquí que no se
++evalúe.
++
++Léela entera antes de empezar el Hito 1. La razón es concreta: la memoria final no se escribe al
++final. Los hitos 1, 2 y 3 **son** los capítulos 1, 2, 3 y 5 de la memoria en un estado intermedio, y
++el trabajo del Hito 4 consiste en cerrarlos con los resultados y añadir los capítulos 4, 6, 7 y 8.
++Quien entiende esto desde el principio escribe la memoria una vez; quien no, la escribe dos.
++
++El TFM se desarrolla en **8 semanas** con un director asignado. La entrega de cada hito se hace desde
++la plataforma, en *Proyecto Fin de Programa (TFM) → Entrega del TFM*, y **cada hito debe estar
++aprobado por el director para poder entregar el siguiente**. Ese bloqueo no es burocrático: existe
++para que nadie construya seis semanas sobre una pregunta de investigación mal formulada.
++
++### Las tres líneas de trabajo
++
++El TFM se elige entre tres líneas, definidas para que el trabajo tenga datos accesibles, un
++comparable claro y una evaluación cuantitativa posible en ocho semanas:
++
++| Línea | Descripción | Dónde se apoya en el programa |
++|---|---|---|
++| **(a) Detección de anomalías para el SGSI** | Detección de anomalías integrada con los controles de ISO/IEC 27001 y evaluada bajo el sistema de gestión de ISO/IEC 42001 | Asignaturas V, VI y XI |
++| **(b) Agente multimodal de pruebas** | Agente de pruebas automatizadas con suite de evaluación contra una línea base | Asignaturas VII y IX |
++| **(c) Asistente RAG de trazabilidad documental** | Asistente sobre documentación propia, con controles de datos personales y análisis de coste | Asignaturas IX y X |
++
++Puedes proponer una línea distinta si tu contexto profesional lo justifica, pero necesitas la
++aprobación explícita del director en el Hito 1 y deberás cumplir las mismas exigencias de evaluación
++cuantitativa y de coste. La experiencia dice que un problema real de tu organización produce mejores
++trabajos que uno elegido por lo interesante que suena, siempre que tengas acceso garantizado a los
++datos.
++
++### Los cuatro hitos y su peso
++
++| Hito | Entrega | Peso | Rúbrica | Vídeo |
++|---|---|---:|---|---|
++| **1 — Propuesta** | Documento de 2–4 páginas | 10 % | `rubric-tfm-propuesta` | No |
++| **2 — Estado del arte** | Revisión de 4–8 fuentes en matriz | 20 % | `rubric-tfm-estado-arte` | No |
++| **3 — Revisión intermedia** | Avance funcional + metodología de evaluación + riesgos | 30 % | `rubric-tfm-revision-intermedia` | No |
++| **4 — Memoria final y defensa** | Memoria de 40–60 páginas + repositorio + defensa | 40 % | `rubric-tfm-final` | Sí, 10 min |
++
++Cada hito se califica sobre 100 y se aprueba con **70**. La nota del TFM es la media ponderada de los
++cuatro. Un hito devuelto con *cambios solicitados* se puede reenviar; el director indica qué falta.
++
++---
++
++## Estructura de la memoria y presupuesto de páginas
++
++La memoria final tiene **entre 40 y 60 páginas** de cuerpo, sin contar preliminares, bibliografía ni
++anexos. El presupuesto de abajo es orientativo en cada línea y **vinculante en el total**. Si un
++capítulo se te va de extensión, no amplíes el total: recorta en otro y justifica el desequilibrio en
++la introducción.
++
++| Capítulo | Extensión | Se entrega por primera vez en |
++|---|---|---|
++| Preliminares (portada, resumen, índice) | — | Hito 4 |
++| 1. Introducción y planteamiento del problema | 4–6 pp. | Hito 1 |
++| 2. Estado del arte | 7–10 pp. | Hito 2 |
++| 3. Método | 6–9 pp. | Hito 3 |
++| 4. Implementación | 6–8 pp. | Hito 4 |
++| 5. Evaluación y resultados | 8–12 pp. | Hito 3 (metodología) / Hito 4 (resultados) |
++| 6. Riesgos, ética y cumplimiento | 4–6 pp. | Hito 4 |
++| 7. Coste de operación a 12 meses | 3–5 pp. | Hito 4 |
++| 8. Conclusiones y trabajo futuro | 2–4 pp. | Hito 4 |
++| Bibliografía (APA 7) | — | Hito 2 en adelante |
++| Anexos | — | Hito 4 |
++| **Total del cuerpo** | **40–60 pp.** | |
++
++Una advertencia sobre el reparto que se repite curso tras curso: los capítulos 5 y 7 —evaluación y
++coste— son los que más pesan en la rúbrica final (30 y 25 puntos sobre 100) y son sistemáticamente
++los más cortos de las memorias que suspenden. Si tu capítulo de implementación ocupa quince páginas y
++el de evaluación cuatro, tienes un problema de calificación **antes** de que nadie lea el contenido.
++
++---
++
++## Preliminares
++
++### Portada
++
++Sin numerar. Debe contener, en este orden:
++
++- Institución y denominación completa del programa.
++- **Título del trabajo.** Descriptivo, no publicitario. Debe permitir a alguien de tu campo saber
++  qué hiciste sin abrir el documento. *«Detección de anomalías en registros de autenticación mediante
++  autocodificadores, integrada con los controles A.8 de ISO/IEC 27001»* informa; *«IA para la
++  ciberseguridad del futuro»* no.
++- Nombre y apellidos del autor.
++- Nombre del director del TFM.
++- Línea de trabajo (a, b, c o propia).
++- Lugar y fecha.
++
++### Resumen y palabras clave
++
++Una página. **Resumen en español (250–300 palabras)** y **abstract en inglés (250–300 palabras)**,
++seguidos de 4–6 palabras clave en cada idioma.
++
++Un resumen de trabajo técnico contiene cinco elementos y ninguno más: el problema y su magnitud, la
++pregunta, el método, **el resultado principal con su número**, y la conclusión. La prueba de que está
++bien escrito: si al leerlo no aparece ninguna cifra, no es un resumen, es una presentación de
++intenciones.
++
++### Índice
++
++Índice de contenidos hasta el tercer nivel de encabezado, más índice de figuras y de tablas si hay
++más de cinco de cada.
++
++### Glosario y acrónimos
++
++Opcional pero recomendado si el trabajo cruza dos dominios —por ejemplo, aprendizaje automático y
++normativa de seguridad—, porque tu tribunal domina uno de los dos y no necesariamente el otro.
++
++---
++
++## 1. Introducción y planteamiento del problema
++
++**Extensión: 4–6 páginas.** Se entrega por primera vez en el **Hito 1** (versión de 2–4 páginas).
++
++**Rúbrica del Hito 1 (10 % de la nota del TFM):**
++
++| Criterio | Puntos | Qué se busca |
++|---|---:|---|
++| Problema real dimensionado y pregunta concreta | 35 | Problema actual con una cifra que lo dimensiona; pregunta respondible en 8 semanas |
++| Alcance (qué sí / qué no) y viabilidad | 35 | Delimitación explícita y plan de 8 semanas con hitos y holguras |
++| Datos: qué se necesita y disponibilidad | 30 | Datos identificados, cantidad aproximada, disponibilidad confirmada y plan B |
++
++### 1.1 Contexto y motivación
++
++Dónde ocurre el problema y por qué importa **ahora**. Sitúa al lector en el sector, la organización o
++el dominio técnico en el que trabajas.
++
++### 1.2 El problema, con una cifra que lo dimensiona
++
++Este apartado es el que más veces se resuelve mal, y siempre de la misma forma: describiendo una
++dificultad genérica en lugar de un problema medido. La diferencia:
++
++> **Insuficiente:** «Las organizaciones tienen dificultades para detectar amenazas de seguridad de
++> forma temprana.»
++>
++> **Competente:** «En 2025 el equipo de seguridad de la organización revisó 4 200 alertas, de las
++> cuales 3 900 (93 %) resultaron falsos positivos, consumiendo unas 620 horas de analista. Dos
++> incidentes reales se detectaron con más de 14 días de retraso.»
++
++La cifra no necesita ser exacta ni proceder de tu organización. Puede venir de un informe sectorial
++citado, de una medición propia o de una estimación con supuestos declarados. Lo que no puede es
++faltar, porque sin magnitud no hay forma de saber si la solución merece la pena ni contra qué se
++compara la mejora.
++
++### 1.3 Pregunta de investigación y objetivos
++
++**Una** pregunta principal, formulada de manera que pueda responderse con un sí, un no o un número al
++terminar las ocho semanas. Debajo, entre tres y cinco objetivos específicos, cada uno verificable.
++
++Prueba de calidad de la pregunta: escribe al lado la frase «al final del TFM sabré que la he
++respondido porque habré medido ___». Si no puedes completarla, la pregunta no está lista.
++
++### 1.4 Alcance: qué sí y qué no
++
++Dos listas explícitas. La segunda es la que se olvida y la que más protege: delimitar lo que
++deliberadamente queda fuera evita que el tribunal lo interprete como un olvido, y evita que tú
++intentes hacerlo en la semana siete.
++
++### 1.5 Datos: qué necesitas y si lo tienes
++
++Para cada fuente de datos: qué es, volumen aproximado, periodo cubierto, cómo se obtiene, **si ya
++tienes acceso confirmado o no**, y qué restricciones legales o contractuales pesan sobre ella.
++
++Y el apartado que distingue una propuesta seria: **el plan B**. Si los datos resultan insuficientes,
++llegan tarde o no se pueden publicar, ¿qué haces? Un conjunto público equivalente, una simulación
++calibrada con estadísticos reales, un alcance reducido. Los proyectos de ocho semanas que fracasan lo
++hacen casi siempre por datos, y casi siempre en la semana tres.
++
++### 1.6 Plan de trabajo de 8 semanas
++
++Tabla de semana a semana con el entregable de cada una y la fecha de los cuatro hitos. Incluye
++**holgura explícita** —al menos una semana sin trabajo planificado— y una columna de riesgos con lo
++que recortarías si el calendario aprieta. Un plan sin holgura no es optimista, es incompleto.
++
++---
++
++## 2. Estado del arte
++
++**Extensión: 7–10 páginas.** Se entrega por primera vez en el **Hito 2**.
++
++**Rúbrica del Hito 2 (20 % de la nota del TFM):**
++
++| Criterio | Puntos | Qué se busca |
++|---|---:|---|
++| Cobertura y relevancia de las fuentes | 30 | 4–8 fuentes realmente relevantes, incluyendo trabajo reciente |
++| Síntesis en matriz (método, métricas, limitación) | 35 | Formato comparable entre fuentes, con patrones transversales |
++| El vacío que cubre el TFM | 35 | Vacío concreto derivado del análisis y justificación del enfoque propio |
++
++### 2.1 Criterio de búsqueda y selección
++
++Declara cómo buscaste: fuentes consultadas (Scopus, IEEE Xplore, ACM DL, arXiv, Google Scholar,
++informes sectoriales), cadenas de búsqueda, ventana temporal y criterios de inclusión y exclusión.
++Este apartado hace tu revisión **reproducible**, que es lo que la separa de una lista de lecturas.
++
++### 2.2 Matriz comparativa
++
++El artefacto central del capítulo. Entre 4 y 8 filas; menos es cobertura insuficiente y más deja de
++ser una síntesis. Cada fuente puede ser un artículo científico, un informe técnico o un sistema
++comercial comparable.
++
++| Fuente (APA) | Problema que resuelve | Método | Datos | Métricas reportadas | Limitación | Relación con mi TFM |
++|---|---|---|---|---|---|---|
++| Autor, A. (2024) | | | | | | |
++| Autor, B. (2023) | | | | | | |
++
++Dos columnas concentran los puntos y suelen quedar vacías:
++
++- **Métricas reportadas.** No «buenos resultados», sino la métrica y su valor: *AUC-PR 0,71 sobre
++  el conjunto X*. Si una fuente no reporta métricas comparables, escríbelo: es un hallazgo sobre el
++  estado del campo, no un hueco en tu tabla.
++- **Limitación.** Toda fuente la tiene. Si no la encuentras, no has leído lo suficiente o estás
++  leyendo material promocional.
++
++### 2.3 Patrones transversales
++
++Qué se repite al mirar la matriz completa: métodos que dominan, métricas que todos usan (y las que
++nadie usa), conjuntos de datos compartidos, supuestos comunes. Este apartado es lo que distingue una
++síntesis de una enumeración, y es donde se gana el nivel *Ejemplar* del criterio de matriz.
++
++### 2.4 El vacío y la justificación de tu enfoque
++
++Cierra el capítulo respondiendo dos preguntas de forma explícita:
++
++1. **¿Qué vacío concreto cubre tu trabajo?** No vale «hacerlo mejor». Vale: nadie ha evaluado este
++   método sobre datos con esta característica; los sistemas comparables no reportan coste de
++   operación; ninguna fuente aborda la integración con este marco normativo.
++2. **¿Por qué tu enfoque frente a cada alternativa de la matriz?** Una frase por alternativa
++   descartada, con la razón.
++
++---
++
++## 3. Método
++
++**Extensión: 6–9 páginas.** Se entrega por primera vez en el **Hito 3**.
++
++**Rúbrica del Hito 3 (30 % de la nota del TFM):**
++
++| Criterio | Puntos | Qué se busca |
++|---|---:|---|
++| Avance funcional con un primer resultado medible | 35 | Sistema a medio construir que ya produce un resultado reproducible |
++| Metodología de evaluación definida | 35 | Conjunto de prueba honesto, línea base y métricas, definidos **antes** del resultado final |
++| Registro de riesgos y cambios respecto al plan | 30 | Cambios con causa e impacto, riesgos activos y su mitigación |
++
++El Hito 3 es el que más pesa de los tres intermedios, y no por casualidad: es el punto en el que
++todavía se puede corregir el rumbo. Un director que detecta aquí una metodología de evaluación
++contaminada te ahorra suspender en el Hito 4.
++
++### 3.1 Formulación del problema
++
++Traducción del problema del capítulo 1 a su forma técnica: qué se predice o se genera, cuáles son las
++entradas y las salidas, qué paradigma de aprendizaje y por qué ese y no otro.
++
++### 3.2 Datos: obtención, preparación y particiones
++
++Origen, volumen final, tratamiento de valores ausentes y atípicos, variables construidas, y
++—críticamente— **cómo se particionan** los datos y por qué. Si hay estructura temporal, la partición
++es temporal; si hay entidades repetidas, la partición es por grupo; si hay ambas, ambas.
++
++**Fuga de datos.** Apartado obligatorio. Identifica al menos un punto concreto donde podría haberse
++producido, explica cómo lo evitaste y, si es posible, **cuantifica cuánto inflaba la métrica** el
++camino contaminado. Es una de las cosas que más rápido distingue un trabajo de posgrado, y las
++prácticas computacionales de las Asignaturas VI y IX te dan el procedimiento hecho.
++
++### 3.3 Método propuesto
++
++Descripción con detalle suficiente para reproducirlo: arquitectura, algoritmos, hiperparámetros y
++cómo se eligieron, semillas, entorno de ejecución. La prueba: alguien de tu nivel, con tu repositorio
++y este capítulo, obtiene tus resultados. Lo que no quepa aquí sin romper la lectura va a un anexo,
++pero tiene que estar.
++
++### 3.4 Metodología de evaluación
++
++Se define **antes** de ver resultados. Cuatro elementos:
++
++- **Línea base.** La regla o el sistema que se usa hoy, no «el azar». Si hoy nadie hace nada,
++  la línea base es la heurística más simple que un profesional propondría en cinco minutos.
++- **Métrica principal**, elegida y **justificada desde el coste relativo de cada tipo de error** en
++  tu problema. Una métrica por defecto sin justificar es el error más frecuente y el más caro.
++- **Conjunto de prueba honesto**: cómo se construyó, por qué es representativo y cómo se garantiza
++  que no se usó para decidir nada.
++- **Tratamiento de la incertidumbre**: repeticiones, intervalos de confianza o pruebas estadísticas.
++  Una diferencia sin dispersión no es un resultado, es una observación.
++
++### 3.5 Registro de riesgos y cambios respecto al plan
++
++Tabla viva que se actualiza en cada hito.
++
++| Riesgo o cambio | Causa | Impacto | Mitigación / decisión tomada | Estado |
++|---|---|---|---|---|
++
++Reconocer que el plan cambió y explicar por qué **suma** puntos. Un TFM que sigue su plan inicial al
++pie de la letra durante ocho semanas casi siempre significa que no se aprendió nada por el camino.
++
++---
++
++## 4. Implementación
++
++**Extensión: 6–8 páginas.** Se entrega en el **Hito 4**.
++
++Contribuye al criterio *Memoria completa y repositorio reproducible* (25 puntos) del Hito 4.
++
++### 4.1 Arquitectura del sistema
++
++Diagrama de componentes y flujo de datos, con un párrafo por componente. El diagrama debe poder
++leerse impreso en blanco y negro.
++
++### 4.2 Decisiones técnicas y sus alternativas
++
++Para cada decisión relevante: qué elegiste, qué alternativas descartaste y con qué criterio. Este
++apartado es el que se defiende en el vídeo, así que escríbelo pensando en la pregunta *«¿y por qué no
++hiciste X?»*.
++
++### 4.3 Repositorio
++
++Enlace al repositorio público, su estructura y las instrucciones de ejecución. Requisitos mínimos:
++
++- `README.md` con instalación, obtención de los datos y ejecución, **verificados en una máquina
++  limpia**. La comprobación honesta es pedirle a alguien que lo siga sin tu ayuda.
++- Dependencias declaradas con versiones (`requirements.txt`, `environment.yml` o equivalente).
++- Semillas fijadas y resultados reproducibles.
++- **Ninguna credencial ni dato personal en el repositorio, ni en su historial de commits.** Borrar un
++  fichero en un commit posterior no lo elimina del historial.
++- Licencia explícita.
++
++### 4.4 Limitaciones de la implementación
++
++Qué quedó fuera por tiempo o por recursos, y qué consecuencia tiene sobre los resultados del
++capítulo 5.
++
++---
++
++## 5. Evaluación y resultados
++
++**Extensión: 8–12 páginas.** La metodología se entrega en el Hito 3; los resultados, en el Hito 4.
++
++**Es el capítulo con más peso de toda la memoria: 30 puntos sobre 100 en la rúbrica del Hito 4**
++(criterio *Evaluación con números*), y también el criterio de mayor peso de la rúbrica de asignatura
++`rubric-master-tfm`.
++
++| Nivel | Descriptor |
++|---|---|
++| Insuficiente (0) | Solo demostración cualitativa |
++| En desarrollo (14) | Una métrica sin línea base ni conjunto de prueba claro |
++| Competente (23) | Métricas apropiadas, conjunto de prueba honesto y línea base |
++| Ejemplar (30) | Además, varianza o intervalo y análisis de errores por categoría |
++
++### 5.1 Protocolo experimental
++
++Resumen operativo de lo definido en 3.4, más el entorno de ejecución: máquina, versiones, tiempos.
++
++### 5.2 Resultados principales
++
++Tabla con la línea base y cada configuración evaluada, **con dispersión**. El formato mínimo
++aceptable de una celda no es `0,71`, es `0,71 [0,68–0,74]` o `0,71 ± 0,02`, con la nota de cómo se
++obtuvo el intervalo.
++
++| Sistema | Métrica principal | IC 95 % | Métrica secundaria | Coste computacional |
++|---|---|---|---|---|
++| Línea base | | | | |
++| Método propuesto | | | | |
++
++### 5.3 Análisis de errores
++
++Dónde falla el sistema, desglosado por categoría: por clase, por segmento de datos, por tramo del
++rango, por tipo de entrada. Es el paso del nivel *Competente* al *Ejemplar*, y es también lo que
++convierte la evaluación en una guía de trabajo futuro en lugar de un veredicto.
++
++Incluye **al menos un caso de fallo analizado en profundidad**: qué entró, qué salió, qué debería
++haber salido y en qué etapa del sistema se produjo el fallo. Diagnosticar la etapa antes de proponer
++la corrección es el hábito que la práctica de la Asignatura IX entrena.
++
++### 5.4 Estudio de ablación o de sensibilidad
++
++Qué componente de tu método aporta realmente la mejora. Si tu sistema tiene cuatro piezas y no sabes
++cuál hace el trabajo, no puedes defender el diseño. Basta con desactivar cada pieza y medir.
++
++### 5.5 Respuesta a la pregunta de investigación
++
++Un apartado corto y explícito que responde la pregunta del apartado 1.3, con el número que la
++sostiene. Si la respuesta es negativa —el método no mejora la línea base—, **dilo y explica por
++qué**: un resultado negativo bien medido y bien explicado aprueba con holgura; un resultado positivo
++mal medido, no.
++
++---
++
++## 6. Riesgos, ética y cumplimiento
++
++**Extensión: 4–6 páginas.** Se entrega en el **Hito 4**.
++
++Contribuye al criterio *Riesgos, ética y defensa* (20 puntos) de la rúbrica de asignatura.
++
++### 6.1 Riesgos del sistema en operación
++
++Riesgos **específicos de tu sistema**, no genéricos sobre la IA. Para cada uno: probabilidad,
++impacto, mitigación y riesgo residual aceptado.
++
++| Riesgo | Probabilidad | Impacto | Mitigación | Residual |
++|---|---|---|---|---|
++
++### 6.2 Sesgo, equidad y grupos afectados
++
++Quién se ve afectado por las decisiones del sistema y si el rendimiento es homogéneo entre subgrupos.
++Si tu problema no involucra personas, dilo explícitamente y justifícalo; el apartado no se omite, se
++responde.
++
++### 6.3 Protección de datos
++
++Base jurídica del tratamiento, minimización, anonimización o seudonimización aplicada, plazos de
++conservación y, si procede, la necesidad de una evaluación de impacto. Si trabajas con datos de tu
++organización, indica qué autorización tienes y qué se publicó y qué no.
++
++### 6.4 Encaje normativo
++
++Según tu línea de trabajo: controles de **ISO/IEC 27001** afectados, requisitos del sistema de
++gestión de **ISO/IEC 42001**, clasificación de riesgo bajo el **Reglamento europeo de IA** y
++obligaciones asociadas. Aquí se conectan las Asignaturas V y XI con tu proyecto, y es lo que hace que
++el trabajo sea de posgrado y no un ejercicio técnico.
++
++### 6.5 Supervisión humana y responsabilidad
++
++Quién revisa las decisiones del sistema, con qué frecuencia y con qué autoridad para revocarlas.
++Quién responde de un error. Cómo se registra la decisión para que sea auditable después.
++
++---
++
++## 7. Coste de operación a 12 meses
++
++**Extensión: 3–5 páginas.** Se entrega en el **Hito 4**.
++
++**25 puntos sobre 100** en la rúbrica del Hito 4 (criterio *Coste real a 12 meses*). Es, junto con la
++evaluación, el apartado que la mayoría de las memorias omite, y por eso es el que más rápido separa
++un trabajo de posgrado de una demostración.
++
++| Nivel | Descriptor |
++|---|---|
++| Insuficiente (0) | No aborda el coste |
++| En desarrollo (11) | Coste sin desglose |
++| Competente (19) | Coste desglosado a 12 meses con supuestos explícitos |
++| Ejemplar (25) | Además, la palanca principal y el margen de error de la estimación |
++
++### 7.1 Supuestos declarados
++
++Volumen de uso, horario de servicio, tamaño de los datos, crecimiento previsto. **Cada supuesto con
++su origen**: medido, estimado por analogía o asumido. Un coste sin supuestos declarados no se puede
++discutir, y lo que no se puede discutir no se puede defender.
++
++### 7.2 Desglose de partidas
++
++| Partida | Coste mensual | Coste a 12 meses | % del total | Supuesto |
++|---|---:|---:|---:|---|
++| Cómputo de inferencia | | | | |
++| Almacenamiento | | | | |
++| Observabilidad y registro | | | | |
++| Reentrenamiento | | | | |
++| Mantenimiento (horas · tarifa) | | | | |
++| Licencias / servicios de terceros | | | | |
++| **Total** | | | **100 %** | |
++
++Los precios se citan con **fecha de consulta y enlace a la tarifa**. Las tarifas cambian, y una cifra
++sin fecha caduca sin avisar.
++
++No omitas el **mantenimiento humano**: en la mayoría de los sistemas reales pesa más que la
++infraestructura, y una estimación que solo cuenta máquinas está sistemáticamente sesgada a la baja.
++
++### 7.3 La palanca principal
++
++Cuál es la partida dominante, qué cambio la reduciría a la mitad y **qué se sacrifica al hacerlo**.
++Toda palanca tiene contrapartida: el escalado a cero introduce arranque en frío y degrada la latencia
++de cola; un modelo más pequeño baja el coste y la métrica; muestrear los registros abarata la
++observabilidad y complica el diagnóstico de incidentes. Nombrar la contrapartida es lo que demuestra
++que entiendes la decisión.
++
++### 7.4 Margen de error y punto de equilibrio
++
++Rango razonable de tu estimación (por ejemplo, ±30 %) y de dónde viene esa incertidumbre. Y, si el
++trabajo lo permite, el punto de equilibrio: a partir de qué volumen o qué ahorro el sistema se paga a
++sí mismo, comparado con el coste del problema que dimensionaste en el apartado 1.2. Cerrar la memoria
++conectando el coste con la cifra de la introducción es la forma más elegante de terminar.
++
++---
++
++## 8. Conclusiones y trabajo futuro
++
++**Extensión: 2–4 páginas.** Se entrega en el **Hito 4**.
++
++### 8.1 Conclusiones
++
++Una por objetivo del apartado 1.3, cada una respaldada por un resultado del capítulo 5. Sin
++resultados nuevos: las conclusiones concluyen, no informan.
++
++### 8.2 Límites del trabajo
++
++Qué no se puede afirmar a partir de lo que hiciste: tamaño de la muestra, representatividad, periodo
++cubierto, generalización a otros contextos. Este apartado **suma** puntos —es parte explícita del
++nivel *Ejemplar* del criterio de memoria— y su ausencia se interpreta como falta de criterio, no como
++seguridad.
++
++### 8.3 Trabajo futuro
++
++Entre dos y cuatro líneas **concretas y accionables**, cada una con lo que haría falta para
++abordarla. «Probar otros modelos» no es trabajo futuro; «evaluar el método sobre el segundo turno de
++producción, que requiere seis meses adicionales de registros etiquetados» sí lo es.
++
++---
++
++## Formato, citación y estilo
++
++### Formato del documento
++
++| Elemento | Requisito |
++|---|---|
++| Formato de entrega | PDF (además del documento fuente si tu director lo pide) |
++| Tamaño de página | A4 |
++| Márgenes | 2,5 cm |
++| Tipografía | Serif de 11–12 pt, o sans-serif de 10–11 pt, uniforme en todo el documento |
++| Interlineado | 1,5 en el cuerpo; sencillo en tablas, notas y bibliografía |
++| Numeración | Páginas numeradas; preliminares en romanos, cuerpo en arábigos |
++| Encabezados | Numerados hasta el tercer nivel (3.4.1) |
++| Figuras y tablas | Numeradas y con leyenda; **toda figura y toda tabla se citan en el texto** |
++| Código | Fragmentos cortos en el cuerpo; lo extenso, en anexo o en el repositorio |
++| Idioma | Español, salvo el *abstract* |
++
++### Citación: APA 7
++
++**Norma obligatoria: APA 7.ª edición**, en el texto y en la bibliografía. Se recomienda gestionar la
++bibliografía con Zotero, que está entre los recursos de la asignatura.
++
++- Cita en el texto: `(Mitchell et al., 2019)` o `Mitchell et al. (2019) demostraron que…`
++- Cita directa: entrecomillada y con página, `(Mitchell et al., 2019, p. 4)`.
++- Bibliografía ordenada alfabéticamente, con DOI o URL estable cuando exista.
++
++Ejemplo de entrada:
++
++> Mitchell, M., Wu, S., Zaldivar, A., Barnes, P., Vasserman, L., Hutchinson, B., Spitzer, E., Raji,
++> I. D., & Gebru, T. (2019). Model cards for model reporting. *Proceedings of the Conference on
++> Fairness, Accountability, and Transparency*, 220–229. https://doi.org/10.1145/3287560.3287596
++
++Tres reglas que evitan los problemas más habituales:
++
++1. **Todo lo que no es tuyo se cita**, incluidas ideas parafraseadas, no solo las citas literales.
++2. **Todo lo citado en el texto está en la bibliografía, y viceversa.** Las bibliografías con obras
++   que no aparecen en el texto son un indicio clásico de relleno.
++3. **El uso de asistentes de IA generativa se declara.** Ver el apartado siguiente.
++
++### Uso de asistentes de IA generativa
++
++Se permite usar asistentes de IA como apoyo —redacción, revisión de estilo, exploración de
++bibliografía, ayuda con el código— y **es obligatorio declararlo** en una nota al final de la
++memoria, indicando qué herramienta y para qué tareas.
++
++Tres cosas no se delegan, y por razones que este programa debería haberte hecho evidentes: la
++**interpretación de tus resultados**, la **verificación de las fuentes citadas** (los asistentes
++inventan referencias con formato impecable) y la **defensa**. En el vídeo se te preguntará por
++decisiones concretas de tu trabajo; quien no lo ha hecho, se nota en la primera repregunta.
++
++Declarar el uso no penaliza. No declararlo y que se detecte, sí.
++
++---
++
++## Qué se entrega en cada hito
++
++La entrega se hace en la plataforma, en *Proyecto Fin de Programa (TFM) → Entrega del TFM*. Cada hito
++tiene tres campos: el **texto del documento** (o un resumen con el enlace), la **URL del repositorio
++o documento**, y —solo en el Hito 4— el **enlace al vídeo de defensa**.
++
++### Hito 1 — Propuesta (10 %)
++
++- Documento de 2–4 páginas: apartados 1.1 a 1.6 de esta plantilla.
++- Línea de trabajo elegida (a, b, c o propia justificada).
++- Plan de 8 semanas con hitos, holgura y riesgos.
++- Confirmación del acceso a los datos y plan B.
++
++### Hito 2 — Estado del arte (20 %)
++
++- Capítulo 2 completo: criterio de búsqueda, matriz de 4–8 fuentes, patrones transversales y vacío.
++- Bibliografía en APA 7 de las fuentes analizadas.
++- Versión actualizada del capítulo 1 si la revisión cambió el planteamiento (es habitual y correcto).
++
++### Hito 3 — Revisión intermedia (30 %)
++
++- **Repositorio con el sistema a medio construir que ya produce un primer resultado medible.** No
++  planificación: código que se ejecuta y devuelve un número.
++- Capítulo 3 completo, con especial atención al apartado 3.4 (metodología de evaluación) y al 3.5
++  (riesgos y cambios).
++- Resultado preliminar comparado con la línea base.
++
++### Hito 4 — Memoria final y defensa (40 %)
++
++- **Memoria completa** de 40–60 páginas en PDF, con la estructura de esta plantilla.
++- **Repositorio público** reproducible, con README verificado y licencia.
++- **Vídeo de defensa de 10 minutos** (obligatorio; el campo de la plataforma no admite la entrega sin
++  él).
++
++**Rúbrica del Hito 4 (40 % de la nota del TFM), consolidada:**
++
++| Criterio | Puntos | Dónde se demuestra |
++|---|---:|---|
++| Evaluación con números | 30 | Capítulo 5 completo |
++| Coste real a 12 meses | 25 | Capítulo 7 completo |
++| Memoria completa y repositorio reproducible | 25 | Toda la memoria + apartado 4.3 |
++| Defensa grabada de 10 minutos | 20 | Vídeo |
++
++Los capítulos 6 y 8 no tienen criterio propio en el Hito 4: se califican dentro de *Memoria completa*
++y son, además, la materia prima de las preguntas del tribunal. En la rúbrica de asignatura
++`rubric-master-tfm` sí pesan explícitamente, a través del criterio *Riesgos, ética y defensa*.
++
++---
++
++## El vídeo de defensa
++
++Diez minutos, grabados, con tu cara y tu voz. Se califica con **20 puntos** en la rúbrica del Hito 4.
++
++| Nivel | Descriptor |
++|---|---|
++| Insuficiente (0) | Sin vídeo, o solo lee la memoria |
++| En desarrollo (9) | Resume la memoria sin argumentar las decisiones |
++| Competente (15) | Argumenta las decisiones de diseño con solvencia |
++| Ejemplar (20) | Además, responde bien a la objeción más fuerte contra el trabajo |
++
++Nótese lo que dice el descriptor de *En desarrollo*: **resumir la memoria no llega para aprobar el
++criterio**. El tribunal ya ha leído la memoria. Lo que el vídeo aporta es tu criterio.
++
++Estructura sugerida:
++
++| Minutos | Contenido |
++|---|---|
++| 0–1 | El problema y su cifra |
++| 1–2 | La pregunta y el alcance |
++| 2–4 | El método y **por qué ese** frente a las alternativas del estado del arte |
++| 4–7 | Resultados: la tabla, la línea base, la dispersión y el análisis de errores |
++| 7–8 | Coste a 12 meses y la palanca principal |
++| 8–9 | Riesgos, límites del trabajo y lo que no se puede afirmar |
++| 9–10 | **La objeción más fuerte contra tu trabajo, formulada por ti, y tu respuesta** |
++
++Ese último minuto es el que separa el 15 del 20. Formula la crítica más dura que un revisor
++competente te haría —«tu conjunto de prueba es pequeño», «la mejora está dentro del intervalo de
++confianza», «el coste no incluye el mantenimiento del primer año»— y respóndela con los datos que
++tengas. Si la objeción es correcta y no la puedes rebatir, reconócelo y explica qué haría falta para
++resolverla. Anticipar la crítica siempre puntúa más que ignorarla.
++
++Aspectos prácticos: audio inteligible (importa más que el vídeo), pantalla compartida con las tablas
++de resultados a un tamaño legible, y enlace accesible sin necesidad de solicitar permisos —esa es la
++causa número uno de entregas devueltas—.
++
++---
++
++## Lista de verificación antes de entregar el Hito 4
++
++**Contenido**
++
++- [ ] La memoria está entre 40 y 60 páginas de cuerpo.
++- [ ] El apartado 1.2 contiene una cifra que dimensiona el problema.
++- [ ] La pregunta de investigación del 1.3 está respondida explícitamente en el 5.5, con su número.
++- [ ] El capítulo 5 ocupa más que el capítulo 4.
++- [ ] Toda métrica del capítulo 5 va acompañada de dispersión o intervalo.
++- [ ] Hay una línea base y no es «el azar».
++- [ ] El análisis de errores desglosa por categoría e incluye un caso analizado a fondo.
++- [ ] El capítulo 7 desglosa el coste a 12 meses, nombra la palanca y declara el margen de error.
++- [ ] Los límites del trabajo están escritos en el apartado 8.2.
++- [ ] El uso de asistentes de IA está declarado.
++
++**Repositorio**
++
++- [ ] Es público y el enlace funciona en una ventana de incógnito.
++- [ ] El `README` se siguió en una máquina limpia y funcionó.
++- [ ] Las semillas están fijadas y los resultados se reproducen.
++- [ ] No hay credenciales ni datos personales, tampoco en el historial de commits.
++- [ ] Tiene licencia.
++
++**Formato**
++
++- [ ] Citación en APA 7, coherente entre texto y bibliografía.
++- [ ] **Todas las referencias citadas existen y se han verificado una a una.**
++- [ ] Figuras y tablas numeradas, con leyenda y citadas en el texto.
++- [ ] PDF con índice y numeración correcta.
++
++**Defensa**
++
++- [ ] El vídeo dura entre 9 y 11 minutos.
++- [ ] Argumenta decisiones, no resume la memoria.
++- [ ] Incluye la objeción más fuerte y su respuesta.
++- [ ] El enlace es accesible sin permisos.
++
++---
++
++## Los seis motivos por los que se suspende
++
++Ordenados por frecuencia, a partir de las convocatorias anteriores. Ninguno tiene que ver con la
++dificultad técnica del trabajo:
++
++1. **Evaluación cualitativa.** El sistema «funciona bien» pero no hay tabla, ni línea base, ni
++   conjunto de prueba. Vale 30 puntos y es el motivo número uno.
++2. **Coste ausente.** El capítulo 7 no existe o son dos párrafos sin desglose. Otros 25 puntos.
++3. **Repositorio no reproducible.** El README omite un paso que el autor daba por sabido, y nadie
++   más consigue ejecutarlo.
++4. **Estado del arte como lista de lecturas.** Resúmenes sueltos sin matriz comparable y sin vacío
++   identificado.
++5. **Fuga de datos no detectada.** Resultados excelentes que no sobreviven a la primera pregunta del
++   tribunal sobre cómo se partieron los datos.
++6. **Defensa que lee la memoria.** Diez minutos de resumen sin una sola decisión argumentada.
++
++Los seis se evitan con esta plantilla delante desde la primera semana. Esa es toda su función.
+-- 
+2.43.0
+

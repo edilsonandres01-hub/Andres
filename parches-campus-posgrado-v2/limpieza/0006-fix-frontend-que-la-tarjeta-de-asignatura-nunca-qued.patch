@@ -1,0 +1,95 @@
+From fd7742eee8a0d4e0c11ec40935d2c387458f3931 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 12:47:16 +0000
+Subject: [PATCH 6/7] =?UTF-8?q?fix(frontend):=20que=20la=20tarjeta=20de=20?=
+ =?UTF-8?q?asignatura=20nunca=20quede=20sin=20referencia=20de=20c=C3=B3dig?=
+ =?UTF-8?q?o?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Comportamiento actual verificado contra la base de datos sembrada: las 12
+entradas del Máster tienen siempre un `officialCode`, nueve con el código
+numérico oficial del IEP y tres con un marcador interno.
+
+    master-v     -> IEP-V-INTERNO
+    master-viii  -> IEP-VIII-INTERNO
+    master-tfm   -> IEP-TFM-INTERNO
+
+El fallback ya funcionaba de extremo a extremo: db/seed.js siembra
+`process.env.OFFICIAL_CODE_V || 'IEP-V-INTERNO'` (ídem VIII y TFM), la
+migración 010 rellena con el mismo marcador cualquier fila que hubiera quedado
+nula o vacía sin pisar un valor ya puesto, y GET /api/programs/master-iep
+devuelve el valor tal cual. No se ha inventado ningún código: si el IEP
+facilita los tres reales, basta definir esas variables de entorno y volver a
+sembrar.
+
+Lo único que faltaba era el caso límite del cliente: la tarjeta envolvía el
+código en `{asignatura.officialCode && ...}`, así que un null habría hecho
+desaparecer la línea entera sin dejar rastro. Ahora ese caso muestra "Código
+pendiente de asignar" en vez de nada, la distinción interno/oficial vive en una
+función con nombre en lugar de un `startsWith('IEP-')` suelto en el JSX, y cada
+etiqueta lleva un `title` que explica al estudiante qué significa un código
+interno.
+---
+ frontend/src/pages/MasterIEPPage.tsx | 30 +++++++++++++++++++++++-----
+ 1 file changed, 25 insertions(+), 5 deletions(-)
+
+diff --git a/frontend/src/pages/MasterIEPPage.tsx b/frontend/src/pages/MasterIEPPage.tsx
+index d704c0f..da6eda7 100644
+--- a/frontend/src/pages/MasterIEPPage.tsx
++++ b/frontend/src/pages/MasterIEPPage.tsx
+@@ -8,6 +8,27 @@ const TRACK_ICON: Record<string, string> = {
+   TFM: '🎓',
+ }
+ 
++// Las asignaturas V y VIII y el TFM no tienen código oficial del IEP. El seed
++// las siembra con un marcador `IEP-<numeral>-INTERNO` (sobreescribible con
++// OFFICIAL_CODE_V / OFFICIAL_CODE_VIII / OFFICIAL_CODE_TFM) y la migración 010
++// rellena con lo mismo cualquier fila que hubiera quedado vacía, así que en la
++// práctica nunca llega null. El caso null se contempla igualmente para no dejar
++// la tarjeta sin ninguna referencia si alguna vez ocurre.
++const INTERNAL_CODE_PREFIX = 'IEP-'
++
++function codigoLabel(officialCode: string | null) {
++  if (!officialCode) {
++    return { text: 'Código pendiente de asignar', title: 'Esta asignatura todavía no tiene código asignado.' }
++  }
++  const esInterno = officialCode.startsWith(INTERNAL_CODE_PREFIX)
++  return {
++    text: `${esInterno ? 'Código interno' : 'Código oficial'}: ${officialCode}`,
++    title: esInterno
++      ? 'Código interno de la plataforma: el IEP todavía no ha facilitado un código oficial para esta asignatura.'
++      : 'Código oficial de la asignatura en el programa del IEP.',
++  }
++}
++
+ function AsignaturaCard({
+   asignatura,
+   prereqTitle,
+@@ -18,6 +39,7 @@ function AsignaturaCard({
+   onOpen: () => void
+ }) {
+   const pct = asignatura.progress.percentage
++  const codigo = codigoLabel(asignatura.officialCode)
+ 
+   if (asignatura.locked) {
+     return (
+@@ -38,11 +60,9 @@ function AsignaturaCard({
+       className="text-left bg-white dark:bg-gray-800 rounded-lg border-l-4 border-red-600 shadow-md hover:shadow-lg transition p-5 flex flex-col"
+     >
+       <h3 className="font-bold text-gray-900 dark:text-white mb-1">{asignatura.title}</h3>
+-      {asignatura.officialCode && (
+-        <p className="text-[11px] text-gray-400 mb-2 font-mono">
+-          {asignatura.officialCode.startsWith('IEP-') ? 'Código interno' : 'Código oficial'}: {asignatura.officialCode}
+-        </p>
+-      )}
++      <p className="text-[11px] text-gray-400 mb-2 font-mono" title={codigo.title}>
++        {codigo.text}
++      </p>
+       {asignatura.contenidos.length > 0 && (
+         <div className="flex flex-wrap gap-1.5 mb-3">
+           {asignatura.contenidos.slice(0, 3).map((c, i) => (
+-- 
+2.43.0
+

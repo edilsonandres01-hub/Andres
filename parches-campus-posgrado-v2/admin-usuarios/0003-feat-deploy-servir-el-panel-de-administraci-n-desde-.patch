@@ -1,0 +1,150 @@
+From 96b3c842b99492615ed489e8d10c3e1f89a6db47 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Thu, 10 Sep 2026 23:25:01 +0000
+Subject: [PATCH 3/3] =?UTF-8?q?feat(deploy):=20servir=20el=20panel=20de=20?=
+ =?UTF-8?q?administraci=C3=B3n=20desde=20el=20backend?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+El Dockerfile construye el frontend y el servidor entrega el SPA en
+las rutas que no son /api, para poder desplegar el panel sin Vercel.
+---
+ .dockerignore            |  3 +--
+ Dockerfile               | 14 ++++++++---
+ backend/simple-server.js | 53 +++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 63 insertions(+), 7 deletions(-)
+
+diff --git a/.dockerignore b/.dockerignore
+index b938f32..989e521 100644
+--- a/.dockerignore
++++ b/.dockerignore
+@@ -1,6 +1,5 @@
+-# Contexto de build mínimo (la imagen solo necesita backend/{simple-server.js,lib,db,scripts})
++# Contexto de build: backend + frontend (el Dockerfile construye el SPA).
+ **/node_modules
+-frontend
+ mobile
+ .git
+ *.md
+diff --git a/Dockerfile b/Dockerfile
+index 808b37b..773924c 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -1,19 +1,25 @@
++FROM node:20-alpine AS frontend
++WORKDIR /fe
++COPY frontend/package.json frontend/package-lock.json* ./
++RUN npm install --no-audit --no-fund
++COPY frontend/ ./
++ARG VITE_API_URL=/api
++ENV VITE_API_URL=$VITE_API_URL
++RUN npm run build
++
+ FROM node:20-alpine
+ WORKDIR /app
+ 
+-# Dependencias del backend (solo pg)
+ COPY backend/package.json backend/package-lock.json* ./
+ RUN npm install --omit=dev --no-audit --no-fund
+ 
+-# Código + librerías + migraciones + datos de seed
+ COPY backend/simple-server.js ./simple-server.js
+ COPY backend/lib ./lib
+ COPY backend/db ./db
+ COPY backend/scripts ./scripts
++COPY --from=frontend /fe/dist ./public
+ 
+ ENV NODE_ENV=production
+ EXPOSE 3001
+ 
+-# Las migraciones corren al arrancar (idempotentes). El seed se ejecuta aparte
+-# con `railway run npm run seed` la primera vez.
+ CMD ["node", "simple-server.js"]
+diff --git a/backend/simple-server.js b/backend/simple-server.js
+index b9b1310..30714b1 100644
+--- a/backend/simple-server.js
++++ b/backend/simple-server.js
+@@ -2,12 +2,15 @@
+ // Contrato de rutas y formas de respuesta compatible con el frontend existente.
+ const http = require('http');
+ const url = require('url');
++const pathMod = require('path');
++const fs = require('fs');
+ const crypto = require('crypto');
+ const pool = require('./db/pool');
+ const runMigrations = require('./db/migrate');
+ const llm = require('./lib/llm');
+ 
+ const PORT = Number(process.env.PORT) || 3001;
++const STATIC_DIR = process.env.STATIC_DIR || pathMod.join(__dirname, 'public');
+ let dbReady = false;
+ const TOKEN_TTL_MS = 3600 * 1000;
+ const REFRESH_TTL_MS = 7 * 24 * 3600 * 1000;
+@@ -57,6 +60,51 @@ const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e || '') && e.leng
+ const isValidPassword = (p) => typeof p === 'string' && p.length >= 8 && p.length <= 128;
+ const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s || '');
+ 
++const STATIC_TYPES = {
++  '.html': 'text/html; charset=utf-8',
++  '.js': 'application/javascript; charset=utf-8',
++  '.css': 'text/css; charset=utf-8',
++  '.svg': 'image/svg+xml',
++  '.png': 'image/png',
++  '.jpg': 'image/jpeg',
++  '.jpeg': 'image/jpeg',
++  '.ico': 'image/x-icon',
++  '.woff': 'font/woff',
++  '.woff2': 'font/woff2',
++  '.json': 'application/json',
++  '.map': 'application/json',
++  '.txt': 'text/plain; charset=utf-8',
++};
++
++function serveSpa(res, rawPath) {
++  if (!fs.existsSync(STATIC_DIR)) return false;
++  let decoded = '/';
++  try {
++    decoded = decodeURIComponent(rawPath || '/');
++  } catch {
++    return false;
++  }
++  if (decoded.includes('\0') || decoded.includes('..')) return false;
++  const rel = decoded.replace(/^\/+/, '') || 'index.html';
++  let file = pathMod.join(STATIC_DIR, rel);
++  const root = STATIC_DIR.endsWith(pathMod.sep) ? STATIC_DIR : STATIC_DIR + pathMod.sep;
++  if (file !== STATIC_DIR && !file.startsWith(root)) return false;
++  try {
++    const st = fs.existsSync(file) ? fs.statSync(file) : null;
++    if (!st || st.isDirectory()) file = pathMod.join(STATIC_DIR, 'index.html');
++    if (!fs.existsSync(file)) return false;
++    const ext = pathMod.extname(file).toLowerCase();
++    res.writeHead(200, {
++      'Content-Type': STATIC_TYPES[ext] || 'application/octet-stream',
++      'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable',
++    });
++    fs.createReadStream(file).pipe(res);
++    return true;
++  } catch {
++    return false;
++  }
++}
++
+ function sendJSON(res, status, data) {
+   res.writeHead(status, {
+     'Content-Type': 'application/json',
+@@ -2525,7 +2573,10 @@ const server = http.createServer(async (req, res) => {
+   const pathname = parsed.pathname.replace(/\/+$/, '') || '/';
+ 
+   const match = routes.find((r) => r.method === req.method && r.pattern.test(pathname));
+-  if (!match) return sendJSON(res, 404, { message: 'Not found' });
++  if (!match) {
++    if ((req.method === 'GET' || req.method === 'HEAD') && serveSpa(res, parsed.pathname)) return;
++    return sendJSON(res, 404, { message: 'Not found' });
++  }
+ 
+   const isHealth = pathname === '/api/health' || pathname === '/health';
+   if (!dbReady && !isHealth) {
+-- 
+2.43.0
+

@@ -1,0 +1,344 @@
+From 361d9d8ac75a51a7b34bf09649c42c9115af3836 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 12:31:00 +0000
+Subject: [PATCH 2/7] =?UTF-8?q?chore(backend):=20eliminar=20backend/ai-gra?=
+ =?UTF-8?q?der.js=20(c=C3=B3digo=20muerto)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Calificador automático heurístico (conteo de palabras y expresiones
+regulares sobre el texto de la entrega) que nunca llegó a usarse.
+
+Evidencia de que está muerto:
+- 'rg "require\(.*ai-grader|from .*ai-grader"' sobre todo el repositorio
+  no devuelve ninguna coincidencia. Exporta 'module.exports = new
+  AIGrader()' y nadie lo importa.
+- simple-server.js solo requiere: http, url, crypto, ./db/pool,
+  ./db/migrate, ./lib/llm y ./db/seed.
+- backend/scripts/* no lo referencian.
+- Las únicas menciones en todo el repositorio estaban en
+  MASTER_IEP_INTEGRATION.md, que ya lo declaraba código muerto.
+
+La calificación real de proyectos es por rúbrica y la hace una persona
+(PUT /api/submissions/:id/grade), con propuesta opcional de un LLM que
+se guarda en grades.llm_suggestion y nunca en grades.score.
+---
+ backend/ai-grader.js | 305 -------------------------------------------
+ 1 file changed, 305 deletions(-)
+ delete mode 100644 backend/ai-grader.js
+
+diff --git a/backend/ai-grader.js b/backend/ai-grader.js
+deleted file mode 100644
+index 744ed2d..0000000
+--- a/backend/ai-grader.js
++++ /dev/null
+@@ -1,305 +0,0 @@
+-// Sistema de Calificación Automática con IA para el Master de IEP
+-
+-class AIGrader {
+-  constructor() {
+-    this.rubrics = {
+-      'conceptual-understanding': {
+-        weight: 25,
+-        levels: {
+-          excellent: { score: 95, description: 'Demuestra profunda comprensión de todos los conceptos' },
+-          good: { score: 80, description: 'Demuestra comprensión clara de los conceptos principales' },
+-          fair: { score: 65, description: 'Demuestra comprensión parcial con algunas lagunas' },
+-          poor: { score: 40, description: 'Comprensión limitada de los conceptos' }
+-        }
+-      },
+-      'critical-analysis': {
+-        weight: 25,
+-        levels: {
+-          excellent: { score: 95, description: 'Análisis crítico profundo y perspicaz' },
+-          good: { score: 80, description: 'Análisis crítico adecuado con buena profundidad' },
+-          fair: { score: 65, description: 'Análisis básico sin mucha profundidad' },
+-          poor: { score: 40, description: 'Poco o ningún análisis crítico' }
+-        }
+-      },
+-      'solution-quality': {
+-        weight: 30,
+-        levels: {
+-          excellent: { score: 95, description: 'Solución innovadora, completa y bien fundamentada' },
+-          good: { score: 80, description: 'Solución sólida y bien implementada' },
+-          fair: { score: 65, description: 'Solución adecuada pero con limitaciones' },
+-          poor: { score: 40, description: 'Solución incompleta o mal implementada' }
+-        }
+-      },
+-      'presentation': {
+-        weight: 20,
+-        levels: {
+-          excellent: { score: 95, description: 'Presentación clara, bien organizada y profesional' },
+-          good: { score: 80, description: 'Presentación clara y bien estructurada' },
+-          fair: { score: 65, description: 'Presentación aceptable pero con algunos problemas' },
+-          poor: { score: 40, description: 'Presentación desorganizada o difícil de seguir' }
+-        }
+-      }
+-    };
+-  }
+-
+-  // Analizar automaticamente una entrega
+-  analyzeSubmission(submission, rubric, submissionType = 'text') {
+-    const analysis = {
+-      submissionId: submission.id,
+-      scores: {},
+-      feedback: [],
+-      recommendations: [],
+-      finalScore: 0
+-    };
+-
+-    // Análisis del contenido
+-    if (submissionType === 'text' || submissionType === 'document') {
+-      analysis.scores['conceptual-understanding'] = this.evaluateConceptualUnderstanding(submission.content);
+-      analysis.scores['critical-analysis'] = this.evaluateCriticalAnalysis(submission.content);
+-      analysis.scores['solution-quality'] = this.evaluateSolutionQuality(submission.content);
+-      analysis.scores['presentation'] = this.evaluatePresentation(submission.content);
+-    }
+-
+-    // Calcular calificación final ponderada
+-    analysis.finalScore = this.calculateWeightedScore(analysis.scores, rubric);
+-
+-    // Generar feedback personalizado
+-    analysis.feedback = this.generateFeedback(analysis.scores, rubric);
+-    analysis.recommendations = this.generateRecommendations(analysis.scores);
+-
+-    return analysis;
+-  }
+-
+-  evaluateConceptualUnderstanding(content) {
+-    let score = 40; // Base
+-    const keywordGroups = {
+-      excellent: [
+-        'teoría', 'principios fundamentales', 'arquitectura', 'algoritmo',
+-        'metodología', 'framework', 'paradigma', 'modelo matemático'
+-      ],
+-      good: [
+-        'concepto', 'explicación', 'aplicación', 'técnica', 'método', 'proceso'
+-      ],
+-      fair: [
+-        'descripción', 'definición', 'resumen'
+-      ]
+-    };
+-
+-    const contentLower = content.toLowerCase();
+-
+-    // Contar keywords
+-    const excellentCount = keywordGroups.excellent.filter(k => contentLower.includes(k)).length;
+-    const goodCount = keywordGroups.good.filter(k => contentLower.includes(k)).length;
+-
+-    score = 40 + (excellentCount * 8) + (goodCount * 4);
+-    return Math.min(95, score);
+-  }
+-
+-  evaluateCriticalAnalysis(content) {
+-    let score = 40;
+-    const criticalPhrases = [
+-      'por lo tanto', 'en conclusión', 'esto sugiere', 'análisis',
+-      'evaluación', 'comparación', 'contraste', 'implicaciones',
+-      'limitaciones', 'ventajas', 'desventajas'
+-    ];
+-
+-    const contentLower = content.toLowerCase();
+-    const criticalCount = criticalPhrases.filter(p => contentLower.includes(p)).length;
+-
+-    score = 40 + (criticalCount * 5);
+-    return Math.min(95, score);
+-  }
+-
+-  evaluateSolutionQuality(content) {
+-    let score = 40;
+-    const qualityIndicators = [
+-      'implementación', 'código', 'prueba', 'validación', 'resultado',
+-      'experimento', 'evidencia', 'datos', 'validez'
+-    ];
+-
+-    const contentLower = content.toLowerCase();
+-    const qualityCount = qualityIndicators.filter(i => contentLower.includes(i)).length;
+-
+-    score = 40 + (qualityCount * 6);
+-    return Math.min(95, score);
+-  }
+-
+-  evaluatePresentation(content) {
+-    let score = 40;
+-    const length = content.length;
+-    const lines = content.split('\n');
+-    const hasStructure = lines.length > 5;
+-    const hasParagraphs = content.split('\n\n').length > 2;
+-
+-    if (length > 500) score += 15;
+-    if (hasStructure) score += 15;
+-    if (hasParagraphs) score += 15;
+-    if (!content.includes('xxx') && !content.includes('???')) score += 10;
+-
+-    return Math.min(95, score);
+-  }
+-
+-  calculateWeightedScore(scores, rubric) {
+-    let totalScore = 0;
+-    let totalWeight = 0;
+-
+-    for (const [criterion, score] of Object.entries(scores)) {
+-      if (rubric[criterion]) {
+-        const weight = this.rubrics[criterion].weight;
+-        totalScore += score * (weight / 100);
+-        totalWeight += weight / 100;
+-      }
+-    }
+-
+-    return Math.round(totalScore / totalWeight);
+-  }
+-
+-  generateFeedback(scores, rubric) {
+-    const feedback = [];
+-
+-    for (const [criterion, score] of Object.entries(scores)) {
+-      const rubricCriterion = this.rubrics[criterion];
+-      let level;
+-
+-      if (score >= 85) level = 'excellent';
+-      else if (score >= 75) level = 'good';
+-      else if (score >= 60) level = 'fair';
+-      else level = 'poor';
+-
+-      feedback.push({
+-        criterion,
+-        score,
+-        level,
+-        description: rubricCriterion.levels[level].description
+-      });
+-    }
+-
+-    return feedback;
+-  }
+-
+-  generateRecommendations(scores) {
+-    const recommendations = [];
+-
+-    if (scores['conceptual-understanding'] < 75) {
+-      recommendations.push('Profundiza en los conceptos fundamentales. Revisa los recursos de lectura recomendados.');
+-    }
+-    if (scores['critical-analysis'] < 75) {
+-      recommendations.push('Desarrolla más análisis crítico. Cuestiona los supuestos y presenta contraarguementos.');
+-    }
+-    if (scores['solution-quality'] < 75) {
+-      recommendations.push('Mejora la calidad de tu solución. Considera casos extremos y posibles mejoras.');
+-    }
+-    if (scores['presentation'] < 75) {
+-      recommendations.push('Organiza mejor tu trabajo. Usa estructura clara, ejemplos y visualizaciones.');
+-    }
+-
+-    return recommendations;
+-  }
+-
+-  // Evaluar código (para entregas de programming)
+-  analyzeCodeSubmission(code, rubric) {
+-    const analysis = {
+-      scores: {},
+-      issues: [],
+-      feedback: []
+-    };
+-
+-    // Analizar calidad del código
+-    analysis.scores['code-quality'] = this.evaluateCodeQuality(code);
+-    analysis.scores['functionality'] = this.evaluateFunctionality(code);
+-    analysis.scores['documentation'] = this.evaluateDocumentation(code);
+-    analysis.scores['efficiency'] = this.evaluateEfficiency(code);
+-
+-    analysis.issues = this.detectCodeIssues(code);
+-    analysis.feedback = this.generateCodeFeedback(analysis.scores);
+-
+-    return analysis;
+-  }
+-
+-  evaluateCodeQuality(code) {
+-    let score = 40;
+-    const lines = code.split('\n');
+-
+-    // Verificar convenciones de nombres
+-    if (/[a-z_][a-z0-9_]*/.test(code)) score += 10;
+-
+-    // Verificar indentación
+-    const indentedLines = lines.filter(l => /^\s+/.test(l)).length;
+-    if (indentedLines / lines.length > 0.7) score += 10;
+-
+-    // Verificar que no hay código obvio duplicado
+-    const uniqueLines = new Set(lines).size / lines.length;
+-    if (uniqueLines > 0.8) score += 15;
+-
+-    // Verificar longitud de funciones
+-    const functionCount = (code.match(/def |function /g) || []).length;
+-    if (functionCount > 3) score += 10;
+-
+-    return Math.min(95, score);
+-  }
+-
+-  evaluateFunctionality(code) {
+-    let score = 40;
+-
+-    // Verificar si hay handles para errores
+-    if (/try|except|catch|error/.test(code)) score += 15;
+-
+-    // Verificar si hay tests
+-    if (/assert|test|unittest|pytest/.test(code)) score += 20;
+-
+-    // Verificar si ejecutable sin errores obvios
+-    if (!/SyntaxError|undefined|null reference/.test(code)) score += 20;
+-
+-    return Math.min(95, score);
+-  }
+-
+-  evaluateDocumentation(code) {
+-    let score = 40;
+-    const comments = (code.match(/\/\/|#|\/\*/g) || []).length;
+-    const lines = code.split('\n').length;
+-    const commentRatio = comments / lines;
+-
+-    if (commentRatio > 0.2) score += 20;
+-    if (/docstring|"""|'''/.test(code)) score += 20;
+-    if (/param|return|description/.test(code)) score += 15;
+-
+-    return Math.min(95, score);
+-  }
+-
+-  evaluateEfficiency(code) {
+-    let score = 40;
+-
+-    // Detectar uso de estructuras eficientes
+-    if (/map|filter|reduce|comprehension/.test(code)) score += 15;
+-    if (/O\(1\)|O\(n\)|O\(log n\)/.test(code)) score += 10; // Big O notation
+-    if (!/nested.*loop.*loop/.test(code)) score += 10; // Avoid nested loops
+-
+-    return Math.min(95, score);
+-  }
+-
+-  detectCodeIssues(code) {
+-    const issues = [];
+-
+-    if (/console.log|print\(/g.test(code)) {
+-      issues.push('Detectado: Statements de debug. Removerlos para código de producción.');
+-    }
+-    if (/\s+$|^\s+$/m.test(code)) {
+-      issues.push('Detectado: Espacios en blanco innecesarios.');
+-    }
+-    if (/var /g.test(code)) {
+-      issues.push('Recomendación: Usar const/let en lugar de var (JavaScript).');
+-    }
+-
+-    return issues;
+-  }
+-
+-  generateCodeFeedback(scores) {
+-    return Object.entries(scores).map(([criterion, score]) => ({
+-      criterion,
+-      score,
+-      feedback: score >= 80 ? 'Bien hecho' : score >= 60 ? 'Necesita mejoras' : 'Requiere trabajo significativo'
+-    }));
+-  }
+-}
+-
+-module.exports = new AIGrader();
+-- 
+2.43.0
+

@@ -1,0 +1,14 @@
+table|rows
+_migrations|1
+certificates|0
+courses|29
+enrollments|32
+grades|0
+modules|92
+notifications|4
+progress|3
+quiz_responses|0
+resources|400
+sessions|135
+submissions|0
+users|2

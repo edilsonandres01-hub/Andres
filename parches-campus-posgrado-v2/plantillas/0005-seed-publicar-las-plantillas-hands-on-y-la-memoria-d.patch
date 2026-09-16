@@ -1,0 +1,207 @@
+From 1f2c91a7b05b8efd79dfe2a47c526550a6bc4082 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 13:18:10 +0000
+Subject: [PATCH 5/5] seed: publicar las plantillas hands-on y la memoria del
+ TFM en el producto
+
+- Resuelve notebookTemplateUrl de las asignaturas III/VI/IX/X contra las
+  plantillas versionadas en plantillas/ (base configurable con
+  PLANTILLAS_BASE_URL).
+- Publica tfm-memoria.md como recurso markdown dentro de la asignatura del
+  TFM, con stable_key propia para no desplazar la entrega existente.
+- Cada hito del TFM enlaza al apartado de la memoria que le corresponde.
+---
+ backend/db/seed-data/handson/master-iii.js |  5 ++-
+ backend/db/seed-data/handson/master-ix.js  |  1 +
+ backend/db/seed-data/handson/master-vi.js  |  1 +
+ backend/db/seed-data/handson/master-x.js   |  1 +
+ backend/db/seed-data/tfm.js                | 11 +++++
+ backend/db/seed.js                         | 50 ++++++++++++++++++++--
+ 6 files changed, 65 insertions(+), 4 deletions(-)
+
+diff --git a/backend/db/seed-data/handson/master-iii.js b/backend/db/seed-data/handson/master-iii.js
+index 67ba991..d52177d 100644
+--- a/backend/db/seed-data/handson/master-iii.js
++++ b/backend/db/seed-data/handson/master-iii.js
+@@ -5,7 +5,10 @@ module.exports = {
+   scopeSlug: 'master-iii',
+   title: 'Práctica computacional: benchmark de motores de datos',
+   rubricSlug: 'rubric-handson-master-iii',
+-  // El profesorado publica la plantilla (Colab/Kaggle/GitHub) y pega el enlace aquí.
++  // Plantilla versionada en el repositorio (`plantillas/`). El seed la resuelve
++  // contra PLANTILLAS_BASE_URL; `notebookTemplateUrl` sigue disponible para que el
++  // profesorado apunte a un Colab/Kaggle propio sin tocar el seed.
++  notebookTemplate: 'plantillas/handson/master-iii-benchmark-motores-datos.ipynb',
+   notebookTemplateUrl: null,
+   referencePractice:
+     'Ruta oficial III: "Toma un dataset público de entre 5 y 50 millones de filas y resuelve la misma agregación con pandas, con Polars y con DuckDB. Mide tiempo y memoria de cada uno. Después repítelo con Spark en local y observa cuánto pierdes en sobrecarga."',
+diff --git a/backend/db/seed-data/handson/master-ix.js b/backend/db/seed-data/handson/master-ix.js
+index bac3bde..22a3a40 100644
+--- a/backend/db/seed-data/handson/master-ix.js
++++ b/backend/db/seed-data/handson/master-ix.js
+@@ -3,6 +3,7 @@ module.exports = {
+   scopeSlug: 'master-ix',
+   title: 'Práctica computacional: RAG con panel de métricas',
+   rubricSlug: 'rubric-handson-master-ix',
++  notebookTemplate: 'plantillas/handson/master-ix-rag-panel-metricas.ipynb',
+   notebookTemplateUrl: null,
+   referencePractice:
+     'Ruta oficial IX: "Un sistema RAG sobre documentación propia con métricas de recuperación separadas de las de generación. Entregable: servicio RAG funcional con panel de métricas: precisión de recuperación, tasa de alucinación medida sobre casos conocidos y coste por consulta." Opcional: un modelo de vida útil restante sobre C-MAPSS.',
+diff --git a/backend/db/seed-data/handson/master-vi.js b/backend/db/seed-data/handson/master-vi.js
+index a2d9579..d4b822c 100644
+--- a/backend/db/seed-data/handson/master-vi.js
++++ b/backend/db/seed-data/handson/master-vi.js
+@@ -3,6 +3,7 @@ module.exports = {
+   scopeSlug: 'master-vi',
+   title: 'Práctica computacional: tres problemas de ML + model card',
+   rubricSlug: 'rubric-handson-master-vi',
++  notebookTemplate: 'plantillas/handson/master-vi-tres-problemas-ml.ipynb',
+   notebookTemplateUrl: null,
+   referencePractice:
+     'Ruta oficial VI: "Tres problemas completos, de datos crudos a conclusión: una clasificación, una regresión y un no supervisado. Además, una competencia de Kaggle llevada hasta el 50% superior de la tabla. Entregable: un modelo con su model card (métricas, población de entrenamiento, limitaciones, y explicación SHAP de las cinco variables más influyentes)."',
+diff --git a/backend/db/seed-data/handson/master-x.js b/backend/db/seed-data/handson/master-x.js
+index dc446bc..945d94b 100644
+--- a/backend/db/seed-data/handson/master-x.js
++++ b/backend/db/seed-data/handson/master-x.js
+@@ -3,6 +3,7 @@ module.exports = {
+   scopeSlug: 'master-x',
+   title: 'Práctica computacional: desplegar y operar un modelo',
+   rubricSlug: 'rubric-handson-master-x',
++  notebookTemplate: 'plantillas/handson/master-x-desplegar-operar-modelo.ipynb',
+   notebookTemplateUrl: null,
+   referencePractice:
+     'Ruta oficial X: "Despliega el modelo del módulo VI como API en contenedor, con registro de versiones en MLflow, monitoreo de deriva de datos y despliegue automático desde el repositorio. Entregable: un modelo realmente en funcionamiento —aunque sea de uso interno— con panel de latencia, uso y coste mensual real."',
+diff --git a/backend/db/seed-data/tfm.js b/backend/db/seed-data/tfm.js
+index f078be3..e7e4908 100644
+--- a/backend/db/seed-data/tfm.js
++++ b/backend/db/seed-data/tfm.js
+@@ -1,5 +1,12 @@
+ // Proyecto Fin de Programa (TFM) — proceso de 4 hitos con rúbrica y director.
+ // Cierra P-05 / G-4: el capstone deja de ser un textarea sin proceso.
++//
++// `template` apunta al apartado de la plantilla de memoria que corresponde a cada
++// hito. Es la misma fuente markdown que el seed publica como recurso dentro de la
++// asignatura (`backend/db/seed-data/tfm-memoria.md`); el enlace del hito lleva al
++// ancla concreta para que el estudiante no tenga que buscarla.
++const MEMORIA = 'backend/db/seed-data/tfm-memoria.md';
++
+ module.exports = {
+   milestones: [
+     {
+@@ -8,6 +15,7 @@ module.exports = {
+       title: 'Hito 1 — Propuesta',
+       weight: 10,
+       requiresVideo: false,
++      template: MEMORIA + '#1-introducción-y-planteamiento-del-problema',
+       templateUrl: null,
+       description:
+         'Documento de 2–4 páginas: problema real y por qué importa (con una cifra que lo dimensione), pregunta concreta que resolverás, alcance (qué SÍ y qué NO), datos que necesitas y su disponibilidad, y un plan de 8 semanas con hitos. Elige una de las tres líneas: (a) detección de anomalías para el SGSI integrada con ISO 27001/42001; (b) agente multimodal de pruebas con suite de evaluación contra línea base; (c) asistente RAG de trazabilidad documental con controles de datos personales y análisis de coste.',
+@@ -19,6 +27,7 @@ module.exports = {
+       title: 'Hito 2 — Estado del arte',
+       weight: 20,
+       requiresVideo: false,
++      template: MEMORIA + '#2-estado-del-arte',
+       templateUrl: null,
+       description:
+         'Revisión de 4–8 fuentes relevantes (papers, informes técnicos, sistemas comparables) en una matriz: qué resuelve cada una, con qué método, qué métricas reporta y qué limitación tiene. Cierra con el vacío concreto que tu TFM cubre y por qué tu enfoque frente a las alternativas. Citas en formato APA 7.',
+@@ -30,6 +39,7 @@ module.exports = {
+       title: 'Hito 3 — Revisión intermedia',
+       weight: 30,
+       requiresVideo: false,
++      template: MEMORIA + '#3-método',
+       templateUrl: null,
+       description:
+         'Avance funcional: repositorio con el sistema a medio construir que ya produce un primer resultado medible, la metodología de evaluación definida (conjunto de prueba honesto, línea base, métricas), y un registro de riesgos del proyecto con lo que ha cambiado respecto al plan y por qué. El director da retroalimentación estructurada antes del hito final.',
+@@ -41,6 +51,7 @@ module.exports = {
+       title: 'Hito 4 — Memoria final y defensa',
+       weight: 40,
+       requiresVideo: true,
++      template: MEMORIA,
+       templateUrl: null,
+       description:
+         'Memoria de 40–60 páginas (problema → estado del arte → método → implementación → evaluación cuantitativa → riesgos y ética → coste → conclusiones), repositorio público, y un vídeo de defensa de 10 minutos. Los dos apartados que casi todo el mundo omite —evaluación con números y coste real a 12 meses— son los que separan un trabajo de posgrado de una demostración.',
+diff --git a/backend/db/seed.js b/backend/db/seed.js
+index 70cc178..a79c22c 100644
+--- a/backend/db/seed.js
++++ b/backend/db/seed.js
+@@ -61,6 +61,29 @@ for (const n of ['iii', 'vi', 'ix', 'x']) {
+ }
+ const TFM_SPEC = tryRequire('tfm.js');
+ 
++// Plantillas versionadas en el repositorio (notebooks hands-on y memoria del TFM).
++// Los `.ipynb` viven en `plantillas/` y se enlazan desde la entrega; GitHub los
++// renderiza sin que el estudiante tenga que clonar nada. La base es configurable
++// para reapuntar a un fork, a otra rama o a un CDN.
++const PLANTILLAS_BASE_URL = (
++  process.env.PLANTILLAS_BASE_URL ||
++  'https://github.com/edilsonalvarez-create/campus-posgrado-v2/blob/main'
++).replace(/\/+$/, '');
++const plantillaUrl = (rel) => (rel ? `${PLANTILLAS_BASE_URL}/${String(rel).replace(/^\/+/, '')}` : null);
++
++// La memoria del TFM se sirve DENTRO de la plataforma como recurso markdown, así
++// que su fuente vive junto al resto del seed: el Dockerfile de producción solo
++// copia `backend/db`, y un enlace externo dejaría al estudiante sin la plantilla
++// si el repositorio cambia de sitio.
++const TFM_MEMORIA = (() => {
++  try {
++    return fs.readFileSync(path.join(DATA, 'tfm-memoria.md'), 'utf8');
++  } catch (err) {
++    console.warn('[seed] tfm-memoria.md:', err.message);
++    return null;
++  }
++})();
++
+ // Lectura guiada por asignatura (WS-7): lectura-guiada/master-<slug>.js exporta
+ // un objeto { <contenidoOficial>: LecturaGuiadaData }. Se inyecta en la lección
+ // correspondiente si esta no trae ya su propio `lecturaGuiada`.
+@@ -444,7 +467,23 @@ async function main() {
+           subtitle: hs
+             ? 'Práctica hands-on alineada a la ruta oficial. Entrega repositorio/notebook + artefactos.'
+             : 'Sube tu entrega para evaluación del instructor',
+-          resources: [{
++          resources: [
++          // La plantilla de la memoria se antepone a la entrega, pero la entrega
++          // conserva su stable_key histórica ('r1') para no romper progreso ni
++          // envíos ya existentes.
++          ...(asig.slug === 'master-tfm' && TFM_MEMORIA
++            ? [{
++                stableKey: 'tfm-memoria',
++                title: 'Plantilla de la memoria del TFM',
++                type: 'docs',
++                content: TFM_MEMORIA,
++                content_json: {
++                  concepts: ['Estructura de la memoria', 'Rúbrica por hito', 'APA 7', 'Defensa'],
++                },
++              }]
++            : []),
++          {
++            stableKey: 'r1',
+             title:
+               asig.slug === 'master-tfm'
+                 ? 'Entrega: Proyecto Fin de Programa'
+@@ -463,7 +502,7 @@ async function main() {
+                 ? {
+                     referencePractice: hs.referencePractice,
+                     requiredArtifacts: hs.requiredArtifacts || [],
+-                    notebookTemplateUrl: hs.notebookTemplateUrl || null,
++                    notebookTemplateUrl: hs.notebookTemplateUrl || plantillaUrl(hs.notebookTemplate),
+                   }
+                 : undefined,
+             },
+@@ -713,7 +752,12 @@ async function main() {
+              order_index = EXCLUDED.order_index, title = EXCLUDED.title, description = EXCLUDED.description,
+              rubric_slug = EXCLUDED.rubric_slug, weight = EXCLUDED.weight,
+              requires_video = EXCLUDED.requires_video, template_url = EXCLUDED.template_url`,
+-          [ms.slug, ms.orderIndex, ms.title, ms.description || '', ms.rubricSlug, ms.weight, !!ms.requiresVideo, ms.templateUrl || null],
++          [
++            ms.slug, ms.orderIndex, ms.title, ms.description || '', ms.rubricSlug, ms.weight,
++            !!ms.requiresVideo,
++            // Cada hito enlaza al apartado de la plantilla de memoria que le toca.
++            ms.templateUrl || plantillaUrl(ms.template),
++          ],
+         );
+       }
+     }
+-- 
+2.43.0
+

@@ -1,0 +1,160 @@
+From c7c72a9ff8e34234278f946bf96cece5272b7577 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 12:31:52 +0000
+Subject: [PATCH 3/7] =?UTF-8?q?chore(backend):=20eliminar=20la=20config=20?=
+ =?UTF-8?q?hu=C3=A9rfana=20del=20scaffold=20NestJS=20y=20alinear=20.env.ex?=
+ =?UTF-8?q?ample?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- backend/nest-cli.json: apunta a "collection": "@nestjs/schematics" y
+  "sourceRoot": "src". Con src/ eliminado no describe nada, y ningún
+  script, Dockerfile ni CI lo invoca (no existe 'nest build' en el repo).
+- backend/tsconfig.json: su "include" era exactamente ["src"] y sus
+  "paths" mapeaban @src/@modules/@common/@config a src/*. No hay ningún
+  TypeScript restante en backend/ (todo el backend vivo es CommonJS .js)
+  y nada ejecuta 'tsc' ahí: el único tsc del repositorio es el del
+  frontend, que usa frontend/tsconfig.json.
+- backend/.env.example: declaraba JWT_SECRET, JWT_EXPIRATION,
+  JWT_REFRESH_EXPIRATION, BCRYPT_ROUNDS, API_URL y FRONTEND_URL, ninguna
+  de las cuales se lee en el código vivo. Se sustituye por la lista real
+  de variables que sí se leen (DATABASE_URL/DB_*, PG_POOL_MAX, PORT,
+  AUTO_SEED, SEED_DEMO_DATA, EXAM_COOLDOWN_HOURS, OFFICIAL_CODE_*,
+  LLM_*, ANTHROPIC_API_KEY, LEGACY_HTML, BASE).
+
+backend/package.json NO se toca: ya declaraba 'pg' como única dependencia,
+así que no quedaban dependencias huérfanas de @nestjs/*, typeorm, bcrypt,
+class-validator, passport*, reflect-metadata ni rxjs que quitar.
+---
+ backend/.env.example  | 58 ++++++++++++++++++++++++++++++++-----------
+ backend/nest-cli.json |  7 ------
+ backend/tsconfig.json | 28 ---------------------
+ 3 files changed, 44 insertions(+), 49 deletions(-)
+ delete mode 100644 backend/nest-cli.json
+ delete mode 100644 backend/tsconfig.json
+
+diff --git a/backend/.env.example b/backend/.env.example
+index 8961fb8..18b896b 100644
+--- a/backend/.env.example
++++ b/backend/.env.example
+@@ -1,25 +1,55 @@
+-# Database (Supabase PostgreSQL)
+-DATABASE_URL=postgresql://postgres:password@localhost:5432/campus_posgrado
++# Backend de Campus Posgrado — Node http nativo + PostgreSQL (simple-server.js).
++# No hay NestJS, TypeORM ni JWT: la sesión son tokens opacos en la tabla `sessions`
++# y las contraseñas se guardan con scrypt, así que no existen JWT_SECRET ni
++# BCRYPT_ROUNDS. Solo las variables de abajo se leen en el código.
+ 
+-# Or use individual DB config:
++# --- Base de datos (db/pool.js) ---
++# Opción A: una única cadena de conexión (la que usa Railway).
++# Con un host que no sea local se activa SSL automáticamente.
++DATABASE_URL=postgresql://postgres:postgres@localhost:5432/campus_posgrado
++
++# Opción B: si DATABASE_URL está vacía, se usan estas (valores por defecto abajo).
+ DB_HOST=localhost
+ DB_PORT=5432
+ DB_USERNAME=postgres
+ DB_PASSWORD=postgres
+ DB_DATABASE=campus_posgrado
+ 
+-# JWT
+-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+-JWT_EXPIRATION=3600
+-JWT_REFRESH_EXPIRATION=604800
++# Tamaño máximo del pool de conexiones (por defecto 10).
++PG_POOL_MAX=10
+ 
+-# Server
+-NODE_ENV=development
++# --- Servidor (simple-server.js) ---
+ PORT=3001
+-API_URL=http://localhost:3001
+ 
+-# CORS
+-FRONTEND_URL=http://localhost:5173
++# Ejecuta el seed al arrancar, además de las migraciones (que siempre corren).
++# El seed es idempotente y no destructivo (upsert por stable_key).
++AUTO_SEED=false
++
++# --- Seed (db/seed.js) ---
++# Crea usuarios y entregas de demostración. Dejar en false en producción.
++SEED_DEMO_DATA=false
++
++# Horas de espera entre intentos de examen (por defecto 24).
++EXAM_COOLDOWN_HOURS=24
++
++# Códigos oficiales del programa para las asignaturas V y VIII y el TFM.
++# Son las tres únicas sin código oficial conocido: si no se definen aquí, el
++# seed usa el código interno IEP-V-INTERNO / IEP-VIII-INTERNO / IEP-TFM-INTERNO
++# y el frontend lo etiqueta como "Código interno" en vez de "Código oficial".
++# OFFICIAL_CODE_V=
++# OFFICIAL_CODE_VIII=
++# OFFICIAL_CODE_TFM=
++
++# --- LLM (lib/llm.js) — opcional ---
++# Con 'none' (por defecto) el tutor cae a su FAQ redactada y la asistencia de
++# nota devuelve 501. El LLM nunca fija una nota: solo propone.
++LLM_PROVIDER=none
++LLM_MODEL=claude-sonnet-5
++LLM_MODEL_HEAVY=claude-opus-5
++ANTHROPIC_API_KEY=
+ 
+-# Bcrypt
+-BCRYPT_ROUNDS=10
++# --- Scripts ---
++# scripts/extract-legacy-content.mjs: ruta al HTML legado del que extraer contenido.
++LEGACY_HTML=
++# scripts/smoke.mjs: URL base de la API (por defecto http://localhost:3001/api).
++BASE=http://localhost:3001/api
+diff --git a/backend/nest-cli.json b/backend/nest-cli.json
+deleted file mode 100644
+index d7214eb..0000000
+--- a/backend/nest-cli.json
++++ /dev/null
+@@ -1,7 +0,0 @@
+-{
+-  "collection": "@nestjs/schematics",
+-  "sourceRoot": "src",
+-  "compilerOptions": {
+-    "deleteOutDir": true
+-  }
+-}
+diff --git a/backend/tsconfig.json b/backend/tsconfig.json
+deleted file mode 100644
+index 3ce9d08..0000000
+--- a/backend/tsconfig.json
++++ /dev/null
+@@ -1,28 +0,0 @@
+-{
+-  "compilerOptions": {
+-    "module": "commonjs",
+-    "target": "ES2021",
+-    "lib": ["ES2021"],
+-    "declaration": true,
+-    "outDir": "./dist",
+-    "baseUrl": "./",
+-    "incremental": true,
+-    "skipLibCheck": true,
+-    "strictNullChecks": false,
+-    "forceConsistentCasingInFileNames": false,
+-    "resolveJsonModule": true,
+-    "esModuleInterop": true,
+-    "allowSyntheticDefaultImports": true,
+-    "strict": true,
+-    "experimentalDecorators": true,
+-    "emitDecoratorMetadata": true,
+-    "paths": {
+-      "@src/*": ["src/*"],
+-      "@config/*": ["src/config/*"],
+-      "@modules/*": ["src/modules/*"],
+-      "@common/*": ["src/common/*"]
+-    }
+-  },
+-  "include": ["src"],
+-  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+-}
+-- 
+2.43.0
+

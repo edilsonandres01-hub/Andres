@@ -1,0 +1,485 @@
+From 0c0e64daabc9e97164a109a41e20f2fa166ac291 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursor@example.com>
+Date: Tue, 8 Sep 2026 20:07:25 +0000
+Subject: [PATCH 1/4] feat(backend): gate de prerrequisitos como fuente de
+ verdad en el servidor
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+La cascada lineal del Máster IEP (11 asignaturas + TFM, cada una con
+`meta.prerequisiteSlug`) era decorativa: `locked` se calculaba en un bucle de
+tres líneas dentro del handler de /api/programs y el único control real vivía
+en POST /api/progress, que se esquivaba entregando la actividad, aprobando el
+quiz formativo (que inserta en `progress` vía recomputeLessonProgress) o
+abriendo directamente un intento de examen de 15 preguntas.
+
+Ahora la regla vive en un solo sitio, backend/lib/prerequisites.js, y la
+consumen todas las superficies:
+
+- `evaluate()` decide con las cifras ya cargadas (sin E/S), de modo que el
+  listado la aplica en bloque y las escrituras puntualmente, con el mismo
+  criterio: la asignatura previa debe estar al 100 % de sus recursos.
+- `denyResource` / `denyCourse` / `denyCourseSlug` son las guardas de ruta.
+- Instructor, admin y director de TFM quedan exentos.
+
+Semántica, alineada con el modo consulta de P-17 (7aed5bf): LEER una
+asignatura bloqueada sigue devolviendo 200 con el material completo, pero el
+payload lo declara (`locked`, `lockedReason`, `prerequisiteSlug`,
+`prerequisiteTitle`, `prerequisitePercentage`); AVANZAR devuelve 403 con
+`code: PREREQUISITE_LOCKED`.
+
+Escrituras cerradas: POST /api/progress (ya no duplica la lógica),
+/api/activity/:id, /api/formative/:id, /api/exams/:id/attempts,
+/api/exams/attempts/:id, /api/submissions, /api/quiz-responses,
+/api/tfm/enroll y /api/tfm/milestones/:slug.
+
+Lecturas que ahora declaran el estado: GET /api/courses (courseSummary lo
+serializa, con las cifras del prerrequisito resueltas en la misma consulta),
+GET /api/courses/:id, GET /api/native-courses, GET /api/programs/:slug (que
+deja de calcularlo por su cuenta) y GET /api/exams/:id/status, que además
+niega `canStart`.
+---
+ backend/lib/prerequisites.js | 157 +++++++++++++++++++++++++++++++++++
+ backend/simple-server.js     | 101 +++++++++++++++-------
+ 2 files changed, 226 insertions(+), 32 deletions(-)
+ create mode 100644 backend/lib/prerequisites.js
+
+diff --git a/backend/lib/prerequisites.js b/backend/lib/prerequisites.js
+new file mode 100644
+index 0000000..fafe26b
+--- /dev/null
++++ b/backend/lib/prerequisites.js
+@@ -0,0 +1,157 @@
++// Gate de prerrequisitos del Máster IEP — ÚNICA fuente de verdad.
++//
++// El programa es una cascada lineal: cada asignatura declara en
++// `courses.meta->>'prerequisiteSlug'` la asignatura que hay que terminar antes.
++// La disponibilidad no está materializada en ninguna columna ni vista: se
++// deriva aquí, y SOLO aquí, a partir de `progress`.
++//
++// Semántica (compatible con el "modo consulta" de P-17, commit 7aed5bf):
++//   - LEER una asignatura bloqueada está permitido (200). El payload lo declara
++//     con `locked` + `lockedReason` para que la UI pinte el modo consulta.
++//   - AVANZAR en ella está prohibido (403 PREREQUISITE_LOCKED): registrar
++//     progreso, entregar la actividad, responder el quiz formativo, abrir o
++//     entregar un intento de examen, entregar el proyecto y los hitos del TFM.
++//
++// Instructores, dirección de TFM y admin quedan exentos: gestionan el catálogo
++// completo y necesitan ver y probar cualquier asignatura.
++const pool = require('../db/pool');
++
++const EXEMPT_ROLES = new Set(['instructor', 'admin', 'director_tfm']);
++const PREREQUISITE_LOCKED = 'PREREQUISITE_LOCKED';
++
++const isExemptRole = (user) => !!(user && EXEMPT_ROLES.has(user.role));
++
++const UNLOCKED = Object.freeze({
++  locked: false,
++  lockedReason: null,
++  prerequisiteSlug: null,
++  prerequisiteTitle: null,
++  prerequisitePercentage: null,
++});
++
++function lockedReason(title, slug) {
++  return (
++    `Para avanzar en esta asignatura primero debes completar «${title || slug}» al 100 %. ` +
++    'Puedes consultar el material, pero no registrar progreso, entregar ni examinarte.'
++  );
++}
++
++// Núcleo de la decisión. Sin E/S: recibe las cifras ya cargadas para que el
++// mismo criterio valga tanto en un listado (una consulta para N cursos) como en
++// la comprobación puntual de una escritura.
++//   prerequisiteTotal     — recursos que tiene la asignatura previa
++//   prerequisiteCompleted — recursos que el usuario tiene completados en ella
++// Una asignatura previa sin recursos no bloquea: sería una trampa sin salida.
++function evaluate({ prerequisiteSlug, prerequisiteTitle, prerequisiteTotal, prerequisiteCompleted }, user) {
++  if (!prerequisiteSlug || isExemptRole(user)) return UNLOCKED;
++  const total = Number(prerequisiteTotal || 0);
++  const done = Number(prerequisiteCompleted || 0);
++  const percentage = total > 0 ? Math.round((done / total) * 100) : 100;
++  const locked = total > 0 && done < total;
++  return {
++    locked,
++    lockedReason: locked ? lockedReason(prerequisiteTitle, prerequisiteSlug) : null,
++    prerequisiteSlug,
++    prerequisiteTitle: prerequisiteTitle || null,
++    prerequisitePercentage: percentage,
++  };
++}
++
++// Igual que `evaluate`, pero leyendo las columnas tal como las devuelve el SQL
++// de los listados (snake_case).
++function evaluateRow(row, user) {
++  return evaluate(
++    {
++      prerequisiteSlug: row.prerequisite_slug || (row.meta && row.meta.prerequisiteSlug) || null,
++      prerequisiteTitle: row.prerequisite_title,
++      prerequisiteTotal: row.prerequisite_total,
++      prerequisiteCompleted: row.prerequisite_completed,
++    },
++    user,
++  );
++}
++
++// Fragmento SQL reutilizable: cifras del prerrequisito de `c` para el usuario $N.
++const PREREQUISITE_COLUMNS = (userParam) => `
++  c.meta->>'prerequisiteSlug' AS prerequisite_slug,
++  pc.title AS prerequisite_title,
++  (SELECT count(*) FROM resources r JOIN modules m ON m.id = r.module_id
++    WHERE m.course_id = pc.id) AS prerequisite_total,
++  (SELECT count(*) FROM progress p
++     JOIN resources r ON r.id = p.resource_id
++     JOIN modules m ON m.id = r.module_id
++    WHERE m.course_id = pc.id AND p.user_id = ${userParam} AND p.completed) AS prerequisite_completed`;
++
++const PREREQUISITE_JOIN = `LEFT JOIN courses pc ON pc.slug = c.meta->>'prerequisiteSlug'`;
++
++async function stateForCourse(courseId, user) {
++  if (!courseId || !user || isExemptRole(user)) return UNLOCKED;
++  const { rows } = await pool.query(
++    `SELECT ${PREREQUISITE_COLUMNS('$2')} FROM courses c ${PREREQUISITE_JOIN} WHERE c.id = $1`,
++    [courseId, user.id],
++  );
++  return rows[0] ? evaluateRow(rows[0], user) : UNLOCKED;
++}
++
++async function stateForCourseSlug(slug, user) {
++  if (!slug || !user || isExemptRole(user)) return UNLOCKED;
++  const { rows } = await pool.query(
++    `SELECT ${PREREQUISITE_COLUMNS('$2')} FROM courses c ${PREREQUISITE_JOIN} WHERE c.slug = $1`,
++    [slug, user.id],
++  );
++  return rows[0] ? evaluateRow(rows[0], user) : UNLOCKED;
++}
++
++// Estado del curso al que pertenece un recurso (lección, examen, proyecto…).
++async function stateForResource(resourceId, user) {
++  if (!resourceId || !user || isExemptRole(user)) return UNLOCKED;
++  const { rows } = await pool.query(
++    `SELECT ${PREREQUISITE_COLUMNS('$2')}
++       FROM resources r
++       JOIN modules mo ON mo.id = r.module_id
++       JOIN courses c ON c.id = mo.course_id
++       ${PREREQUISITE_JOIN}
++      WHERE r.id = $1`,
++    [resourceId, user.id],
++  );
++  return rows[0] ? evaluateRow(rows[0], user) : UNLOCKED;
++}
++
++function forbiddenBody(state) {
++  return {
++    code: PREREQUISITE_LOCKED,
++    message: state.lockedReason,
++    prerequisiteSlug: state.prerequisiteSlug,
++    prerequisiteTitle: state.prerequisiteTitle,
++    prerequisitePercentage: state.prerequisitePercentage,
++  };
++}
++
++// Guardas para las rutas. Devuelven true si YA respondieron 403; el handler
++// solo tiene que hacer `if (await gate.denyCourse(...)) return;`.
++function makeGuard(resolve) {
++  return async (sendJSON, res, ref, user) => {
++    const state = await resolve(ref, user);
++    if (!state.locked) return false;
++    sendJSON(res, 403, forbiddenBody(state));
++    return true;
++  };
++}
++
++module.exports = {
++  PREREQUISITE_LOCKED,
++  EXEMPT_ROLES,
++  isExemptRole,
++  UNLOCKED,
++  evaluate,
++  evaluateRow,
++  PREREQUISITE_COLUMNS,
++  PREREQUISITE_JOIN,
++  stateForCourse,
++  stateForCourseSlug,
++  stateForResource,
++  forbiddenBody,
++  denyCourse: makeGuard(stateForCourse),
++  denyCourseSlug: makeGuard(stateForCourseSlug),
++  denyResource: makeGuard(stateForResource),
++};
+diff --git a/backend/simple-server.js b/backend/simple-server.js
+index f248d5e..ec8832d 100644
+--- a/backend/simple-server.js
++++ b/backend/simple-server.js
+@@ -6,6 +6,7 @@ const crypto = require('crypto');
+ const pool = require('./db/pool');
+ const runMigrations = require('./db/migrate');
+ const llm = require('./lib/llm');
++const gate = require('./lib/prerequisites');
+ 
+ const PORT = Number(process.env.PORT) || 3001;
+ let dbReady = false;
+@@ -111,7 +112,10 @@ async function getAuthUser(req) {
+ // ---------- serializadores ----------
+ const publicUser = (u) => ({ id: u.id, email: u.email, name: u.name, role: u.role });
+ 
+-function courseSummary(row) {
++// `lock` procede siempre de lib/prerequisites (gate.evaluateRow / stateForX).
++// Se serializa en TODAS las vistas de curso —listado, detalle y programa— para
++// que ninguna superficie tenga que recalcularlo por su cuenta.
++function courseSummary(row, lock = gate.UNLOCKED) {
+   const total = Number(row.total || 0);
+   const completed = Number(row.completed || 0);
+   return {
+@@ -128,6 +132,11 @@ function courseSummary(row) {
+     note: row.note || undefined,
+     meta: row.meta || {},
+     createdAt: row.created_at,
++    locked: lock.locked,
++    lockedReason: lock.lockedReason,
++    prerequisiteSlug: lock.prerequisiteSlug,
++    prerequisiteTitle: lock.prerequisiteTitle,
++    prerequisitePercentage: lock.prerequisitePercentage,
+     progress: {
+       completed,
+       total,
+@@ -160,8 +169,8 @@ function sanitizeResourceContent(type, cj, role) {
+   return clone;
+ }
+ 
+-async function loadCourseDetail(courseRow, userId, role) {
+-  const summary = courseSummary(courseRow);
++async function loadCourseDetail(courseRow, userId, role, lock = gate.UNLOCKED) {
++  const summary = courseSummary(courseRow, lock);
+   const mods = (
+     await pool.query(
+       `SELECT id, title, numeral, subtitle, meta, order_index FROM modules WHERE course_id = $1 ORDER BY order_index`,
+@@ -213,8 +222,11 @@ async function loadCourseDetail(courseRow, userId, role) {
+   return summary;
+ }
+ 
+-async function coursesForUser(userId, whereKind) {
+-  const params = [userId || null];
++// El listado trae en la MISMA consulta las cifras del prerrequisito de cada
++// curso, para que `locked` salga del gate compartido sin N+1 consultas.
++async function coursesForUser(user, whereKind) {
++  const userId = (user && user.id) || null;
++  const params = [userId];
+   let kindClause = '';
+   if (whereKind) {
+     params.push(whereKind);
+@@ -226,13 +238,15 @@ async function coursesForUser(userId, whereKind) {
+        (SELECT count(*) FROM progress p
+           JOIN resources r ON r.id = p.resource_id
+           JOIN modules m ON m.id = r.module_id
+-         WHERE m.course_id = c.id AND p.user_id = $1 AND p.completed) AS completed
++         WHERE m.course_id = c.id AND p.user_id = $1 AND p.completed) AS completed,
++       ${gate.PREREQUISITE_COLUMNS('$1')}
+      FROM courses c
++     ${gate.PREREQUISITE_JOIN}
+      WHERE c.published${kindClause}
+      ORDER BY c.order_index, c.title`,
+     params,
+   );
+-  return rows.map(courseSummary);
++  return rows.map((r) => courseSummary(r, gate.evaluateRow(r, user)));
+ }
+ 
+ async function findCourseRow(idOrSlug) {
+@@ -681,7 +695,7 @@ route('POST', '/api/auth/logout', async ({ res, req }) => {
+ // --- courses ---
+ route('GET', '/api/courses', async ({ res, user }) => {
+   if (!user) return sendJSON(res, 401, { message: 'Unauthorized' });
+-  sendJSON(res, 200, await coursesForUser(user.id));
++  sendJSON(res, 200, await coursesForUser(user));
+ });
+ 
+ route('POST', '/api/courses', async ({ res, user, body }) => {
+@@ -822,7 +836,11 @@ route('GET', '/api/courses/:id', async ({ res, user, params }) => {
+         )).rows[0].count,
+       )
+     : 0;
+-  sendJSON(res, 200, await loadCourseDetail({ ...course, total, completed }, user && user.id, user && user.role));
++  // Modo consulta (P-17): una asignatura bloqueada SÍ se sirve, con el material
++  // completo; lo que se marca es `locked` para que la UI avise de que aquí no se
++  // puede avanzar. Las escrituras las corta el gate en cada endpoint.
++  const lock = await gate.stateForCourse(course.id, user);
++  sendJSON(res, 200, await loadCourseDetail({ ...course, total, completed }, user && user.id, user && user.role, lock));
+ });
+ 
+ route('PUT', '/api/courses/:id', async ({ res, user, params, body }) => {
+@@ -848,11 +866,12 @@ route('GET', '/api/master-courses', async ({ res, user }) => {
+ route('GET', '/api/native-courses/:id', async ({ res, user, params }) => {
+   const row = await findCourseRow(params.id);
+   if (!row || row.kind !== 'native') return sendJSON(res, 404, { message: 'Not found' });
+-  sendJSON(res, 200, await loadCourseDetail({ ...row, total: 0, completed: 0 }, user && user.id, user && user.role));
++  const lock = await gate.stateForCourse(row.id, user);
++  sendJSON(res, 200, await loadCourseDetail({ ...row, total: 0, completed: 0 }, user && user.id, user && user.role, lock));
+ });
+ 
+ route('GET', '/api/native-courses', async ({ res, user }) => {
+-  sendJSON(res, 200, await coursesForUser(user && user.id, ['native']));
++  sendJSON(res, 200, await coursesForUser(user, ['native']));
+ });
+ 
+ // --- programs (agrupa asignaturas-curso por meta.programSlug, ej. el Máster) ---
+@@ -881,12 +900,12 @@ route('GET', '/api/programs/:slug', async ({ res, user, params }) => {
+   );
+   if (!rows.length) return sendJSON(res, 404, { message: 'Programa no encontrado' });
+ 
+-  const progressBySlug = {};
++  const statsBySlug = {};
++  for (const r of rows) statsBySlug[r.slug] = { total: Number(r.total), completed: Number(r.completed), title: r.title };
+   const asignaturas = rows.map((r) => {
+     const total = Number(r.total);
+     const completed = Number(r.completed);
+     const percentage = total ? Math.round((completed / total) * 100) : 0;
+-    progressBySlug[r.slug] = percentage;
+     const meta = r.meta || {};
+     return {
+       id: r.id, slug: r.slug, title: r.title, description: r.description,
+@@ -902,8 +921,22 @@ route('GET', '/api/programs/:slug', async ({ res, user, params }) => {
+       progress: { completed, total, percentage },
+     };
+   });
++  // Mismo criterio que aplica el backend a las escrituras: lo decide el gate
++  // compartido, no un cálculo propio de esta vista.
+   for (const a of asignaturas) {
+-    a.locked = !!(a.prerequisiteSlug && (progressBySlug[a.prerequisiteSlug] || 0) < 100);
++    const prev = a.prerequisiteSlug ? statsBySlug[a.prerequisiteSlug] : null;
++    const lock = gate.evaluate(
++      {
++        prerequisiteSlug: a.prerequisiteSlug,
++        prerequisiteTitle: prev ? prev.title : null,
++        prerequisiteTotal: prev ? prev.total : 0,
++        prerequisiteCompleted: prev ? prev.completed : 0,
++      },
++      user,
++    );
++    a.locked = lock.locked;
++    a.lockedReason = lock.lockedReason;
++    a.prerequisiteTitle = lock.prerequisiteTitle;
+   }
+ 
+   const tracks = TRACK_ORDER.map((key) => {
+@@ -990,23 +1023,7 @@ route('POST', '/api/progress', async ({ res, user, body }) => {
+           : 'Este recurso se completa al aprobarlo, no manualmente.',
+     });
+   }
+-  // Gate de prerrequisito: si el curso tiene asignatura previa sin terminar, no se avanza.
+-  const prereq = rr.meta && rr.meta.prerequisiteSlug;
+-  if (prereq) {
+-    const pct = (
+-      await pool.query(
+-        `SELECT
+-           (SELECT count(*) FROM resources r JOIN modules m ON m.id = r.module_id WHERE m.course_id = c.id) AS total,
+-           (SELECT count(*) FROM progress p JOIN resources r ON r.id = p.resource_id JOIN modules m ON m.id = r.module_id
+-              WHERE m.course_id = c.id AND p.user_id = $2 AND p.completed) AS done
+-         FROM courses c WHERE c.slug = $1`,
+-        [prereq, user.id],
+-      )
+-    ).rows[0];
+-    if (pct && Number(pct.total) > 0 && Number(pct.done) < Number(pct.total)) {
+-      return sendJSON(res, 403, { message: `Completa "${prereq}" para avanzar en esta asignatura.` });
+-    }
+-  }
++  if (await gate.denyResource(sendJSON, res, resourceId, user)) return;
+   if (completed) {
+     await pool.query(
+       `INSERT INTO progress (user_id, resource_id, completed) VALUES ($1, $2, true)
+@@ -1058,6 +1075,7 @@ route('POST', '/api/formative/:resourceId', async ({ res, user, params, body })
+     await pool.query(`SELECT content_json FROM resources WHERE id = $1 AND type = 'lesson'`, [params.resourceId])
+   ).rows[0];
+   if (!r) return sendJSON(res, 404, { message: 'Lección no encontrada' });
++  if (await gate.denyResource(sendJSON, res, params.resourceId, user)) return;
+   const quiz = Array.isArray((r.content_json || {}).quiz) ? r.content_json.quiz : [];
+   if (!quiz.length) return sendJSON(res, 400, { message: 'La lección no tiene quiz' });
+   const answers = Array.isArray(body.answers) ? body.answers : [];
+@@ -1092,6 +1110,7 @@ route('POST', '/api/activity/:resourceId', async ({ res, user, params, body }) =
+   if (content.length < 20) return sendJSON(res, 400, { message: 'Escribe tu respuesta a la actividad (mín. 20 caracteres).' });
+   const r = await pool.query(`SELECT 1 FROM resources WHERE id = $1 AND type = 'lesson'`, [params.resourceId]);
+   if (!r.rowCount) return sendJSON(res, 404, { message: 'Lección no encontrada' });
++  if (await gate.denyResource(sendJSON, res, params.resourceId, user)) return;
+   await pool.query(
+     `INSERT INTO activity_submissions (user_id, resource_id, content) VALUES ($1, $2, $3)
+      ON CONFLICT (user_id, resource_id) DO UPDATE SET content = EXCLUDED.content, updated_at = now()`,
+@@ -1114,6 +1133,9 @@ route('GET', '/api/exams/:resourceId/status', async ({ res, user, params }) => {
+   ).rows[0];
+   if (!r) return sendJSON(res, 404, { message: 'Examen no encontrado' });
+   const cfg = getExamConfig(r.content_json);
++  // El estado se consulta (modo consulta), pero declara el bloqueo y niega
++  // `canStart` para que la UI no ofrezca un examen que el POST va a rechazar.
++  const lock = await gate.stateForCourse(r.course_id, user);
+   const attempts = (
+     await pool.query(
+       `SELECT attempt_no, score, passed, status, submitted_at, expires_at
+@@ -1143,7 +1165,11 @@ route('GET', '/api/exams/:resourceId/status', async ({ res, user, params }) => {
+     passed,
+     cooldownUntil,
+     inProgressAttemptId: inProgress ? undefined : undefined, // no exponemos id; se reanuda en POST
+-    canStart: !passed && submitted.length < cfg.maxAttempts && !cooldownUntil,
++    canStart: !lock.locked && !passed && submitted.length < cfg.maxAttempts && !cooldownUntil,
++    locked: lock.locked,
++    lockedReason: lock.lockedReason,
++    prerequisiteSlug: lock.prerequisiteSlug,
++    prerequisiteTitle: lock.prerequisiteTitle,
+     reviewItems,
+   });
+ });
+@@ -1181,6 +1207,7 @@ route('POST', '/api/exams/:resourceId/attempts', async ({ res, user, params }) =
+     )
+   ).rows[0];
+   if (!r) return sendJSON(res, 404, { message: 'Examen no encontrado' });
++  if (await gate.denyCourse(sendJSON, res, r.course_id, user)) return;
+   const cfg = getExamConfig(r.content_json);
+   const bankSlug = r.content_json && r.content_json.examConfig && r.content_json.examConfig.bankSlug;
+   if (!bankSlug) return sendJSON(res, 409, { code: 'NO_BANK', message: 'Este examen aún no tiene banco de ítems configurado.' });
+@@ -1266,6 +1293,10 @@ route('POST', '/api/exams/attempts/:attemptId', async ({ res, user, params, body
+   ).rows[0];
+   if (!at) return sendJSON(res, 404, { message: 'Intento no encontrado' });
+   if (at.status !== 'in_progress') return sendJSON(res, 409, { code: 'NOT_IN_PROGRESS', message: 'Este intento ya se cerró.' });
++  // Defensa en profundidad: intentos abiertos antes de que existiera el gate no
++  // pueden entregarse (calificarlos acreditaría progreso en una asignatura
++  // bloqueada).
++  if (await gate.denyResource(sendJSON, res, at.resource_id, user)) return;
+   const expired = new Date(at.expires_at) <= new Date();
+ 
+   const rmeta = (
+@@ -1412,6 +1443,8 @@ route('GET', '/api/tfm', async ({ res, user, query }) => {
+ 
+ route('POST', '/api/tfm/enroll', async ({ res, user }) => {
+   if (!user) return sendJSON(res, 401, { message: 'Unauthorized' });
++  // El TFM es el último eslabón de la cascada (prerrequisito: master-xi).
++  if (await gate.denyCourseSlug(sendJSON, res, 'master-tfm', user)) return;
+   await pool.query(
+     `INSERT INTO tfm_enrollments (user_id, status) VALUES ($1, 'in_progress')
+      ON CONFLICT (user_id) DO UPDATE SET status = 'in_progress', updated_at = now()`,
+@@ -1424,6 +1457,7 @@ route('POST', '/api/tfm/milestones/:slug', async ({ res, user, params, body }) =
+   if (!user) return sendJSON(res, 401, { message: 'Unauthorized' });
+   const ms = (await pool.query('SELECT * FROM tfm_milestones WHERE slug = $1', [params.slug])).rows[0];
+   if (!ms) return sendJSON(res, 404, { message: 'Hito no encontrado' });
++  if (await gate.denyCourseSlug(sendJSON, res, 'master-tfm', user)) return;
+   const enr = (
+     await pool.query(
+       `INSERT INTO tfm_enrollments (user_id, status) VALUES ($1, 'in_progress')
+@@ -2016,6 +2050,8 @@ route('POST', '/api/submissions', async ({ res, user, body }) => {
+     return sendJSON(res, 400, { message: 'Adjunta al menos un enlace (repositorio o artefacto).' });
+   }
+   const course = courseId ? await findCourseRow(courseId) : null;
++  if (isUuid(resourceId) && (await gate.denyResource(sendJSON, res, resourceId, user))) return;
++  if (course && (await gate.denyCourse(sendJSON, res, course.id, user))) return;
+   const { rows } = await pool.query(
+     `INSERT INTO submissions (user_id, resource_id, course_id, content, kind, repo_url, status)
+      VALUES ($1, $2, $3, $4, $5, $6, 'submitted') RETURNING *`,
+@@ -2212,6 +2248,7 @@ route('POST', '/api/quiz-responses', async ({ res, user, body }) => {
+     [quizId],
+   );
+   if (!rows[0]) return sendJSON(res, 404, { message: 'Quiz no encontrado' });
++  if (await gate.denyCourse(sendJSON, res, rows[0].course_id, user)) return;
+   const cj = rows[0].content_json || {};
+   const raw = Array.isArray(cj.questions) ? cj.questions : Array.isArray(cj.quiz) ? cj.quiz : [];
+   let correct = 0;
+-- 
+2.43.0
+
