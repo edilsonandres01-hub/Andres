@@ -11,6 +11,7 @@ Base sobre la que se generaron: `main` en `860cd00`, salvo `dashboard/` y
 
 | Lote | Estado | Base |
 |---|---|---|
+| `preguntas-comprension/` | **vigente** | `bde8fb7` |
 | `actividad-leccion/` | **vigente** | `bde8fb7` |
 | `admin-usuarios/` | **vigente** | `6f20fc7` |
 | `llm-nvidia/` | **vigente** | `632bf7a` |
@@ -42,9 +43,26 @@ conservan solo como registro de la investigación. Producción ya arranca: los
 endpoints `/api/tfm`, `/api/exams/:id/status` y `/api/me/review-plan` responden 401
 (existen y piden sesión) en lugar de 404.
 
-**Sigue vigente:** `actividad-leccion/` (textarea de Actividad que arrastraba
-el texto de la lección anterior), `plantillas/` (no está en `main`; los cuatro
-`notebookTemplateUrl` siguen a `null`) y `dashboard/` (generado sobre `632bf7a`).
+**Sigue vigente:** `preguntas-comprension/` (opciones de las Preguntas de
+comprensión y botón Comprobar respuesta), `actividad-leccion/` (textarea de
+Actividad que arrastraba el texto de la lección anterior), `plantillas/` (no
+está en `main`; los cuatro `notebookTemplateUrl` siguen a `null`) y
+`dashboard/` (generado sobre `632bf7a`).
+
+## `preguntas-comprension/` — opciones seleccionables y botón Comprobar respuesta
+
+Un parche sobre `bde8fb7`. Las Preguntas de comprensión de la lectura guiada
+eran una lista estática con «Ver respuesta». Ahora se marca una opción y cada
+pregunta tiene **Comprobar respuesta**. El quiz de la lección usa el mismo
+texto de botón y un radio visible. Ver `preguntas-comprension/APLICAR.md`.
+
+Comparte `CourseView.tsx` con `actividad-leccion/`: aplica primero ese lote.
+
+```bash
+git checkout -b cursor/preguntas-comprension-21ab main
+git am /ruta/a/preguntas-comprension/*.patch
+git push -u origin cursor/preguntas-comprension-21ab
+```
 
 ## `actividad-leccion/` — el textarea de Actividad no arrastra texto entre lecciones
 
@@ -226,12 +244,15 @@ git push -u origin cursor/admin-usuarios-matricula-21ab
 
 ## Orden recomendado
 
-Con `main` en `bde8fb7`, los lotes que quedan por aplicar son `actividad-leccion/`,
-`llm-nvidia/`, `plantillas/`, `dashboard/`, `gate-prerrequisitos/` y
-`admin-usuarios/`:
+Con `main` en `bde8fb7`, los lotes que quedan por aplicar son `preguntas-comprension/`,
+`actividad-leccion/`, `llm-nvidia/`, `plantillas/`, `dashboard/`,
+`gate-prerrequisitos/` y `admin-usuarios/`:
 
-0. **`actividad-leccion/`** — independiente; dos ficheros del frontend. Cierra
-   el arrastre de texto de Actividad entre lecciones.
+0. **`actividad-leccion/`** — independiente salvo `CourseView.tsx`; cierra el
+   arrastre de texto de Actividad entre lecciones. Va antes de
+   `preguntas-comprension/` si aplicas los dos.
+0b. **`preguntas-comprension/`** — Preguntas de comprensión seleccionables y
+   botón Comprobar respuesta. Comparte `CourseView.tsx` con el lote anterior.
 1. **`plantillas/`** — independiente de todo lo demás; no toca el frontend.
 2. **`dashboard/`** — antes que el gate, porque el conflicto se resuelve mejor en
    ese sentido (`git am -3` deja una sola pieza que resolver).
