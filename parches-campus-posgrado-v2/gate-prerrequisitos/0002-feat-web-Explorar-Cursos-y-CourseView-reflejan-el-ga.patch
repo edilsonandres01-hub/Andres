@@ -1,0 +1,374 @@
+From 70d34244964ebdf9b5d4ef15698c6bb307a263cb Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursor@example.com>
+Date: Tue, 8 Sep 2026 20:16:02 +0000
+Subject: [PATCH 2/4] =?UTF-8?q?feat(web):=20=C2=ABExplorar=20Cursos=C2=BB?=
+ =?UTF-8?q?=20y=20CourseView=20reflejan=20el=20gate=20del=20servidor?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`interface Course` no declaraba el campo y `CourseCard` no tenía rama de
+render para bloqueado, así que el `locked` que ahora emite el backend no se
+habría visto en ninguna parte del catálogo genérico.
+
+- useCourses: `Course` declara locked / lockedReason / prerequisiteSlug /
+  prerequisiteTitle / prerequisitePercentage. usePrograms añade lockedReason.
+- CourseCard: tarjeta bloqueada (🔒, atenuada, con el motivo y el nombre del
+  prerrequisito) que entra en modo consulta —/courses/:id?preview=1— en vez de
+  al modo trabajo. No se oculta: P-17 quiere que se pueda ojear.
+- ExploreCoursesPage: pasa el estado a la tarjeta y cuenta las bloqueadas.
+- CourseView: el banner de modo consulta ya no depende solo de ?preview=1;
+  si el backend dice `locked`, se avisa igual, de modo que entrar por URL
+  directa lleva al modo consulta y no a una pantalla que falla al primer clic.
+  Los controles de avance (ExamRunner, SubmissionForm, HandsOnSubmission,
+  TfmMilestones, LessonFormative y el botón de marcar completada) se sustituyen
+  por un aviso; el material de alrededor —enunciado, rúbrica, teoría, tutor—
+  se sigue mostrando.
+---
+ frontend/src/components/CourseCard.tsx    |  43 ++++++++-
+ frontend/src/hooks/useCourses.ts          |  12 +++
+ frontend/src/hooks/usePrograms.ts         |   3 +
+ frontend/src/pages/CourseView.tsx         | 107 +++++++++++++++++++---
+ frontend/src/pages/ExploreCoursesPage.tsx |  10 ++
+ 5 files changed, 160 insertions(+), 15 deletions(-)
+
+diff --git a/frontend/src/components/CourseCard.tsx b/frontend/src/components/CourseCard.tsx
+index 2db0145..6cf2059 100644
+--- a/frontend/src/components/CourseCard.tsx
++++ b/frontend/src/components/CourseCard.tsx
+@@ -5,6 +5,10 @@ interface CourseCardProps {
+   title: string
+   description: string
+   imageUrl?: string
++  /** Cascada de prerrequisitos: la sirve el backend en cada vista de curso. */
++  locked?: boolean
++  lockedReason?: string | null
++  prerequisiteTitle?: string | null
+   progress: {
+     completed: number
+     total: number
+@@ -12,12 +16,49 @@ interface CourseCardProps {
+   }
+ }
+ 
+-export default function CourseCard({ id, title, description, imageUrl, progress }: CourseCardProps) {
++export default function CourseCard({
++  id,
++  title,
++  description,
++  imageUrl,
++  locked,
++  lockedReason,
++  prerequisiteTitle,
++  progress,
++}: CourseCardProps) {
+   const navigate = useNavigate()
+   const pct = Math.round(progress?.percentage ?? 0)
+   const completed = progress?.completed ?? 0
+   const total = progress?.total ?? 0
+ 
++  // Asignatura bloqueada: no se esconde (P-17 permite ojear el material), pero
++  // la tarjeta lo dice y entra en modo consulta, no en modo trabajo.
++  if (locked) {
++    return (
++      <button
++        type="button"
++        onClick={() => navigate(`/courses/${id}?preview=1`)}
++        className="text-left bg-gray-100 dark:bg-gray-800/60 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 overflow-hidden flex flex-col hover:shadow transition"
++      >
++        <div className="h-32 bg-gray-300 dark:bg-gray-700 flex items-end p-4">
++          <span className="text-gray-700 dark:text-gray-300 font-semibold text-lg">🔒 {title}</span>
++        </div>
++        <div className="p-4 flex-1 flex flex-col">
++          <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 flex-1">{description}</p>
++          <p className="mt-4 text-xs text-gray-600 dark:text-gray-400">
++            {lockedReason ||
++              (prerequisiteTitle
++                ? `Completa "${prerequisiteTitle}" para desbloquear.`
++                : 'Bloqueada por la cascada del programa.')}
++          </p>
++          <span className="mt-3 text-sm font-semibold text-primary-600 dark:text-primary-400">
++            👁️ Ver en modo consulta →
++          </span>
++        </div>
++      </button>
++    )
++  }
++
+   return (
+     <button
+       type="button"
+diff --git a/frontend/src/hooks/useCourses.ts b/frontend/src/hooks/useCourses.ts
+index e1eb80e..6ada0e1 100644
+--- a/frontend/src/hooks/useCourses.ts
++++ b/frontend/src/hooks/useCourses.ts
+@@ -3,12 +3,24 @@ import { api } from '../services/api'
+ 
+ export interface Course {
+   id: string
++  slug?: string
+   title: string
+   description: string
+   imageUrl?: string
+   published: boolean
+   instructorId?: string
+   modules?: any[]
++  /**
++   * Cascada de prerrequisitos del Máster. Lo calcula el backend
++   * (backend/lib/prerequisites.js) y viene en TODAS las vistas de curso.
++   * `locked` no oculta el material —se puede consultar— pero avanzar
++   * (progreso, entregas, quizzes, exámenes) devuelve 403 PREREQUISITE_LOCKED.
++   */
++  locked?: boolean
++  lockedReason?: string | null
++  prerequisiteSlug?: string | null
++  prerequisiteTitle?: string | null
++  prerequisitePercentage?: number | null
+   progress: {
+     completed: number
+     total: number
+diff --git a/frontend/src/hooks/usePrograms.ts b/frontend/src/hooks/usePrograms.ts
+index be27e69..2850270 100644
+--- a/frontend/src/hooks/usePrograms.ts
++++ b/frontend/src/hooks/usePrograms.ts
+@@ -17,7 +17,10 @@ export interface ProgramAsignatura {
+   ects: number | null
+   contenidos: string[]
+   progress: { completed: number; total: number; percentage: number }
++  /** Cascada de prerrequisitos, decidida en backend/lib/prerequisites.js. */
+   locked: boolean
++  lockedReason?: string | null
++  prerequisiteTitle?: string | null
+ }
+ 
+ export interface ProgramTrack {
+diff --git a/frontend/src/pages/CourseView.tsx b/frontend/src/pages/CourseView.tsx
+index a826050..811bd22 100644
+--- a/frontend/src/pages/CourseView.tsx
++++ b/frontend/src/pages/CourseView.tsx
+@@ -62,7 +62,35 @@ const SUBMISSION_STATUS_LABEL: Record<string, string> = {
+   draft: 'Borrador',
+ }
+ 
+-function ProjectDelivery({ resource, courseId, courseSlug }: { resource: Resource; courseId: string; courseSlug?: string }) {
++/**
++ * Aviso que sustituye a los controles de avance (examen, entrega, quiz
++ * formativo) cuando la asignatura está bloqueada por la cascada. El material
++ * de alrededor sí se muestra: es el modo consulta de P-17.
++ */
++function LockedNotice({ what, reason }: { what: string; reason?: string | null }) {
++  return (
++    <div className="my-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded p-4">
++      <p className="font-semibold text-amber-900 dark:text-amber-200 mb-1">🔒 {what} no disponible todavía</p>
++      <p className="text-sm text-amber-800 dark:text-amber-300">
++        {reason || 'Completa la asignatura anterior para desbloquear esta parte.'}
++      </p>
++    </div>
++  )
++}
++
++function ProjectDelivery({
++  resource,
++  courseId,
++  courseSlug,
++  locked,
++  lockedReason,
++}: {
++  resource: Resource
++  courseId: string
++  courseSlug?: string
++  locked?: boolean
++  lockedReason?: string | null
++}) {
+   const cj = resource.contentJson || {}
+   const { data: submissions = [] } = useSubmissions({ courseId })
+   const mine = submissions.filter((s) => s.resourceId === resource.id)
+@@ -76,7 +104,7 @@ function ProjectDelivery({ resource, courseId, courseSlug }: { resource: Resourc
+             {cj.deliverable}
+           </div>
+         )}
+-        <TfmMilestones />
++        {locked ? <LockedNotice what="La entrega de hitos del TFM" reason={lockedReason} /> : <TfmMilestones />}
+       </div>
+     )
+   }
+@@ -97,7 +125,11 @@ function ProjectDelivery({ resource, courseId, courseSlug }: { resource: Resourc
+             {cj.mastery}
+           </div>
+         )}
+-        <HandsOnSubmission resource={resource} courseId={courseId} spec={cj.handson} rubricSlug={cj.rubricSlug} />
++        {locked ? (
++          <LockedNotice what="La entrega del proyecto" reason={lockedReason} />
++        ) : (
++          <HandsOnSubmission resource={resource} courseId={courseId} spec={cj.handson} rubricSlug={cj.rubricSlug} />
++        )}
+       </div>
+     )
+   }
+@@ -173,7 +205,11 @@ function ProjectDelivery({ resource, courseId, courseSlug }: { resource: Resourc
+         </div>
+       )}
+ 
+-      <SubmissionForm resourceId={resource.id} courseId={courseId} resourceTitle={resource.title} />
++      {locked ? (
++        <LockedNotice what="La entrega del proyecto" reason={lockedReason} />
++      ) : (
++        <SubmissionForm resourceId={resource.id} courseId={courseId} resourceTitle={resource.title} />
++      )}
+     </div>
+   )
+ }
+@@ -209,10 +245,25 @@ function PeerReviewSection({ submissionId }: { submissionId: string }) {
+   )
+ }
+ 
+-function ResourceBody({ resource, courseId, courseSlug }: { resource: Resource; courseId: string; courseSlug?: string }) {
++function ResourceBody({
++  resource,
++  courseId,
++  courseSlug,
++  locked,
++  lockedReason,
++}: {
++  resource: Resource
++  courseId: string
++  courseSlug?: string
++  locked?: boolean
++  lockedReason?: string | null
++}) {
+   const cj = resource.contentJson || {}
+ 
+   if (resource.type === 'exam') {
++    if (locked) {
++      return <LockedNotice what="El examen de la asignatura" reason={lockedReason} />
++    }
+     // Máster: motor de intentos con banco de ítems. Aulas legadas: quiz simple.
+     if (cj.examConfig) {
+       return <ExamRunner resourceId={resource.id} />
+@@ -228,7 +279,15 @@ function ResourceBody({ resource, courseId, courseSlug }: { resource: Resource;
+   }
+ 
+   if (resource.type === 'project') {
+-    return <ProjectDelivery resource={resource} courseId={courseId} courseSlug={courseSlug} />
++    return (
++      <ProjectDelivery
++        resource={resource}
++        courseId={courseId}
++        courseSlug={courseSlug}
++        locked={locked}
++        lockedReason={lockedReason}
++      />
++    )
+   }
+ 
+   if (resource.type === 'lesson' && Array.isArray(cj.body) && cj.body.length) {
+@@ -314,9 +373,12 @@ function ResourceBody({ resource, courseId, courseSlug }: { resource: Resource;
+           </div>
+         )}
+         <TutorPanel resourceId={resource.id} />
+-        {((Array.isArray(cj.quiz) && cj.quiz.length > 0) || cj.exercise?.text) && (
+-          <LessonFormative resourceId={resource.id} quiz={cj.quiz || []} exercise={cj.exercise} />
+-        )}
++        {((Array.isArray(cj.quiz) && cj.quiz.length > 0) || cj.exercise?.text) &&
++          (locked ? (
++            <LockedNotice what="La actividad y el quiz de comprensión" reason={lockedReason} />
++          ) : (
++            <LessonFormative resourceId={resource.id} quiz={cj.quiz || []} exercise={cj.exercise} />
++          ))}
+         {resource.revisedAt && (
+           <p className="mt-4 text-xs text-gray-400">Contenido revisado: {resource.revisedAt}</p>
+         )}
+@@ -424,6 +486,8 @@ export default function CourseView() {
+   const selected = flatResources.find((r) => r.id === selectedId) || null
+   const selIndex = flatResources.findIndex((r) => r.id === selectedId)
+   const pct = course.progress?.percentage ?? 0
++  // Lo decide el servidor (backend/lib/prerequisites.js); aquí solo se refleja.
++  const locked = !!course.locked
+ 
+   const go = (delta: number) => {
+     const next = flatResources[selIndex + delta]
+@@ -460,11 +524,15 @@ export default function CourseView() {
+               </>
+             )}
+           </nav>
+-          {preview && (
++          {/* El banner ya no depende solo de ?preview=1: si el backend dice que
++              la asignatura está bloqueada, se avisa igual. Así entrar por URL
++              directa lleva al modo consulta en vez de a una pantalla que
++              aparenta ser normal y falla al primer clic. */}
++          {(preview || locked) && (
+             <p className="mt-2 text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-amber-800 rounded px-3 py-2">
+-              👁️ <strong>Modo consulta.</strong> Esta asignatura aún está bloqueada:
+-              puedes leer todo el material, pero para hacer el examen, entregar el
+-              proyecto o registrar progreso primero debes completar la asignatura anterior.
++              👁️ <strong>Modo consulta.</strong>{' '}
++              {course.lockedReason ||
++                'Esta asignatura aún está bloqueada: puedes leer todo el material, pero para hacer el examen, entregar el proyecto o registrar progreso primero debes completar la asignatura anterior.'}
+             </p>
+           )}
+           <div className="flex items-start justify-between gap-3 mt-1">
+@@ -594,7 +662,13 @@ export default function CourseView() {
+                 </a>
+               )}
+ 
+-              <ResourceBody resource={selected} courseId={course.id} courseSlug={course.slug} />
++              <ResourceBody
++                resource={selected}
++                courseId={course.id}
++                courseSlug={course.slug}
++                locked={locked}
++                lockedReason={course.lockedReason}
++              />
+ 
+               {/* La barra de navegación anterior/siguiente se oculta en examen y
+                   proyecto: son vistas terminales con su propio flujo (ExamRunner /
+@@ -615,6 +689,11 @@ export default function CourseView() {
+                     ((Array.isArray(cjs.quiz) && cjs.quiz.length > 0) || !!cjs.exercise?.text)
+                   const canManual =
+                     selected.type !== 'exam' && selected.type !== 'project' && !lessonHasFormative
++                  // En modo consulta no se ofrece marcar progreso: el backend
++                  // devolvería 403 PREREQUISITE_LOCKED.
++                  if (locked) {
++                    return <span className="text-xs text-gray-400">🔒 Modo consulta — no se registra progreso</span>
++                  }
+                   if (lessonHasFormative) {
+                     return (
+                       <span className="text-xs text-gray-400">
+diff --git a/frontend/src/pages/ExploreCoursesPage.tsx b/frontend/src/pages/ExploreCoursesPage.tsx
+index 00b4850..25bfc6c 100644
+--- a/frontend/src/pages/ExploreCoursesPage.tsx
++++ b/frontend/src/pages/ExploreCoursesPage.tsx
+@@ -27,6 +27,8 @@ export function ExploreCoursesPage() {
+       sortBy === 'progress' ? b.progress.percentage - a.progress.percentage : 0
+     );
+ 
++  const lockedCount = displayCourses.filter((c: any) => c.locked).length;
++
+   return (
+     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+@@ -81,6 +83,11 @@ export function ExploreCoursesPage() {
+           {/* Results counter */}
+           <div className="text-sm text-gray-600 dark:text-gray-400">
+             {displayCourses.length} curso{displayCourses.length !== 1 ? 's' : ''} encontrado{displayCourses.length !== 1 ? 's' : ''}
++            {lockedCount > 0 && (
++              <span className="ml-2 text-gray-500 dark:text-gray-500">
++                · 🔒 {lockedCount} bloqueado{lockedCount !== 1 ? 's' : ''} por la cascada del Máster (se pueden consultar)
++              </span>
++            )}
+           </div>
+         </div>
+ 
+@@ -101,6 +108,9 @@ export function ExploreCoursesPage() {
+                 title={course.title}
+                 description={course.description}
+                 imageUrl={course.imageUrl}
++                locked={course.locked}
++                lockedReason={course.lockedReason}
++                prerequisiteTitle={course.prerequisiteTitle}
+                 progress={course.progress}
+               />
+             ))}
+-- 
+2.43.0
+

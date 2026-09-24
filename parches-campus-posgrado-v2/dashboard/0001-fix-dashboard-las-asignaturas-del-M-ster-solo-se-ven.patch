@@ -1,0 +1,137 @@
+From 1f711a64024cf443769508a54eda8ff8b33ebfb0 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 19:26:40 +0000
+Subject: [PATCH 1/2] =?UTF-8?q?fix(dashboard):=20las=20asignaturas=20del?=
+ =?UTF-8?q?=20M=C3=A1ster=20solo=20se=20ven=20dentro=20del=20programa?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+El panel principal listaba las 12 asignaturas del Máster IEP (las 11 del
+plan + el TFM) como tarjetas sueltas junto a las aulas y los cursos
+nativos. Eso duplicaba el acceso al Máster —que ya tenía su propio bloque
+en el panel— y, sobre todo, se saltaba la cascada de desbloqueo: la
+tarjeta genérica no conoce el campo `locked`, que solo calcula
+`GET /api/programs/:slug`, así que las 12 se veían idénticas y todas
+abrían `/courses/:slug` aunque solo la I estuviera desbloqueada.
+
+El panel deja de listarlas y quedan donde sí se aplica la cascada:
+`/master-iep`. La pertenencia se decide por el dato de relación
+`meta.programSlug`, no por el título ni por `kind`; hay cursos con
+`kind='program'` que no pertenecen a ningún programa (el módulo puente
+de MLOps) y deben seguir apareciendo como cursos sueltos.
+
+El filtro va en el cliente porque `GET /api/courses` es el catálogo
+compartido: filtrarlo en el servidor vaciaría también «Explorar Cursos»
+y el listado del panel de instructor, que necesitan el catálogo íntegro.
+La respuesta ya expone `meta`, así que no hace falta tocar la API.
+
+Los contadores de la bienvenida pasan a contar solo cursos sueltos para
+que no digan «matriculado en 16 de 29» mientras se listan 4.
+---
+ frontend/src/hooks/useCourses.ts | 23 +++++++++++++++++++++++
+ frontend/src/pages/Dashboard.tsx | 18 ++++++++++++++----
+ 2 files changed, 37 insertions(+), 4 deletions(-)
+
+diff --git a/frontend/src/hooks/useCourses.ts b/frontend/src/hooks/useCourses.ts
+index e1eb80e..1f0c656 100644
+--- a/frontend/src/hooks/useCourses.ts
++++ b/frontend/src/hooks/useCourses.ts
+@@ -1,14 +1,26 @@
+ import { useQuery } from '@tanstack/react-query'
+ import { api } from '../services/api'
+ 
++export interface CourseMeta {
++  /** Slug del programa al que pertenece la asignatura (p. ej. 'master-iep'). */
++  programSlug?: string | null
++  track?: string | null
++  programOrder?: number | null
++  prerequisiteSlug?: string | null
++  [key: string]: any
++}
++
+ export interface Course {
+   id: string
++  slug?: string
++  kind?: string
+   title: string
+   description: string
+   imageUrl?: string
+   published: boolean
+   instructorId?: string
+   modules?: any[]
++  meta?: CourseMeta
+   progress: {
+     completed: number
+     total: number
+@@ -16,6 +28,17 @@ export interface Course {
+   }
+ }
+ 
++/**
++ * Una asignatura de programa solo se cursa desde la página de su programa, que es
++ * la única vista que aplica la cascada de desbloqueo (`GET /api/programs/:slug`).
++ * La pertenencia se decide por el dato de relación `meta.programSlug`, no por el
++ * título ni por `kind`: hay cursos con `kind='program'` que no pertenecen a ningún
++ * programa (p. ej. `modulo-puente-mlops`) y deben seguir listándose como sueltos.
++ */
++export function belongsToProgram(course: Pick<Course, 'meta'>): boolean {
++  return !!course.meta?.programSlug
++}
++
+ export function useCourses() {
+   return useQuery<Course[]>({
+     queryKey: ['courses'],
+diff --git a/frontend/src/pages/Dashboard.tsx b/frontend/src/pages/Dashboard.tsx
+index 04f041b..7de2172 100644
+--- a/frontend/src/pages/Dashboard.tsx
++++ b/frontend/src/pages/Dashboard.tsx
+@@ -1,7 +1,7 @@
+ import { useState } from 'react'
+ import { useNavigate } from 'react-router-dom'
+ import { useAuthStore } from '../state/store'
+-import { useCourses, useProgress } from '../hooks/useCourses'
++import { useCourses, useProgress, belongsToProgram } from '../hooks/useCourses'
+ import CourseCard from '../components/CourseCard'
+ import { NotificationBell } from '../components/NotificationBell'
+ import { CertificatesList } from '../components/CertificatesList'
+@@ -21,7 +21,10 @@ export default function Dashboard() {
+   }
+ 
+   const enrolledIds = new Set(Object.keys(progress?.courses || {}))
+-  const myCourses = (courses || []).filter(c => enrolledIds.has(c.id))
++  // Las asignaturas del Máster se cursan desde /master-iep, que es la vista que
++  // aplica la cascada de desbloqueo; aquí solo se listan los cursos sueltos.
++  const looseCourses = (courses || []).filter(c => !belongsToProgram(c))
++  const myCourses = looseCourses.filter(c => enrolledIds.has(c.id))
+   const activeCourses = myCourses.filter(c => c.progress.percentage < 100)
+   const completedCourses = myCourses.filter(c => c.progress.percentage === 100)
+ 
+@@ -68,7 +71,7 @@ export default function Dashboard() {
+               <h2 className="text-3xl font-bold mb-2">¡Bienvenido, {user?.name}!</h2>
+               <p className="text-primary-100">
+                 {user?.role === 'student'
+-                  ? `Estás matriculado en ${progress?.totalCourses ?? 0} de ${courses?.length ?? 0} cursos del catálogo. Tu progreso general es ${progress?.averageProgress || 0}%.`
++                  ? `Estás matriculado en ${myCourses.length} de ${looseCourses.length} cursos del catálogo. Tu progreso general es ${progress?.averageProgress || 0}%.`
+                   : 'Gestiona tus cursos y estudiantes.'}
+               </p>
+             </div>
+@@ -166,7 +169,14 @@ export default function Dashboard() {
+ 
+         {/* My Courses Section */}
+         <section className="mb-12">
+-          <h3 className="text-2xl font-bold text-gray-900 mb-6">En Progreso</h3>
++          <div className="mb-6">
++            <h3 className="text-2xl font-bold text-gray-900">En Progreso</h3>
++            {user?.role === 'student' && (
++              <p className="text-sm text-gray-500 mt-1">
++                Aulas y cursos complementarios. Las asignaturas del Máster se cursan dentro del programa.
++              </p>
++            )}
++          </div>
+           {coursesLoading ? (
+             <div className="text-center py-12">
+               <p className="text-gray-600">Cargando cursos...</p>
+-- 
+2.43.0
+

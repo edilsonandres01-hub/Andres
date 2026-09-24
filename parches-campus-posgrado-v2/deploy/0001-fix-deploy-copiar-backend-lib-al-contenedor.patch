@@ -1,0 +1,44 @@
+From 3f81005c522731b736a48924095a834849600318 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 8 Sep 2026 12:39:40 +0000
+Subject: [PATCH] fix(deploy): copiar backend/lib al contenedor
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+El servidor requiere ./lib/llm en el arranque (simple-server.js:8), pero
+ninguno de los dos Dockerfile copiaba backend/lib. El contenedor moría con
+MODULE_NOT_FOUND antes de escuchar, dejando la API en 502 y sin aplicar las
+migraciones 002-015.
+---
+ Dockerfile         | 1 +
+ backend/Dockerfile | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/Dockerfile b/Dockerfile
+index 61386ae..8b058f0 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -7,6 +7,7 @@ RUN npm install --omit=dev --no-audit --no-fund
+ 
+ # Código + migraciones + datos de seed
+ COPY backend/simple-server.js ./simple-server.js
++COPY backend/lib ./lib
+ COPY backend/db ./db
+ COPY backend/scripts ./scripts
+ 
+diff --git a/backend/Dockerfile b/backend/Dockerfile
+index f88bcb2..9ee2328 100644
+--- a/backend/Dockerfile
++++ b/backend/Dockerfile
+@@ -5,6 +5,7 @@ COPY package.json package-lock.json* ./
+ RUN npm install --omit=dev --no-audit --no-fund
+ 
+ COPY simple-server.js ./simple-server.js
++COPY lib ./lib
+ COPY db ./db
+ COPY scripts ./scripts
+ 
+-- 
+2.43.0
+

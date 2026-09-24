@@ -1,0 +1,203 @@
+From e2e1c5c19fd2c445647f1e1e3717622b33dc5023 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursor@cursor.com>
+Date: Wed, 9 Sep 2026 02:18:06 +0000
+Subject: [PATCH 3/3] =?UTF-8?q?docs(llm):=20documentar=20la=20configuraci?=
+ =?UTF-8?q?=C3=B3n=20del=20proveedor=20y=20quitar=20las=20referencias=20a?=
+ =?UTF-8?q?=20ANTHROPIC=5FAPI=5FKEY?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`backend/.env.example` describe ahora los cuatro valores de LLM_PROVIDER, la
+clave genérica LLM_API_KEY, LLM_BASE_URL, los presupuestos de tokens y por qué
+son más altos con un modelo de razonamiento, y las dos variables de robustez de
+red. Sin ningún valor real de clave.
+
+Las tres guías de despliegue y el aviso del panel de calificación seguían
+diciendo `ANTHROPIC_API_KEY`, que con la configuración nueva ya no se lee: se
+actualizan a LLM_API_KEY para que la documentación no lleve a poner una
+variable que el servidor ignora.
+---
+ DEPLOY.md                                |  4 +-
+ DEPLOYMENT_QUICK_START.md                | 13 ++++--
+ DEPLOY_AUTOMATIZADO.md                   |  6 +--
+ MASTER_IEP_INTEGRATION.md                |  2 +-
+ backend/.env.example                     | 56 +++++++++++++++++++++---
+ backend/simple-server.js                 |  2 +-
+ frontend/src/components/GradingPanel.tsx |  2 +-
+ 7 files changed, 68 insertions(+), 17 deletions(-)
+
+diff --git a/DEPLOY.md b/DEPLOY.md
+index 3ec786a..46a877e 100644
+--- a/DEPLOY.md
++++ b/DEPLOY.md
+@@ -61,8 +61,8 @@ El repo ya trae `Dockerfile` (raíz) y `railway.toml`. No hay que escribir nada.
+ 4. Configurar las variables del servicio — ver la lista completa en
+    `DEPLOYMENT_QUICK_START.md` (PASO 4). Mínimo operativo:
+    `PORT=3001`, `AUTO_SEED=sync`, `SEED_DEMO_DATA=false`. Para el tutor IA:
+-   `LLM_PROVIDER=anthropic`, `LLM_MODEL=claude-sonnet-5`,
+-   `LLM_MODEL_HEAVY=claude-opus-5`, `ANTHROPIC_API_KEY=<secreto>`.
++   `LLM_PROVIDER=nvidia`, `LLM_MODEL=moonshotai/kimi-k3`,
++   `LLM_MODEL_HEAVY=moonshotai/kimi-k3`, `LLM_API_KEY=<secreto>`.
+ 5. Las migraciones corren solas al arrancar; con `AUTO_SEED=sync` el seed
+    (no destructivo) también.
+ 
+diff --git a/DEPLOYMENT_QUICK_START.md b/DEPLOYMENT_QUICK_START.md
+index d5e3866..0f5384b 100644
+--- a/DEPLOYMENT_QUICK_START.md
++++ b/DEPLOYMENT_QUICK_START.md
+@@ -81,10 +81,15 @@ EXAM_COOLDOWN_HOURS=24
+ 
+ # LLM — tutor y asistencia de nota (opcional; sin key el tutor cae a FAQ y
+ # /grade-suggestion devuelve 501)
+-LLM_PROVIDER=anthropic
+-LLM_MODEL=claude-sonnet-5
+-LLM_MODEL_HEAVY=claude-opus-5
+-ANTHROPIC_API_KEY=<secreto — pégalo solo en el panel de Railway>
++# Proveedores: none | nvidia | openai-compatible | anthropic
++LLM_PROVIDER=nvidia
++LLM_MODEL=moonshotai/kimi-k3
++LLM_MODEL_HEAVY=moonshotai/kimi-k3
++LLM_API_KEY=<secreto — pégalo solo en el panel de Railway>
++# kimi-k3 razona antes de responder y ese razonamiento consume max_tokens.
++# Los presupuestos por defecto (3000/6000/16000) ya lo contemplan; se ajustan
++# con LLM_MAX_TOKENS_TUTOR / _GRADE / _ITEMS si hiciera falta.
++# Con LLM_PROVIDER=openai-compatible hay que declarar además LLM_BASE_URL.
+ 
+ # Referencia de catálogo por asignatura (opcional; si el IEP facilita las claves)
+ # OFFICIAL_CODE_V=... OFFICIAL_CODE_VIII=... OFFICIAL_CODE_TFM=...
+diff --git a/DEPLOY_AUTOMATIZADO.md b/DEPLOY_AUTOMATIZADO.md
+index 6661a98..37c224c 100644
+--- a/DEPLOY_AUTOMATIZADO.md
++++ b/DEPLOY_AUTOMATIZADO.md
+@@ -68,9 +68,9 @@ Railway detectará automáticamente `Dockerfile`
+    constraint).
+ 7. Configurar variables del servicio (lista completa en
+    `DEPLOYMENT_QUICK_START.md`): `PORT=3001`, `AUTO_SEED=sync`,
+-   `SEED_DEMO_DATA=false`; para el tutor IA `LLM_PROVIDER=anthropic`,
+-   `LLM_MODEL=claude-sonnet-5`, `LLM_MODEL_HEAVY=claude-opus-5`,
+-   `ANTHROPIC_API_KEY=<secreto>`.
++   `SEED_DEMO_DATA=false`; para el tutor IA `LLM_PROVIDER=nvidia`,
++   `LLM_MODEL=moonshotai/kimi-k3`, `LLM_MODEL_HEAVY=moonshotai/kimi-k3`,
++   `LLM_API_KEY=<secreto>`.
+ 
+ **Tu Backend estará en:**
+ ```
+diff --git a/MASTER_IEP_INTEGRATION.md b/MASTER_IEP_INTEGRATION.md
+index 47f3d41..cfbd830 100644
+--- a/MASTER_IEP_INTEGRATION.md
++++ b/MASTER_IEP_INTEGRATION.md
+@@ -140,7 +140,7 @@ La nota la fija siempre un instructor por criterio; el LLM solo **propone**
+    nivel elegido por criterio; el servidor calcula la nota y guarda el snapshot
+    en `grades.rubric`. La nota final la fija siempre una persona.
+ 3. **Asistencia opcional de IA (humano en el bucle).** `POST
+-   /api/submissions/:id/grade-suggestion` (solo con `LLM_PROVIDER=anthropic`)
++   /api/submissions/:id/grade-suggestion` (solo con `LLM_PROVIDER` configurado)
+    devuelve una **propuesta** por criterio que se escribe en
+    `grades.llm_suggestion` y nunca en `grades.score`. El instructor confirma o
+    corrige antes de enviar. Sin API key, el botón no aparece.
+diff --git a/backend/.env.example b/backend/.env.example
+index 516d4c7..1aeb826 100644
+--- a/backend/.env.example
++++ b/backend/.env.example
+@@ -1,6 +1,7 @@
+ # ─── Campus Posgrado v2 · backend (simple-server.js + PostgreSQL) ───
+ # Copia a `.env` para desarrollo local. En Railway se configuran como variables
+-# del servicio. Solo `ANTHROPIC_API_KEY` es secreto; el resto es configuración.
++# del servicio. Solo `LLM_API_KEY` (y su alias histórico `ANTHROPIC_API_KEY`) es
++# secreto; el resto es configuración.
+ 
+ # ── Base de datos (obligatorio) ──────────────────────────────────────
+ # Opción A: cadena única (la que usa Railway)
+@@ -32,13 +33,58 @@ SEED_DEMO_DATA=false
+ #EXAM_COOLDOWN_HOURS=24
+ 
+ # ── Integración LLM (tutor socrático + asistencia de nota) ────────────
+-# LLM_PROVIDER: none (por defecto, sin IA) | anthropic
++# LLM_PROVIDER:
++#   none              → por defecto, sin IA (el tutor usa su FAQ de respaldo y
++#                       /grade-suggestion responde 501)
++#   nvidia            → NVIDIA NIM, API OpenAI-compatible (configuración actual)
++#   openai-compatible → cualquier otro /chat/completions; exige LLM_BASE_URL
++#   anthropic         → API nativa de Anthropic (camino histórico, sigue operativo)
+ LLM_PROVIDER=none
+-LLM_MODEL=claude-sonnet-5
+-LLM_MODEL_HEAVY=claude-opus-5
+-# SECRETO — solo si LLM_PROVIDER=anthropic. No lo pongas en este fichero de ejemplo.
++
++# Modelos. Los valores por defecto dependen del proveedor:
++#   nvidia/openai-compatible → moonshotai/kimi-k3 en ambos
++#   anthropic                → claude-sonnet-5 / claude-opus-5
++LLM_MODEL=moonshotai/kimi-k3
++LLM_MODEL_HEAVY=moonshotai/kimi-k3
++
++# SECRETO — clave del proveedor activo. No pongas nunca el valor real aquí.
++# Es genérica a propósito: cambiar de proveedor no obliga a renombrar la variable.
++#LLM_API_KEY=
++# Alias histórico, solo se lee con LLM_PROVIDER=anthropic.
+ #ANTHROPIC_API_KEY=
+ 
++# Raíz de la API OpenAI-compatible, sin /chat/completions.
++# Con LLM_PROVIDER=nvidia se asume este valor y no hace falta declararla.
++#LLM_BASE_URL=https://integrate.api.nvidia.com/v1
++
++# ── Presupuesto de tokens ─────────────────────────────────────────────
++# kimi-k3 es un modelo de RAZONAMIENTO: gasta parte de max_tokens en su cadena
++# de pensamiento (message.reasoning_content) antes de escribir la respuesta.
++# Con los límites pensados para Claude la salida se trunca y el JSON de
++# /grade-suggestion y del banco de ítems llega incompleto. Defaults:
++#   proveedor de razonamiento → 3000 / 6000 / 16000
++#   anthropic                 →  700 / 1200 /  4000
++#LLM_MAX_TOKENS_TUTOR=3000
++#LLM_MAX_TOKENS_GRADE=6000
++#LLM_MAX_TOKENS_ITEMS=16000
++
++# `reasoning_effort` solo se envía si esta variable tiene valor. El enum válido lo
++# impone CADA MODELO, no el endpoint: medido contra NVIDIA, `moonshotai/kimi-k3`
++# acepta 'max' y `openai/gpt-oss-20b` lo rechaza con 400 admitiendo solo
++# 'low' | 'medium' | 'high'. Bajarlo recorta mucho el razonamiento (en gpt-oss-20b,
++# de 7061 a 506 caracteres entre 'high' y 'low'), pero el problema de la truncación
++# ya lo resuelven los presupuestos de arriba sin sacrificar calidad de respuesta.
++# Déjala vacía salvo que la latencia o el coste obliguen.
++#LLM_REASONING_EFFORT=
++
++# ── Robustez de red del LLM ───────────────────────────────────────────
++# Timeout por petición en ms (def. 180000: un modelo de razonamiento con 16k
++# tokens de presupuesto tarda minutos).
++#LLM_TIMEOUT_MS=180000
++# Reintentos con espera creciente ante 429/5xx (def. 2). El plan gratuito de
++# NVIDIA devuelve 429 con mucha facilidad.
++#LLM_MAX_RETRIES=2
++
+ # ── Referencia de catálogo por asignatura (opcional) ─────────────────
+ # El IEP no publica clave de catálogo por asignatura; el seed usa
+ # `IEP-<numeral>-INTERNO`. Si el IEP facilita la clave real, se inyecta aquí
+diff --git a/backend/simple-server.js b/backend/simple-server.js
+index f248d5e..1b3415c 100644
+--- a/backend/simple-server.js
++++ b/backend/simple-server.js
+@@ -2149,7 +2149,7 @@ route('PUT', '/api/submissions/:id/grade', async ({ res, user, params, body }) =
+ 
+ // Asistencia de calificación por LLM: PROPONE, nunca decide. La propuesta se
+ // guarda en grades.llm_suggestion; el instructor la revisa y envía la nota real
+-// por PUT /grade. Sin ANTHROPIC_API_KEY devuelve 501.
++// por PUT /grade. Sin proveedor de LLM configurado devuelve 501.
+ route('POST', '/api/submissions/:id/grade-suggestion', async ({ res, user, params, body }) => {
+   if (!user || user.role === 'student') return sendJSON(res, 403, { message: 'Forbidden' });
+   if (!isUuid(params.id)) return sendJSON(res, 400, { message: 'id inválido' });
+diff --git a/frontend/src/components/GradingPanel.tsx b/frontend/src/components/GradingPanel.tsx
+index 5ed7b75..fc2e840 100644
+--- a/frontend/src/components/GradingPanel.tsx
++++ b/frontend/src/components/GradingPanel.tsx
+@@ -200,7 +200,7 @@ function RubricGrader({
+         </button>
+       </div>
+       {suggest.isError && (
+-        <p className="text-xs text-amber-600">La asistencia de IA no está disponible (revisa ANTHROPIC_API_KEY).</p>
++        <p className="text-xs text-amber-600">La asistencia de IA no está disponible (revisa LLM_PROVIDER y LLM_API_KEY).</p>
+       )}
+ 
+       {rubric.criteria.map((c) => {
+-- 
+2.43.0
+

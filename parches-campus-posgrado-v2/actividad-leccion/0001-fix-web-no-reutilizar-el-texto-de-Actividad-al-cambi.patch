@@ -1,0 +1,94 @@
+From a048354db10c7020ad6a7268cda5cc10e2abdec2 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Wed, 16 Sep 2026 18:05:09 +0000
+Subject: [PATCH] =?UTF-8?q?fix(web):=20no=20reutilizar=20el=20texto=20de?=
+ =?UTF-8?q?=20Actividad=20al=20cambiar=20de=20lecci=C3=B3n?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+CourseView reutilizaba LessonFormative al pasar de una lección a otra.
+El efecto solo escribía el textarea cuando había una entrega guardada,
+así que una lección vacía (p. ej. carril B) seguía mostrando el texto
+y el «✓ Guardada» del carril A. Ahora el estado se reinicia siempre
+al cambiar de recurso y el cuerpo de la lección se remonta por id.
+---
+ frontend/src/components/LessonFormative.tsx | 27 +++++++++++++++------
+ frontend/src/pages/CourseView.tsx           | 11 ++++++---
+ 2 files changed, 28 insertions(+), 10 deletions(-)
+
+diff --git a/frontend/src/components/LessonFormative.tsx b/frontend/src/components/LessonFormative.tsx
+index fb291fb..bc230d1 100644
+--- a/frontend/src/components/LessonFormative.tsx
++++ b/frontend/src/components/LessonFormative.tsx
+@@ -16,17 +16,30 @@ export function LessonFormative({
+   const submitFormative = useSubmitFormative();
+   const submitActivity = useSubmitActivity();
+ 
++  const activityContent = state?.activity?.content ?? '';
++  const hasSavedActivity = Boolean(state?.activity);
++
++  const [lessonId, setLessonId] = useState(resourceId);
+   const [answers, setAnswers] = useState<Record<number, number>>({});
+   const [result, setResult] = useState<FormativeResult | null>(null);
+-  const [activityText, setActivityText] = useState('');
+-  const [savedActivity, setSavedActivity] = useState(false);
++  const [activityText, setActivityText] = useState(activityContent);
++  const [savedActivity, setSavedActivity] = useState(hasSavedActivity);
++
++  // CourseView reutiliza esta instancia al cambiar de lección. Había que
++  // vaciar siempre: si solo escribíamos cuando había entrega, una lección
++  // vacía dejaba el texto (y el «✓ Guardada») de la anterior.
++  if (lessonId !== resourceId) {
++    setLessonId(resourceId);
++    setAnswers({});
++    setResult(null);
++    setActivityText(activityContent);
++    setSavedActivity(hasSavedActivity);
++  }
+ 
+   useEffect(() => {
+-    if (state?.activity) {
+-      setActivityText(state.activity.content);
+-      setSavedActivity(true);
+-    }
+-  }, [state?.activity]);
++    setActivityText(activityContent);
++    setSavedActivity(hasSavedActivity);
++  }, [resourceId, activityContent, hasSavedActivity]);
+ 
+   const priorPassed = state?.formative?.passed;
+   const allAnswered = quiz.length > 0 && Object.keys(answers).length === quiz.length;
+diff --git a/frontend/src/pages/CourseView.tsx b/frontend/src/pages/CourseView.tsx
+index 9986e5d..f55004a 100644
+--- a/frontend/src/pages/CourseView.tsx
++++ b/frontend/src/pages/CourseView.tsx
+@@ -326,9 +326,14 @@ function ResourceBody({ resource, courseId, courseSlug }: { resource: Resource;
+             <p className="text-gray-700 dark:text-gray-300">{cj.preguntaReflexion}</p>
+           </div>
+         )}
+-        <TutorPanel resourceId={resource.id} />
++        <TutorPanel key={`tutor-${resource.id}`} resourceId={resource.id} />
+         {((Array.isArray(cj.quiz) && cj.quiz.length > 0) || cj.exercise?.text) && (
+-          <LessonFormative resourceId={resource.id} quiz={cj.quiz || []} exercise={cj.exercise} />
++          <LessonFormative
++            key={`formative-${resource.id}`}
++            resourceId={resource.id}
++            quiz={cj.quiz || []}
++            exercise={cj.exercise}
++          />
+         )}
+         {resource.revisedAt && (
+           <p className="mt-4 text-xs text-gray-400">Contenido revisado: {resource.revisedAt}</p>
+@@ -607,7 +612,7 @@ export default function CourseView() {
+                 </a>
+               )}
+ 
+-              <ResourceBody resource={selected} courseId={course.id} courseSlug={course.slug} />
++              <ResourceBody key={selected.id} resource={selected} courseId={course.id} courseSlug={course.slug} />
+ 
+               {/* La barra de navegación anterior/siguiente se oculta en examen y
+                   proyecto: son vistas terminales con su propio flujo (ExamRunner /
+-- 
+2.43.0
+
