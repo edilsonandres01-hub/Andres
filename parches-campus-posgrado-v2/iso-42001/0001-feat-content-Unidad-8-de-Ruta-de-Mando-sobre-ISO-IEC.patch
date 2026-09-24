@@ -1,0 +1,784 @@
+From 77f9cb3c02a6001fa89f2ae43d3b9bf497e85866 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Thu, 24 Sep 2026 02:53:16 +0000
+Subject: [PATCH] feat(content): Unidad 8 de Ruta de Mando sobre ISO/IEC 42001
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Añade la Fase 6 (gobierno de la IA) al final del aula, con el mismo
+esquema de Carril A / Carril B / entregable / examen, y menciona la
+certificación ISO 42001 Auditor Interno en la tutoría.
+---
+ .../seed-data/aula-ruta-mando-seguridad-qa.js |  16 +-
+ .../aula-ruta-mando-unidad-8-iso-42001.js     | 683 ++++++++++++++++++
+ backend/db/seed-data/aulas.json               |  12 +-
+ 3 files changed, 705 insertions(+), 6 deletions(-)
+ create mode 100644 backend/db/seed-data/aula-ruta-mando-unidad-8-iso-42001.js
+
+diff --git a/backend/db/seed-data/aula-ruta-mando-seguridad-qa.js b/backend/db/seed-data/aula-ruta-mando-seguridad-qa.js
+index 78dfbf1..8d1a25b 100644
+--- a/backend/db/seed-data/aula-ruta-mando-seguridad-qa.js
++++ b/backend/db/seed-data/aula-ruta-mando-seguridad-qa.js
+@@ -2,9 +2,14 @@
+ // mentoría personal de 26 semanas para asumir el doble liderazgo de Seguridad
+ // de la Información y Aseguramiento de Calidad (QA) en Sumimedical (8 h/semana,
+ // 31 ago 2026 -> 28 feb 2027), construido a partir del plan de tutoría acordado
+-// con el usuario. No recrea un curso externo: es contenido original de este
+-// campus. Sigue el mismo patrón que las demás aulas (units/lessons con
+-// body/example/keys/exercise/quiz/diagram/recursos + examen de unidad).
++// con el usuario, más una Fase 6 sobre gobierno de la IA (ISO/IEC 42001) con
++// el mismo esquema de dos carriles y entregable. No recrea un curso externo:
++// es contenido original de este campus. Sigue el mismo patrón que las demás
++// aulas (units/lessons con body/example/keys/exercise/quiz/diagram/recursos +
++// examen de unidad).
++//
++// La Unidad 8 vive en aula-ruta-mando-unidad-8-iso-42001.js y se concatena
++// al final para no reescribir las stable_key ya sembradas (m1–m8).
+ 
+ module.exports = {
+   units: [
+@@ -2427,12 +2432,12 @@ module.exports = {
+           body: [
+             'Este programa asume un ritmo semanal fijo de tres bloques y una sesión de tutoría. El lunes, dos horas de teoría dirigida: se lee solo lo que la fase indica, del capítulo indicado, nada más — la tentación de leer una norma completa de principio a fin es el error número uno y el que suele hacer abandonar un plan de este tipo hacia la semana cuatro. El miércoles, dos horas de aplicación al entregable, siempre con datos reales de la propia organización —los propios activos, los propios sistemas, los propios proveedores—, nunca con ejemplos genéricos, porque un inventario de activos ficticio no enseña nada que se pueda usar después. El viernes, cuarenta y cinco minutos de sesión de tutoría: quince minutos donde se pregunta al estudiante y no al revés, veinte minutos de tema nuevo explicado sobre los propios sistemas, y diez minutos de asignación concreta para la semana siguiente. Y al cierre de cada fase, una revisión con rúbrica donde los hallazgos se devuelven en el mismo lenguaje que usará un auditor real —no conformidad mayor, no conformidad menor, observación, oportunidad de mejora—, precisamente para acostumbrarse a ese formato antes de que se aplique de verdad.',
+             'La regla fija de todo el programa es la prueba de la explicación: no se avanza a la semana siguiente hasta poder explicar el concepto central de esa semana, sin jerga y en voz alta, a alguien de administración que no sepa nada del tema. Si hace falta la sigla para explicarlo, todavía no se entendió de verdad.',
+-            'En cuanto a certificaciones, el orden importa más que la lista completa: ISC2 Certified in Cybersecurity (CC) primero, porque cierra la brecha técnica más rápido y sin costo relevante; ISTQB Certified Tester Foundation Level 4.0 segundo, porque QA es el rol que ya se está ejerciendo bajo presión de calendario y es la credencial que un equipo de desarrollo va a preguntar primero; ISO/IEC 27001 Auditor Interno más adelante, cuando ya exista un SGSI real que auditar —certificarse en implementar algo que todavía no se ha implementado se nota en la primera pregunta difícil de cualquier entrevistador—; y certificaciones de mayor peso como CISM, CISA o CompTIA Security+ quedan como metas de mediano a largo plazo, no como pasos inmediatos de este primer año.',
++            'En cuanto a certificaciones, el orden importa más que la lista completa: ISC2 Certified in Cybersecurity (CC) primero, porque cierra la brecha técnica más rápido y sin costo relevante; ISTQB Certified Tester Foundation Level 4.0 segundo, porque QA es el rol que ya se está ejerciendo bajo presión de calendario y es la credencial que un equipo de desarrollo va a preguntar primero; ISO/IEC 27001 Auditor Interno más adelante, cuando ya exista un SGSI real que auditar —certificarse en implementar algo que todavía no se ha implementado se nota en la primera pregunta difícil de cualquier entrevistador—; ISO/IEC 42001 Auditor Interno, en el mismo espíritu, solo cuando ya exista un SGIA real que auditar (Unidad 8 de este programa); y certificaciones de mayor peso como CISM, CISA o CompTIA Security+ quedan como metas de mediano a largo plazo, no como pasos inmediatos de este primer año.',
+           ],
+           keys: [
+             'Ritmo semanal fijo: lunes teoría dirigida (solo lo indicado, nunca la norma completa), miércoles aplicación al entregable con datos reales propios, viernes tutoría de 45 minutos, cierre de fase con revisión por rúbrica en lenguaje de auditor.',
+             'La prueba de la explicación es la regla fija: no se avanza hasta poder explicar el concepto central sin jerga a alguien de administración.',
+-            'Orden de certificaciones: ISC2 CC primero (brecha técnica), ISTQB CTFL 4.0 segundo (rol ya ejercido bajo presión), ISO 27001 Auditor Interno cuando exista un SGSI real que auditar, CISM/CISA/Security+ como metas de mediano-largo plazo.',
++            'Orden de certificaciones: ISC2 CC primero (brecha técnica), ISTQB CTFL 4.0 segundo (rol ya ejercido bajo presión), ISO 27001 Auditor Interno cuando exista un SGSI real que auditar, ISO 42001 Auditor Interno cuando exista un SGIA real (Unidad 8), CISM/CISA/Security+ como metas de mediano-largo plazo.',
+           ],
+           exercise: { mins: 20, text: 'Elige un concepto de cualquiera de las fases ya estudiadas y explícaselo en voz alta a alguien de tu organización que no tenga formación técnica ni en seguridad ni en pruebas, sin usar ninguna sigla. Si tuviste que detenerte a pensar cómo evitar una sigla, anota cuál y vuelve a repasar esa parte de la lección correspondiente.' },
+           quiz: [
+@@ -2443,5 +2448,6 @@ module.exports = {
+         },
+       ],
+     },
++    require('./aula-ruta-mando-unidad-8-iso-42001'),
+   ],
+ }
+diff --git a/backend/db/seed-data/aula-ruta-mando-unidad-8-iso-42001.js b/backend/db/seed-data/aula-ruta-mando-unidad-8-iso-42001.js
+new file mode 100644
+index 0000000..5e9e3ba
+--- /dev/null
++++ b/backend/db/seed-data/aula-ruta-mando-unidad-8-iso-42001.js
+@@ -0,0 +1,683 @@
++// Unidad 8 de "Ruta de Mando en Seguridad y QA": Fase 6 · Gobierno de la IA
++// (ISO/IEC 42001). Conserva el esquema de las Fases 0–5: Carril A (seguridad /
++// sistema de gestión), Carril B (QA / pruebas), entregable real y examen de
++// unidad. Se añade al final del programa para no reescribir las claves estables
++// de las unidades ya sembradas (m1–m8).
++
++module.exports = {
++  n: 'Unidad 8',
++  title: 'Fase 6 · Gobierno de la IA — ISO/IEC 42001',
++  hours: 2,
++  lessons: [
++    {
++      title: 'Carril A · El SGIA y la norma ISO/IEC 42001',
++      mins: 22,
++      body: [
++        'Los dos cargos que estás asumiendo ya no se pueden ejercer como si la inteligencia artificial fuera un asunto de otro departamento. Hoy un proveedor te ofrece un «asistente» que resume historias clínicas, un equipo interno prueba un modelo que predice no-shows, o alguien pega datos de un paciente en un chatbot público «solo para ver qué sale». Ninguna de esas decisiones es, en el fondo, una decisión técnica: es una decisión de riesgo, de evidencia y de responsabilidad ante la dirección, ante un auditor y ante el titular de los datos. ISO/IEC 42001:2023 —publicada en diciembre de 2023— es la primera norma internacional certificable de un sistema de gestión de inteligencia artificial (SGIA, o AIMS en inglés). No te enseña a entrenar un modelo. Te da el mismo tipo de sistema que ya conoces de ISO 27001: un ciclo planear-hacer-verificar-actuar con alcance, responsables, evidencia y mejora, aplicado a cómo la organización desarrolla, usa o provee sistemas de IA.',
++        'La tentación más cara es tratar 42001 como «la 27001 de la IA» y copiar el SGSI cambiando el título. No es eso. El SGSI protege información: confidencialidad, integridad y disponibilidad de activos. El SGIA gobierna sistemas que producen salidas probabilísticas —clasificaciones, recomendaciones, textos, predicciones— y que pueden dañar a personas, a la organización o a terceros aunque la información esté bien protegida. Un modelo que filtra bien los datos y aun así discrimina sistemáticamente a un grupo de pacientes es un fallo del SGIA, no del SGSI. Por eso las dos normas se complementan y no se sustituyen: 27001 cubre el entorno de información donde vive el modelo; 42001 cubre el ciclo de vida del sistema de IA, la evaluación de impacto, la calidad de los datos de entrenamiento, la vigilancia en operación y la relación con proveedores que te venden «IA empaquetada». Si ya tienes un SGSI, no empiezas de cero: reutilizas contexto, liderazgo, auditoría interna y revisión por la dirección, y añades lo que 27001 no te pide —el impacto del sistema de IA y los controles del Anexo A de 42001.',
++        'La estructura te va a resultar familiar porque 42001 usa la misma estructura armonizada de los sistemas de gestión ISO: las cláusulas 4 a 10 son los requisitos auditables (contexto, liderazgo, planificación, apoyo, operación, evaluación del desempeño, mejora). El Anexo A es un catálogo de referencia de 38 controles en nueve objetivos (A.2 a A.10), no una lista obligatoria: se eligen a partir de la evaluación de riesgos y de impacto, y esa elección se documenta en una Declaración de Aplicabilidad, exactamente como en 27001. Lo que sí es propio de esta norma —y lo que un líder no puede delegar en el proveedor del modelo— está en la cláusula 6: evaluación de riesgos de IA, tratamiento de esos riesgos, objetivos del SGIA y, sobre todo, la evaluación de impacto del sistema de IA sobre individuos y sobre la sociedad. Sin ese impacto documentado, el resto del sistema es papel. Y una aclaración de límites, en el mismo tono que el resto del programa: esta fase no te convierte en científico de datos, no reemplaza asesoría jurídica sobre el uso de datos de salud para entrenar o alimentar un modelo, y no te certifica como auditor de 42001. Te da criterio para saber qué preguntar, qué evidencia exigir y cuándo no aceptar «el modelo ya está validado» como respuesta.',
++      ],
++      diagram: {
++        title: 'SGSI y SGIA: se complementan, no se sustituyen',
++        mermaid: 'graph LR\n  S["ISO/IEC 27001\\nSGSI: protege información\\nC-I-D de activos"] --> C["Controles compartidos:\\ncontexto, liderazgo,\\nauditoría, revisión"]\n  A["ISO/IEC 42001\\nSGIA: gobierna sistemas de IA\\nciclo de vida e impacto"] --> C\n  C --> D["Decisión de mando:\\nqué IA se usa, con qué evidencia\\ny qué riesgo se acepta"]',
++      },
++      keys: [
++        'ISO/IEC 42001:2023 es la primera norma certificable de un sistema de gestión de IA (SGIA): decide cómo se desarrolla, usa o provee IA, no cómo se entrena un modelo.',
++        'El SGSI protege información; el SGIA gobierna sistemas probabilísticos y su impacto. Se complementan: 27001 no cubre sesgo, deriva ni evaluación de impacto de un modelo.',
++        'Las cláusulas 4 a 10 son los requisitos auditables; el Anexo A son 38 controles de referencia en nueve objetivos, elegidos vía riesgo e impacto y justificados en la Declaración de Aplicabilidad.',
++        'Lo que no se delega: la evaluación de impacto del sistema de IA (cláusula 6). Esta fase no reemplaza asesoría jurídica ni certifica como auditor.',
++      ],
++      recursos: {
++        libros: [
++          {
++            titulo: 'ISO/IEC 42001:2023 — Information technology — Artificial intelligence — Management system',
++            autor: 'ISO/IEC JTC 1/SC 42 (norma de pago; ficha oficial)',
++            url: 'https://www.iso.org/standard/81230.html',
++          },
++        ],
++      },
++      exercise: {
++        mins: 20,
++        text: 'Haz un inventario rápido, con nombres reales, de todo lo que en tu organización ya «usa IA» aunque nadie lo llame así: un copiloto en el correo, un chatbot de un proveedor, un motor de priorización, una herramienta que resume documentos, un modelo interno. Para cada uno anota: ¿quién lo compró o encendió, qué datos toca, y quién respondería hoy si sale mal? Esa lista es el punto de partida del entregable E7.',
++      },
++      quiz: [
++        {
++          q: '¿Qué es ISO/IEC 42001:2023, según esta lección?',
++          opts: [
++            'Una guía para entrenar modelos de machine learning',
++            'La primera norma internacional certificable de un sistema de gestión de inteligencia artificial (SGIA)',
++            'Un reemplazo de ISO/IEC 27001 que deja sin efecto el SGSI',
++            'Una certificación individual para científicos de datos',
++          ],
++          a: 1,
++          why: [
++            'La norma no enseña a entrenar modelos.',
++            'Correcto.',
++            'No reemplaza el SGSI: se complementan.',
++            'No es una certificación individual de técnicos.',
++          ],
++        },
++        {
++          q: '¿Cuál es la diferencia central entre el SGSI (ISO 27001) y el SGIA (ISO 42001)?',
++          opts: [
++            'No hay diferencia: son la misma norma con otro número',
++            'El SGSI protege información (C-I-D); el SGIA gobierna sistemas de IA, su ciclo de vida y su impacto sobre personas y la organización',
++            'El SGIA solo aplica a chatbots públicos y el SGSI al resto',
++            'El SGIA sustituye a la Ley 1581 en datos de salud',
++          ],
++          a: 1,
++          why: [
++            'Son normas distintas y complementarias.',
++            'Correcto.',
++            'El SGIA cubre cualquier sistema de IA en el alcance, no solo chatbots.',
++            'No sustituye el régimen de protección de datos.',
++          ],
++        },
++        {
++          q: '¿Dónde vive lo que un líder no puede delegar en el proveedor del modelo?',
++          opts: [
++            'En el Anexo A, que es una lista obligatoria de 38 controles',
++            'En la cláusula 6: evaluación de riesgos de IA, tratamiento, objetivos y evaluación de impacto del sistema de IA',
++            'En la cláusula 1, que no es auditable',
++            'En el contrato de licencia del software ofimático',
++          ],
++          a: 1,
++          why: [
++            'El Anexo A es un catálogo de referencia, no una lista obligatoria.',
++            'Correcto.',
++            'Las cláusulas 1 a 3 no son requisitos auditables.',
++            'No es el lugar del requisito.',
++          ],
++        },
++      ],
++      lecturaGuiada: {
++        objetivo:
++          'Objetivo de la lectura: fijar el vocabulario de gobierno de la IA —SGIA, sistema de IA, evaluación de impacto, Anexo A, Declaración de Aplicabilidad y la relación con ISO 27001— y ver cómo convierte «usamos IA» en un sistema de gestión auditable en una IPS que opera Horus Health.',
++        intro: [
++          'Esta fase abre el carril de seguridad sobre un objeto que el resto del programa todavía no había nombrado como sistema de gestión: la inteligencia artificial. El vocabulario viene del texto de ISO/IEC 42001:2023, de ISO/IEC 22989:2022 (conceptos y terminología de IA) y de ISO/IEC 23894:2023 (orientación sobre gestión del riesgo de IA).',
++          'La idea que atraviesa todo: 42001 no pide que sepas entrenar un modelo; pide que sepas qué sistemas de IA tienes, qué impacto pueden tener y con qué evidencia aceptas usarlos.',
++        ],
++        terminos: [
++          {
++            n: 1,
++            termino: 'Sistema de gestión de inteligencia artificial (SGIA / AIMS)',
++            definicionTextual:
++              'Conjunto de elementos interrelacionados o que interactúan de una organización para establecer políticas, objetivos y procesos para alcanzar esos objetivos, aplicado al desarrollo, la provisión o el uso de sistemas de IA. ISO/IEC 42001 especifica los requisitos de ese sistema de gestión.',
++            fuente: 'ISO/IEC 42001:2023 — Information technology — Artificial intelligence — Management system; ISO/IEC 22989:2022 (vocabulario de IA)',
++            idea: [
++              'Es exactamente la misma lógica que el SGSI: no es un conjunto de controles técnicos sueltos, es un ciclo PDCA con alcance, responsables, evidencia y mejora.',
++              '«Desarrollar, proveer o usar» cubre tres posturas distintas: construir un modelo propio, venderlo a otros, o solo consumirlo (el caso más frecuente en una IPS). Las tres entran en el SGIA si están en el alcance.',
++            ],
++            ejemplo: 'Una empresa que solo usa un copiloto de un proveedor todavía tiene un SGIA que gobernar: eligió usarlo, le da datos y responde por el resultado.',
++            ejemploHorus: 'Si Horus incorpora un módulo que sugiere códigos o prioriza citas, el SGIA de la IPS cubre ese uso aunque el modelo lo haya construido el proveedor.',
++            errorComun: 'Creer que 42001 «no aplica» porque la organización no entrena modelos. Usar IA de un tercero es, precisamente, el caso más común del SGIA.',
++            fraseClave: 'SGIA = sistema de gestión (PDCA) sobre cómo se desarrolla, provee o usa IA; no es un manual de entrenamiento de modelos.',
++          },
++          {
++            n: 2,
++            termino: 'Sistema de IA (AI system)',
++            definicionTextual:
++              'Sistema basado en máquinas que, para un conjunto dado de objetivos definidos por el ser humano, genera salidas tales como contenidos, predicciones, recomendaciones o decisiones, e influye en entornos reales o virtuales. Los sistemas de IA están diseñados para operar con distintos niveles de autonomía.',
++            fuente: 'ISO/IEC 22989:2022, 3.1.4 (AI system); referida por ISO/IEC 42001:2023',
++            idea: [
++              'La definición no exige «inteligencia» ni «comprensión»: exige una máquina que produce una salida que influye en un entorno. Un clasificador, un ranking, un resumen automático y un chatbot caben. Una regla if-then fija, no.',
++              'El nivel de autonomía importa para el gobierno: cuanto menos intervenga una persona antes de que la salida produzca un efecto, más pesada es la evaluación de impacto.',
++            ],
++            ejemplo: 'Un filtro de correo que decide qué es spam es un sistema de IA. Una regla «si el asunto contiene URGENT entonces mover a cuarentena» no lo es.',
++            ejemploHorus: 'Un modelo que sugiere el código RIPS a partir del texto de la atención es un sistema de IA. La tabla oficial de códigos, no.',
++            errorComun: 'Reservar la palabra «IA» solo para chatbots generativos y dejar fuera clasificadores, rankings y motores de predicción que ya operan en silencio.',
++            fraseClave: 'Sistema de IA = máquina que genera contenido, predicción, recomendación o decisión e influye en un entorno; no hace falta que «converse».',
++          },
++          {
++            n: 3,
++            termino: 'Estructura de ISO/IEC 42001: cláusulas 4 a 10 y Anexo A',
++            definicionTextual:
++              'Los requisitos auditables están en las cláusulas 4 a 10, con la estructura armonizada de los sistemas de gestión ISO: 4 Contexto, 5 Liderazgo, 6 Planificación, 7 Apoyo, 8 Operación, 9 Evaluación del desempeño, 10 Mejora. El Anexo A es un conjunto de referencia de 38 controles agrupados en nueve objetivos (A.2 a A.10). El Anexo B orienta la implementación de esos controles.',
++            fuente: 'ISO/IEC 42001:2023, cláusulas 4–10 y Anexos A y B',
++            idea: [
++              'Certificarse es certificar las cláusulas 4 a 10, no «tener los 38 controles». El Anexo A se recorta o se complementa según el riesgo y el impacto, igual que el Anexo A de 27001.',
++              'Los nueve objetivos del Anexo A cubren de punta a punta el gobierno de la IA: política (A.2), organización (A.3), recursos (A.4), impacto (A.5), ciclo de vida (A.6), datos (A.7), información a partes interesadas (A.8), uso (A.9) y terceros (A.10).',
++            ],
++            ejemplo: 'Una empresa con un modelo en producción pero sin política de IA, sin roles y sin evaluación de impacto tiene «un modelo», no un SGIA certificable.',
++            ejemploHorus: 'Para la IPS, el SGIA son las decisiones alrededor de cualquier IA que toque Horus o datos de pacientes —alcance, impacto, roles, auditoría—, no el archivo del modelo en sí.',
++            errorComun: 'Confundir «implementar los 38 controles» con «tener un SGIA». El sistema de gestión son las cláusulas 4–10.',
++            fraseClave: 'ISO/IEC 42001 = cláusulas 4 a 10 (PDCA); el Anexo A son 38 controles de referencia en nueve objetivos, no el sistema de gestión.',
++          },
++          {
++            n: 4,
++            termino: 'Evaluación de impacto del sistema de IA',
++            definicionTextual:
++              'Proceso para identificar y evaluar los impactos potenciales de un sistema de IA sobre individuos y, cuando corresponda, sobre grupos y la sociedad, a lo largo del ciclo de vida. ISO/IEC 42001 lo exige en la planificación (cláusula 6) y lo opera en la cláusula 8; el Anexo A.5 reúne los controles de referencia de ese proceso.',
++            fuente: 'ISO/IEC 42001:2023, cláusulas 6.1.4 y 8.4; Anexo A.5',
++            idea: [
++              'Es el documento que un líder no puede delegar en el proveedor: el proveedor describe el modelo; la organización describe a quién puede dañar y qué se hará al respecto. Sin impacto, el riesgo de IA es una lista de amenazas técnicas sin personas detrás.',
++              'Cubre impactos sobre individuos (un paciente mal priorizado, un dato sensible inferido) y, cuando aplica, impactos societales (sesgo sistemático contra un grupo). No es lo mismo que una evaluación de riesgo de seguridad de la información.',
++            ],
++            ejemplo: 'Antes de encender un modelo que puntúa solicitudes de crédito, se documenta quién puede ser rechazado injustamente y qué recurso humano existe para impugnar.',
++            ejemploHorus: 'Antes de que un modelo priorice agendas o sugiera códigos a partir de la atención, la IPS documenta el daño a un paciente si se equivoca y quién puede anular la sugerencia.',
++            errorComun: 'Sustituir la evaluación de impacto por un párrafo de «el proveedor ya validó el modelo» o por la matriz de riesgos del SGSI.',
++            fraseClave: 'Evaluación de impacto = a quién puede dañar este sistema de IA y qué se hará; no se delega en el proveedor.',
++          },
++          {
++            n: 5,
++            termino: 'Riesgo de IA (distinto del riesgo de seguridad de la información)',
++            definicionTextual:
++              'Efecto de la incertidumbre sobre los objetivos, aplicado a los objetivos de la organización respecto de los sistemas de IA. ISO/IEC 23894 orienta la gestión de ese riesgo; ISO/IEC 42001 exige evaluarlo, tratarlo y operarlo (cláusulas 6.1 y 8.2–8.3). Fuentes típicas: sesgo, opacidad, calidad de datos, deriva, uso fuera de lo previsto, autonomía excesiva, dependencia de terceros.',
++            fuente: 'ISO/IEC 42001:2023, cláusula 6.1; ISO/IEC 23894:2023 — Artificial intelligence — Guidance on risk management',
++            idea: [
++              'Un modelo puede proteger bien la confidencialidad de los datos y aun así producir un daño: recomendar mal, discriminar, alucinar un dato clínico o degradarse en silencio cuando cambia la población. Eso es riesgo de IA, no un hueco del SGSI.',
++              'Las cuatro respuestas siguen siendo las de siempre —mitigar, transferir, aceptar, evitar—, pero «evitar» aquí a menudo significa no usar IA para esa decisión, y «aceptar» exige firma de quien responde por el paciente o por el proceso, no del proveedor.',
++            ],
++            ejemplo: 'Un chatbot de recursos humanos que inventa una política de vacaciones es un riesgo de IA (alucinación con efecto laboral), aunque los datos del empleado no se hayan filtrado.',
++            ejemploHorus: 'Un modelo que resume la evolución de un paciente y omite una alergia es un riesgo de IA de integridad de la decisión clínica, no un incidente de ciberseguridad.',
++            errorComun: 'Meter todos los riesgos de IA en la matriz de 27001 como «fallo del sistema» y perder el impacto sobre personas.',
++            fraseClave: 'Riesgo de IA = incertidumbre sobre lo que el sistema de IA hace a personas y a objetivos; no se agota en C-I-D.',
++          },
++          {
++            n: 6,
++            termino: 'Declaración de Aplicabilidad del SGIA',
++            definicionTextual:
++              'Información documentada que describe los controles de referencia del Anexo A que son aplicables, la justificación de su inclusión, si están implementados, y la justificación de las exclusiones. Se produce a partir de la evaluación de riesgos y de la evaluación de impacto, no al revés.',
++            fuente: 'ISO/IEC 42001:2023, cláusula 6.1.3 y Anexo A',
++            idea: [
++              'Es el mismo artefacto que ya conoces de 27001, aplicado a los 38 controles de 42001. Un auditor lo pide primero: ahí se ve si el trabajo de riesgo e impacto fue real o decorativo.',
++              'Excluir un control no es trampa si la justificación se sostiene. Incluir los 38 «por si acaso» sin evidencia de uso es, casi siempre, señal de que no se evaluó nada.',
++            ],
++            ejemplo: 'Una organización que no desarrolla modelos propios puede excluir controles de diseño y desarrollo del ciclo de vida (parte de A.6), justificando que solo usa sistemas de terceros, y reforzar A.10 (proveedores).',
++            ejemploHorus: 'Si la IPS no entrena modelos y solo consume IA del proveedor de Horus o de un copiloto, la Declaración de Aplicabilidad se concentra en uso, datos, impacto y terceros, no en el laboratorio de entrenamiento.',
++            errorComun: 'Redactar la Declaración de Aplicabilidad antes de la evaluación de impacto, o copiar la de 27001 cambiando el título.',
++            fraseClave: 'Declaración de Aplicabilidad = qué controles de A.2–A.10 aplican y por qué; se escribe después del riesgo y del impacto.',
++          },
++          {
++            n: 7,
++            termino: 'Relación con ISO/IEC 27001 y con el régimen de datos personales',
++            definicionTextual:
++              'ISO/IEC 42001 está diseñada para integrarse con otros sistemas de gestión. ISO/IEC 27001 cubre la seguridad de la información del entorno donde vive el sistema de IA. El tratamiento de datos personales —en Colombia, Ley 1581 y el régimen reforzado de datos de salud— sigue siendo una obligación legal autónoma: 42001 no la reemplaza ni la relaja.',
++            fuente: 'ISO/IEC 42001:2023 (anexo informativo sobre integración con otros sistemas de gestión); Ley 1581 de 2012; ISO/IEC 27001:2022',
++            idea: [
++              'Si ya hay SGSI, se reutilizan contexto, liderazgo, competencia, auditoría interna (ISO 19011) y revisión por la dirección. Lo que se añade es específico de IA: impacto, ciclo de vida, datos de entrenamiento/operación, transparencia y proveedores de modelos.',
++              'Usar datos de salud para entrenar, afinar o alimentar un modelo es, además, un tratamiento de datos sensibles. Hace falta base legal, finalidad y, casi siempre, un contrato de encargado que prohíba al proveedor usar esos datos para entrenar un modelo propio.',
++            ],
++            ejemplo: 'Un proveedor de nube que usa los correos del cliente para entrenar su modelo dejó de actuar como encargado. El contrato de 27001/1581 debe prohibirlo; 42001 exige además gobernar ese sistema de IA de tercero.',
++            ejemploHorus: 'Pegar un fragmento de historia clínica en un chatbot público es a la vez un incidente de datos personales (1581), un fallo de control del SGSI y un uso de IA fuera de lo previsto (42001).',
++            errorComun: 'Decir «ya tenemos 27001, con eso cubrimos la IA» o «42001 ya cubre habeas data».',
++            fraseClave: '27001 protege el entorno; 42001 gobierna el sistema de IA; la Ley 1581 sigue aplicando a los datos de personas.',
++          },
++          {
++            n: 8,
++            termino: 'Certificación del SGIA: etapa 1, etapa 2 y ciclo de tres años',
++            definicionTextual:
++              'Una certificación ISO/IEC 42001 la realiza un organismo de certificación acreditado, en dos etapas: etapa 1 (revisión de la documentación y preparación del SGIA) y etapa 2 (auditoría de la implementación y la eficacia). El certificado dura tres años, con auditorías de seguimiento anuales y recertificación al final del ciclo.',
++            fuente: 'ISO/IEC 42001:2023; ISO/IEC 17021-1 (organismos de certificación de sistemas de gestión); esquemas de acreditación (p. ej. IAF)',
++            idea: [
++              'La secuencia es la misma que ya estudiaste para 27001: no se «certifica un modelo», se certifica el sistema de gestión. Un modelo nuevo no obliga a recertificar el SGIA, pero sí a actualizar alcance, impacto y controles.',
++              'Certificarse sobre un inventario vacío o sobre un único piloto que nadie usa se nota en la etapa 2, donde se audita el uso real.',
++            ],
++            ejemplo: 'Una consultoría que escribe la política de IA la semana antes de la auditoría suele fallar la etapa 2, donde se pregunta por un sistema concreto y por su evaluación de impacto vigente.',
++            ejemploHorus: 'Si la IPS decide certificar el SGIA, el plan a 12 meses debe contemplar inventario real, impacto del sistema más crítico, auditoría interna y revisión por la dirección, y recién después la etapa 1.',
++            errorComun: 'Planificar la certificación como un sello sobre «nuestra IA» sin un SGIA que ya opere sobre sistemas concretos.',
++            fraseClave: 'Se certifica el SGIA (cláusulas 4–10) en dos etapas y un ciclo de tres años; no se certifica un modelo suelto.',
++          },
++        ],
++        conexion: [
++          'La secuencia: se identifica qué sistemas de IA existen de verdad (desarrollados, provistos o solo usados); se define el alcance del SGIA; se evalúa el riesgo de IA y, aparte, el impacto sobre personas; se eligen controles del Anexo A y se justifican en la Declaración de Aplicabilidad; se opera el ciclo de vida y se audita; y todo eso convive con el SGSI y con la Ley 1581, no los reemplaza.',
++          'La idea transversal: 42001 no pide que sepas entrenar un modelo; pide que no aceptes uno sin impacto documentado y sin dueño interno.',
++        ],
++        casoCompleto: {
++          escenario:
++            'Un proveedor de Horus ofrece un módulo de «codificación asistida» que sugiere códigos a partir del texto de la atención. Comercial lo quiere encender el mes próximo. El líder de seguridad y QA tiene que decidir si entra al SGIA y con qué evidencia.',
++          pasos: [
++            { titulo: 'Paso 1 · Nombrar el sistema', texto: 'No es «IA de Horus». Es un sistema de IA que genera recomendaciones (códigos) e influye en la facturación y en el registro clínico. Queda en el inventario.' },
++            { titulo: 'Paso 2 · Postura de la organización', texto: 'La IPS no lo desarrolla: lo usa. El SGIA aplica igual. El proveedor es un tercero (A.10) y, si trata datos de salud, encargado bajo la Ley 1581.' },
++            { titulo: 'Paso 3 · Evaluación de impacto', texto: 'Se documenta el daño de una sugerencia errónea: código que no corresponde, glosa, o un dato clínico mal etiquetado. Se exige anulación humana antes de grabar.' },
++            { titulo: 'Paso 4 · Riesgo de IA frente a riesgo de seguridad', texto: 'El SGSI cubre quién accede al módulo y cómo viajan los datos. El SGIA cubre sesgo del modelo, deriva si cambia el lenguaje de las atenciones, y uso fuera de lo previsto (por ejemplo, sugerir diagnósticos).' },
++            { titulo: 'Paso 5 · Declaración de Aplicabilidad', texto: 'Se refuerzan A.5 (impacto), A.7 (datos que salen hacia el proveedor), A.8 (qué se le dice al usuario clínico), A.9 (uso previsto) y A.10 (contrato). Se excluyen controles de diseño propio, con justificación.' },
++            { titulo: 'Paso 6 · Condición para encender', texto: 'No se enciende sin: contrato que prohíba entrenar con datos de la IPS, evaluación de impacto firmada, criterio de anulación humana y un plan de vigilancia (errores, quejas, deriva).' },
++            { titulo: 'Paso 7 · Decisión a la dirección', texto: 'Tres escenarios: no usar el módulo; usarlo con anulación humana y vigilancia; usarlo en piloto acotado a un servicio. Cada uno deja un riesgo explícito sin cubrir.' },
++          ],
++        },
++        preguntas: [
++          {
++            q: 'Una IPS no entrena modelos: solo usa el copiloto de un proveedor. ¿Le aplica ISO/IEC 42001?',
++            opts: [
++              'No: 42001 solo aplica a quien desarrolla modelos',
++              'Sí: «usar» sistemas de IA es una de las tres posturas que cubre el SGIA',
++              'Solo si el copiloto es de código abierto',
++            ],
++            a: 1,
++            why: 'El SGIA cubre desarrollar, proveer o usar. Consumir IA de un tercero es, de hecho, el caso más frecuente.',
++          },
++          {
++            q: '¿Qué distingue la evaluación de impacto de la matriz de riesgos del SGSI?',
++            opts: [
++              'Nada: son el mismo documento con otro nombre',
++              'El impacto describe a quién puede dañar el sistema de IA (individuos, grupos, sociedad); la matriz del SGSI cubre C-I-D de activos de información',
++              'El impacto solo lo firma el proveedor del modelo',
++            ],
++            a: 1,
++            why: '42001 exige el impacto sobre personas como artefacto propio; no se sustituye por la matriz de 27001 ni se delega en el proveedor.',
++          },
++          {
++            q: '¿Qué son los 38 ítems del Anexo A de ISO/IEC 42001?',
++            opts: [
++              'Los requisitos auditables obligatorios de la norma',
++              'Un catálogo de referencia de controles en nueve objetivos (A.2–A.10), que se eligen según riesgo e impacto y se justifican en la Declaración de Aplicabilidad',
++              'Las cláusulas 4 a 10 del sistema de gestión',
++            ],
++            a: 1,
++            why: 'Igual que en 27001: se certifica el sistema de gestión (cláusulas 4–10); el Anexo A se recorta o se complementa.',
++          },
++          {
++            q: 'Un modelo no filtra datos y aun así discrimina a un grupo de pacientes. ¿De qué sistema es el fallo principal?',
++            opts: [
++              'Solo del SGSI, porque todo daño es un incidente de seguridad',
++              'Del SGIA: el sistema de IA produjo un impacto sobre personas que 27001 no cubre como objeto central',
++              'De ninguno: si no hubo filtración, no hay hallazgo',
++            ],
++            a: 1,
++            why: 'El SGSI protege información; el sesgo y el daño de la decisión son objeto del SGIA.',
++          },
++          {
++            q: '¿Qué se certifica en una auditoría ISO/IEC 42001?',
++            opts: [
++              'El modelo de IA, con un sello sobre su exactitud',
++              'El SGIA (cláusulas 4 a 10) en dos etapas y un ciclo de tres años',
++              'Al científico de datos responsable del entrenamiento',
++            ],
++            a: 1,
++            why: 'Se certifica el sistema de gestión, no un modelo suelto ni a una persona.',
++          },
++        ],
++        cierre:
++          'Quédate con la idea: ISO/IEC 42001 convierte «usamos IA» en un sistema de gestión con alcance, impacto, controles justificados y evidencia. El SGSI y la Ley 1581 siguen siendo necesarios; no los reemplaza. Lo que no se delega es la evaluación de impacto y la decisión de qué sistema se enciende.',
++        fuentes: [
++          { titulo: 'ISO/IEC 42001:2023 — Information technology — Artificial intelligence — Management system (ficha oficial; norma de pago)', url: 'https://www.iso.org/standard/81230.html' },
++          { titulo: 'ISO/IEC 22989:2022 — Artificial intelligence — Concepts and terminology (definición de sistema de IA y vocabulario)', url: 'https://www.iso.org/standard/74296.html' },
++          { titulo: 'ISO/IEC 23894:2023 — Artificial intelligence — Guidance on risk management', url: 'https://www.iso.org/standard/77304.html' },
++          { titulo: 'ISO/IEC 27001:2022 — Information security management systems — Requirements (relación de integración con el SGIA)', url: 'https://www.iso.org/standard/27001' },
++        ],
++      },
++    },
++    {
++      title: 'Carril B · Calidad, pruebas y vigilancia de sistemas de IA',
++      mins: 20,
++      body: [
++        'El puente entre los dos carriles, en esta fase, no se inventa: la familia SQuaRE ya lo escribió. ISO/IEC 25010 te dio las características de calidad de producto —incluida la seguridad— que usas para decidir qué probar. ISO/IEC 25059:2023 extiende ese modelo a sistemas de IA: añade o ajusta subcaracterísticas que un software clásico no tenía, entre ellas adaptabilidad funcional, corrección funcional reformulada (porque un modelo probabilístico no «acierta siempre»), robustez, transparencia, control por el usuario e intervenibilidad. Probar un sistema de IA es, formalmente, parte de QA. Lo que cambia es la evidencia: no puedes exigir cero defectos de salida como si fuera una regla de copago; puedes —y debes— exigir un umbral declarado, un juego de prueba trazable, una vigilancia en operación y una puerta de calidad que sepa decir «este modelo no se enciende».',
++        'Tres confusiones hacen perder meses. La primera: tratar la exactitud global como si fuera calidad. Un modelo que acierta el 97 % puede ser inaceptable si el 3 % restante son precisamente los pacientes de un grupo, o el caso que dispara una glosa. La métrica útil se liga a una decisión y se parte por los cortes que importan (servicio, sede, grupo), igual que en el tablero de la Fase 4. La segunda: creer que «ya se validó en el laboratorio» alcanza. ISO/IEC 42001, en el ciclo de vida (Anexo A.6), separa verificación y validación, despliegue, operación y monitoreo, y registro de eventos. Un modelo que funcionó sobre el juego del proveedor no está validado sobre tus datos, tus usuarios ni tu población. La tercera: olvidar los datos. El Anexo A.7 trata gestión, adquisición, calidad, procedencia y preparación de los datos del sistema de IA. En QA eso se traduce en casos de prueba sobre el dato —sesgo, filtración de entrenamiento, datos de salud fuera de finalidad— no solo sobre la pantalla.',
++        'La puerta de calidad de un sistema de IA se parece a la que ya definiste para Horus, con tres criterios extra que hay que fijar antes del ciclo y no renegociar bajo presión de «el proveedor ya lo dio por bueno»: umbrales mínimos por métrica y por corte (no un único porcentaje); evidencia de que una persona puede anular o intervenir la salida cuando el impacto lo exige (intervenibilidad); y un plan de vigilancia post-despliegue —deriva de datos, quejas, reapertura de errores, uso fuera de lo previsto— con dueño y periodicidad. Si no puedes escribir esos tres criterios en una página, todavía no hay puerta: hay una demostración. Y la ley de Goodhart sigue aplicando: si el único objetivo del equipo es «subir el accuracy», el accuracy dejará de medir lo que te importa.',
++      ],
++      diagram: {
++        title: 'De ISO 25010 a ISO 25059: qué se añade al probar IA',
++        mermaid: 'graph TD\n  B["ISO/IEC 25010\\ncalidad de producto\\n(seguridad incluida)"] --> Q["ISO/IEC 25059\\nextensión para sistemas de IA"]\n  Q --> M["Métricas por corte\\nno un solo %"]\n  Q --> I["Intervenibilidad\\nanulación humana"]\n  Q --> V["Vigilancia en operación\\nderiva, quejas, uso indebido"]\n  M --> P["Puerta de calidad\\ndel sistema de IA"]\n  I --> P\n  V --> P',
++      },
++      keys: [
++        'ISO/IEC 25059 extiende 25010 a sistemas de IA: adaptabilidad, corrección probabilística, robustez, transparencia, control del usuario e intervenibilidad. Probar IA es parte de QA.',
++        'Un porcentaje global de acierto no es calidad: la métrica se liga a una decisión y se parte por los cortes que importan.',
++        'Verificación en laboratorio del proveedor no sustituye validación sobre tus datos ni vigilancia en operación (ciclo de vida A.6 y datos A.7).',
++        'La puerta de calidad de un sistema de IA exige, de antemano: umbrales por corte, intervenibilidad humana y plan de vigilancia con dueño. Goodhart sigue aplicando.',
++      ],
++      recursos: {
++        libros: [
++          {
++            titulo: 'ISO/IEC 25059:2023 — Quality model for AI systems (extensión SQuaRE / 25010)',
++            autor: 'ISO/IEC JTC 1 (ficha oficial)',
++            url: 'https://www.iso.org/standard/80655.html',
++          },
++        ],
++      },
++      exercise: {
++        mins: 20,
++        text: 'Elige uno de los sistemas de tu inventario del Carril A y escribe, en media página, la puerta de calidad: tres métricas con umbral y corte (no un único %), cómo se anula una salida equivocada, y qué mirarás cada mes después de encenderlo. Si no puedes llenar alguno de los tres, ese hueco es el hallazgo.',
++      },
++      quiz: [
++        {
++          q: '¿Qué norma extiende el modelo de calidad de ISO/IEC 25010 a sistemas de IA?',
++          opts: ['ISO/IEC 27001:2022', 'ISO/IEC 25059:2023', 'ISTQB CTFL 4.0', 'ISO 19011:2018'],
++          a: 1,
++          why: [
++            'Esa norma es el SGSI, no el modelo de calidad de IA.',
++            'Correcto.',
++            'Es el programa de estudio de testing, no el modelo de calidad de IA.',
++            'Es la guía de auditoría de sistemas de gestión.',
++          ],
++        },
++        {
++          q: '¿Por qué un 97 % de acierto global puede ser inaceptable como evidencia de calidad?',
++          opts: [
++            'Porque la norma prohíbe usar porcentajes',
++            'Porque el error puede concentrarse en un corte que importa (un grupo, un servicio, un tipo de caso) o en la decisión que el modelo dispara',
++            'Porque siempre se exige 100 % de acierto en IA',
++            'Porque el porcentaje solo lo puede calcular el proveedor',
++          ],
++          a: 1,
++          why: [
++            'La norma no prohíbe porcentajes; pide que midan lo que importa.',
++            'Correcto.',
++            'Los sistemas de IA son probabilísticos: no se exige acierto perfecto como si fuera una regla fija.',
++            'La organización debe poder medir sobre sus datos.',
++          ],
++        },
++        {
++          q: '¿Cuáles son los tres criterios extra de la puerta de calidad de un sistema de IA en esta lección?',
++          opts: [
++            'Color del tablero, logo del proveedor y fecha de compra',
++            'Umbrales por métrica y por corte, intervenibilidad humana, y plan de vigilancia post-despliegue con dueño',
++            'Exactitud global, número de parámetros del modelo y tiempo de entrenamiento',
++            'Que el proveedor envíe un certificado de «modelo validado»',
++          ],
++          a: 1,
++          why: [
++            'No son criterios de calidad.',
++            'Correcto.',
++            'No son los criterios de la puerta de calidad de esta lección.',
++            'Eso es precisamente lo que la puerta no acepta como evidencia suficiente.',
++          ],
++        },
++      ],
++      lecturaGuiada: {
++        objetivo:
++          'Objetivo de la lectura: fijar el vocabulario de calidad y prueba de sistemas de IA —ISO/IEC 25059, corrección probabilística, robustez, transparencia, intervenibilidad, datos del Anexo A.7 y vigilancia en operación— y ver cómo se sostiene una puerta de calidad sobre un módulo de IA en Horus Health.',
++        intro: [
++          'Este carril traduce 42001 al idioma que ya usas para QA. El vocabulario viene de ISO/IEC 25059:2023 (modelo de calidad para sistemas de IA), del Anexo A.6 y A.7 de ISO/IEC 42001:2023 (ciclo de vida y datos) y de los mismos principios ISTQB que usaste en las Fases 1 y 4: métrica ligada a una decisión, criterios de salida definidos de antemano, Goodhart.',
++          'La idea que atraviesa todo: no se «prueba la IA» como un software determinista; se declara qué error se acepta, sobre quién, y cómo se vigila después de encender.',
++        ],
++        terminos: [
++          {
++            n: 1,
++            termino: 'ISO/IEC 25059 y la extensión del modelo 25010',
++            definicionTextual:
++              'ISO/IEC 25059:2023 describe un modelo de calidad para sistemas de IA como extensión específica de la serie SQuaRE. Parte de las características de ISO/IEC 25010 y añade o ajusta subcaracterísticas propias de la IA —entre ellas adaptabilidad funcional, corrección funcional reformulada, robustez, transparencia, control por el usuario e intervenibilidad— para especificar, medir y evaluar la calidad.',
++            fuente: 'ISO/IEC 25059:2023 — Software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — Quality model for AI systems',
++            idea: [
++              'Es el mismo puente que ya usaste entre seguridad y QA: si 25010 hace de la seguridad una característica de calidad, 25059 hace de la IA un objeto de calidad con vocabulario común.',
++              'No reemplaza 25010: lo extiende. Siguen aplicando seguridad, fiabilidad, mantenibilidad. Lo que no puedes hacer es evaluar un modelo solo con las subcaracterísticas clásicas.',
++            ],
++            ejemplo: 'Pedir «usabilidad» a un ranking de candidatos sin pedir transparencia ni control del usuario es aplicar 25010 como si no hubiera un modelo decidiendo.',
++            ejemploHorus: 'Un módulo que sugiere códigos en Horus se evalúa por corrección por tipo de atención (25059), no solo por si la pantalla carga rápido (25010).',
++            errorComun: 'Evaluar un sistema de IA solo con las características de 25010 y declarar «calidad aprobada» porque no falló la interfaz.',
++            fraseClave: 'ISO/IEC 25059 = 25010 extendido a sistemas de IA; probar IA es, formalmente, parte de QA.',
++          },
++          {
++            n: 2,
++            termino: 'Corrección funcional en sistemas probabilísticos',
++            definicionTextual:
++              'ISO/IEC 25059 reformula la corrección funcional de 25010 porque los sistemas de IA, en particular los de aprendizaje automático, no suelen ofrecer corrección en todas las observaciones: se espera una tasa de error. Hay que medir aciertos y errores con cuidado, y existen compromisos con otras características (eficiencia, robustez).',
++            fuente: 'ISO/IEC 25059:2023, corrección funcional; ISO/IEC TS 4213 (evaluación del desempeño de clasificación de ML, como referencia de medición)',
++            idea: [
++              '«Cero defectos de salida» no es un criterio de salida honesto para un modelo. El criterio honesto es un umbral declarado, por corte, ligado a la decisión que el modelo dispara.',
++              'Un promedio global esconde el daño. Se parte por servicio, sede, grupo o tipo de caso, igual que no leerías un tablero de QA solo por «casos ejecutados».',
++            ],
++            ejemplo: 'Un detector de fraude con 99 % de acierto que falla justo en los montos altos no está «casi perfecto»: está ciego donde más importa.',
++            ejemploHorus: 'Un sugeridor de códigos con 97 % global que se equivoca el 20 % en un servicio concreto no pasa la puerta de ese servicio.',
++            errorComun: 'Aceptar un único porcentaje del proveedor como evidencia de calidad.',
++            fraseClave: 'En IA, corrección = umbral declarado por corte, no un «casi siempre acierta» global.',
++          },
++          {
++            n: 3,
++            termino: 'Robustez',
++            definicionTextual:
++              'Subcaracterística de fiabilidad, añadida para sistemas de IA: capacidad del sistema de mantener el nivel de desempeño cuando cambia el entorno, hay datos ruidosos, incompletos o fuera de distribución, o se presentan entradas adversarias.',
++            fuente: 'ISO/IEC 25059:2023 (robustez); orientación conexa en ISO/IEC 24029 (evaluación de la robustez de redes neuronales)',
++            idea: [
++              'Un modelo que funciona en el juego limpio del laboratorio y se rompe con una tildes, un campo vacío o un cambio de plantilla de historia clínica no es robusto.',
++              'Las pruebas de robustez son casos de borde: datos faltantes, cambios de población, entradas maliciosas. No se improvisan el día del despliegue.',
++            ],
++            ejemplo: 'Un clasificador de facturas que solo vio PDF nítidos y falla con un escaneo torcido no está listo para operación.',
++            ejemploHorus: 'Si el texto de la atención cambia de plantilla entre sedes, el sugeridor de códigos tiene que probarse con ambas, no solo con la sede piloto.',
++            errorComun: 'Probar el modelo solo con el juego «bonito» que envió el proveedor.',
++            fraseClave: 'Robustez = el modelo se sostiene cuando el dato real no se parece al del laboratorio.',
++          },
++          {
++            n: 4,
++            termino: 'Transparencia, control del usuario e intervenibilidad',
++            definicionTextual:
++              'Transparencia: disponibilidad de información sobre el sistema de IA (qué hace, con qué datos, con qué límites) que permita comprenderlo en el contexto de uso. Control del usuario: el usuario puede influir en el comportamiento. Intervenibilidad: se puede interrumpir, anular o corregir la salida cuando el escenario lo exige.',
++            fuente: 'ISO/IEC 25059:2023 (transparencia, user controllability, intervenability); ISO/IEC 42001:2023, Anexo A.8 y A.9',
++            idea: [
++              'No se pide «explicar las matemáticas del modelo» a un auditor clínico. Se pide que quien usa la salida sepa que es una sugerencia, con qué límite, y pueda no aceptarla.',
++              'Si la salida se graba sola en la historia clínica o en la factura sin un paso humano cuando el impacto lo exige, no hay intervenibilidad: hay automatización opaca.',
++            ],
++            ejemplo: 'Un filtro de currículums que descarta candidatos sin mostrar que hubo un modelo ni permitir revisión humana no es transparente ni intervenible.',
++            ejemploHorus: 'La sugerencia de código debe verse como sugerencia, con la posibilidad de rechazarla, y no grabarse si el profesional no la confirma.',
++            errorComun: 'Confundir transparencia con publicar el código del modelo, o intervenibilidad con un buzón de quejas posterior.',
++            fraseClave: 'Transparencia = saber que hay un modelo y qué hace; intervenibilidad = poder anular la salida a tiempo.',
++          },
++          {
++            n: 5,
++            termino: 'Datos para sistemas de IA (Anexo A.7)',
++            definicionTextual:
++              'El Anexo A.7 de ISO/IEC 42001 agrupa controles de referencia sobre los datos del sistema de IA: gestión, adquisición, calidad, procedencia (provenance) y preparación. El objetivo es que la organización sepa de dónde salen los datos, si son aptos para el uso previsto y cómo se transformaron.',
++            fuente: 'ISO/IEC 42001:2023, Anexo A.7 — Data for AI systems',
++            idea: [
++              'En QA, «calidad del dato» deja de ser un apéndice: es objeto de prueba. Un modelo entrenado o alimentado con historias incompletas, desactualizadas o de otra población falla de un modo que no se ve en la interfaz.',
++              'La procedencia responde a la pregunta que un auditor o la SIC van a hacer: ¿estos datos de salud tienen finalidad, autorización y un encargado que no los reuse para entrenar un modelo propio?',
++            ],
++            ejemplo: 'Entrenar un modelo de ausentismo con la nómina de otra empresa «porque se parece» es un fallo de procedencia y de calidad, no un detalle técnico.',
++            ejemploHorus: 'Enviar atenciones reales a un proveedor para «afinar el sugeridor» sin finalidad ni contrato de encargado es, a la vez, un hallazgo de A.7, de 27001 y de la Ley 1581.',
++            errorComun: 'Probar solo la pantalla y dar por buena la calidad del dato porque «viene de producción».',
++            fraseClave: 'A.7 = saber de dónde salen los datos del modelo, si son aptos y con qué finalidad; es objeto de prueba, no un anexo.',
++          },
++          {
++            n: 6,
++            termino: 'Verificación, validación y vigilancia en el ciclo de vida (A.6)',
++            definicionTextual:
++              'El Anexo A.6 de ISO/IEC 42001 cubre el ciclo de vida del sistema de IA: objetivos y procesos, requisitos, diseño y desarrollo, verificación y validación, despliegue, operación y monitoreo, documentación técnica y registros de eventos. Verificación comprueba que el sistema cumple lo especificado; validación, que sirve para el uso previsto en su contexto.',
++            fuente: 'ISO/IEC 42001:2023, Anexo A.6 — AI system life cycle',
++            idea: [
++              'El laboratorio del proveedor es, como mucho, verificación contra su especificación. Validar es probar el sistema en tu contexto: tus usuarios, tus datos, tu población, tu umbral de daño.',
++              'La vigilancia (operación y monitoreo, registros) es el equivalente a no cerrar un ciclo de pruebas sin informe de finalización: el modelo no se «termina» al encenderse.',
++            ],
++            ejemplo: 'Un proveedor entrega un informe de accuracy sobre su dataset. Eso no valida el uso en tu operación. Falta el juego de prueba tuyo y el plan de monitoreo.',
++            ejemploHorus: 'Validar el sugeridor de códigos es correrlo sobre atenciones reales anonimizadas de varios servicios, con umbral por servicio, no leer el brochure.',
++            errorComun: 'Llamar «validado» a lo que el proveedor midió sobre sus propios datos.',
++            fraseClave: 'Verificar = cumple la especificación; validar = sirve en tu contexto; vigilar = sigue sirviendo después de encenderlo.',
++          },
++          {
++            n: 7,
++            termino: 'Deriva y uso fuera de lo previsto',
++            definicionTextual:
++              'Deriva: degradación del desempeño cuando cambia la distribución de los datos o del entorno respecto de la de entrenamiento o de validación. Uso fuera de lo previsto (foreseeable misuse / use outside intended purpose): emplear el sistema para una decisión o una población que no estaban en el uso declarado. ISO/IEC 42001 exige definir el uso previsto (A.9) y operar monitoreo (A.6).',
++            fuente: 'ISO/IEC 42001:2023, Anexos A.6 y A.9; ISO/IEC 22989:2022 (intended use, life cycle)',
++            idea: [
++              'Un modelo no se «rompe» de golpe: se va. Si nadie mira un indicador de desempeño por corte, la deriva es invisible hasta el primer incidente visible.',
++              'El uso fuera de lo previsto es un riesgo de producto clásico con cara nueva: el sugeridor de códigos usado como «diagnóstico automático» es otro sistema, y exige otra evaluación de impacto.',
++            ],
++            ejemplo: 'Un modelo de demanda entrenado en 2019 se degrada tras un cambio de catálogo y nadie lo nota porque el tablero solo muestra «el job corrió».',
++            ejemploHorus: 'Si el personal empieza a pegar la nota clínica en un chatbot general para «que le arme el resumen», ese es uso fuera de lo previsto: hay que detectarlo y cerrarlo, no celebrarlo como adopción.',
++            errorComun: 'Dar el proyecto por cerrado el día del despliegue, sin dueño de la vigilancia.',
++            fraseClave: 'Deriva = el modelo se degrada cuando el mundo cambia; uso indebido = se usa para otra decisión. Ambos se vigilan.',
++          },
++          {
++            n: 8,
++            termino: 'Puerta de calidad de un sistema de IA',
++            definicionTextual:
++              'Criterios de salida definidos antes del ciclo, que deben cumplirse para autorizar el despliegue o el uso continuado de un sistema de IA. En esta fase se exigen tres extra respecto de una puerta clásica: umbrales por métrica y por corte; evidencia de intervenibilidad cuando el impacto lo requiere; y un plan de vigilancia post-despliegue con responsable y periodicidad.',
++            fuente: 'ISTQB CTFL 4.0, sección 5.1.3 (criterios de salida) aplicada al objeto de ISO/IEC 25059 y al ciclo de vida de ISO/IEC 42001 Anexo A.6; ley de Goodhart (ya usada en la Fase 4)',
++            idea: [
++              'La autoridad de la puerta sigue viniendo de definirla por adelantado. «El proveedor ya lo dio por bueno» o «la fecha comercial» no son criterios de salida.',
++              'Goodhart: si el único objetivo es subir un accuracy global, el equipo optimizará ese número —incluso recortando el juego de prueba— y dejará de medir el daño.',
++            ],
++            ejemplo: 'Criterio escrito: «no se despliega si el error en el quintil de mayor monto supera el 2 %, aunque el promedio global sea 99 %».',
++            ejemploHorus: 'Criterio escrito: «no se enciende el sugeridor en un servicio si, en el piloto, el rechazo humano supera el umbral o no hay forma de anular la sugerencia antes de grabar».',
++            errorComun: 'Renegociar el umbral el día del go-live porque el piloto «casi» lo cumple.',
++            fraseClave: 'Puerta de IA = umbrales por corte + anulación humana + vigilancia con dueño; se escribe antes, no el día del despliegue.',
++          },
++        ],
++        conexion: [
++          'La secuencia: se toma ISO 25059 como modelo de calidad; se declara la corrección por corte, no un promedio; se prueban robustez, transparencia e intervenibilidad; se tratan los datos (A.7) como objeto de prueba; se distingue verificación del proveedor, validación en tu contexto y vigilancia; y todo eso se fija en una puerta de calidad escrita de antemano.',
++          'La idea transversal: un sistema de IA no se aprueba porque «funciona en la demo»; se aprueba si puedes decir qué error aceptas, sobre quién, y quién lo mira el mes que viene.',
++        ],
++        casoCompleto: {
++          escenario:
++            'Se cierra el piloto del sugeridor de códigos de Horus en un servicio. El proveedor reporta 96 % de acierto global y pide el visto bueno para los siete servicios.',
++          pasos: [
++            { titulo: 'Paso 1 · Partir el número', texto: 'Se corta por servicio y por tipo de atención. En el servicio piloto el acierto es 96 %; en un tipo de atención concreto, 78 %. Ese corte no pasa el umbral escrito.' },
++            { titulo: 'Paso 2 · Robustez', texto: 'Se re-prueba con notas de otra sede y con campos vacíos. El acierto cae. El juego del proveedor era más limpio que el dato real.' },
++            { titulo: 'Paso 3 · Intervenibilidad', texto: 'En el prototipo la sugerencia se podía aceptar con un clic y también grabarse por defecto a los diez segundos. Se exige confirmación explícita; sin ella no hay puerta.' },
++            { titulo: 'Paso 4 · Datos (A.7)', texto: 'El proveedor pide un lote extra de atenciones reales «para afinar». Se revisa finalidad, autorización y contrato de encargado antes de enviar nada.' },
++            { titulo: 'Paso 5 · Verificación frente a validación', texto: 'El informe del proveedor se archiva como verificación suya. La validación de la IPS es el piloto partido por corte, con umbral propio.' },
++            { titulo: 'Paso 6 · Puerta', texto: 'No se abre para los siete servicios. Se abre, si acaso, para el tipo de atención que sí cumple umbral, con anulación humana y un tablero mensual de error, rechazos y quejas.' },
++            { titulo: 'Paso 7 · Vigilancia', texto: 'Se nombra dueño del tablero. Si en 60 días el error de un corte supera el umbral, se apaga ese corte. El accuracy global deja de ser el objetivo del equipo.' },
++          ],
++        },
++        preguntas: [
++          {
++            q: '¿Qué añade ISO/IEC 25059 al modelo de ISO/IEC 25010?',
++            opts: [
++              'Nada: son la misma norma',
++              'Subcaracterísticas propias de sistemas de IA (adaptabilidad, corrección reformulada, robustez, transparencia, control e intervenibilidad) sobre el modelo SQuaRE',
++              'Los 38 controles del Anexo A de 42001',
++            ],
++            a: 1,
++            why: '25059 es la extensión de calidad de producto/uso para IA; el Anexo A de 42001 es el catálogo de controles del SGIA, otro objeto.',
++          },
++          {
++            q: 'El proveedor entrega un 96 % de acierto sobre su dataset. ¿Eso valida el sistema para tu operación?',
++            opts: [
++              'Sí: un 96 % es suficiente en cualquier contexto',
++              'No: eso es, como mucho, verificación del proveedor; validar es probarlo en tu contexto, con tus cortes y tu umbral de daño',
++              'Sí, si el contrato lo dice',
++            ],
++            a: 1,
++            why: '42001 y 25059 exigen validación en el contexto de uso, no un número único del laboratorio ajeno.',
++          },
++          {
++            q: '¿Qué cubre el Anexo A.7 de ISO/IEC 42001?',
++            opts: [
++              'Solo la interfaz de usuario del modelo',
++              'Datos del sistema de IA: gestión, adquisición, calidad, procedencia y preparación',
++              'La certificación del científico de datos',
++            ],
++            a: 1,
++            why: 'Los datos son objeto de control y de prueba; no un detalle de pantalla.',
++          },
++          {
++            q: '¿Qué es intervenibilidad en un sistema de IA?',
++            opts: [
++              'Publicar el código fuente del modelo',
++              'Poder interrumpir, anular o corregir la salida a tiempo cuando el impacto lo exige',
++              'Enviar una queja al proveedor dos meses después',
++            ],
++            a: 1,
++            why: 'Intervenibilidad es un control de calidad en el momento de la decisión, no un buzón posterior ni una exigencia de abrir el modelo.',
++          },
++          {
++            q: '¿Qué convierte en útil la puerta de calidad de un sistema de IA?',
++            opts: [
++              'Que se decida el día del go-live según el ánimo comercial',
++              'Que fije de antemano umbrales por corte, anulación humana y vigilancia con dueño, y no se renegocie bajo presión',
++              'Que use como único criterio el accuracy global del proveedor',
++            ],
++            a: 1,
++            why: 'Es la misma autoridad de los criterios de salida de la Fase 4, aplicada a un objeto probabilístico.',
++          },
++        ],
++        cierre:
++          'Quédate con la cadena: 25059 da el vocabulario de calidad; la corrección se declara por corte; se prueban robustez, transparencia e intervenibilidad; los datos (A.7) son objeto de prueba; se distingue verificar, validar y vigilar; y la puerta se escribe antes. Un modelo no se aprueba por una demo.',
++        fuentes: [
++          { titulo: 'ISO/IEC 25059:2023 — Quality model for AI systems (extensión SQuaRE de ISO/IEC 25010); ficha oficial', url: 'https://www.iso.org/standard/80655.html' },
++          { titulo: 'ISO/IEC 42001:2023 — Anexos A.6 (ciclo de vida) y A.7 (datos para sistemas de IA)', url: 'https://www.iso.org/standard/81230.html' },
++          { titulo: 'ISTQB® Certified Tester Foundation Level (CTFL) Syllabus v4.0 — secciones 5.1.3 (criterios de salida) y 5.3 (métricas); descarga gratuita', url: 'https://www.istqb.org/certifications/certified-tester-foundation-level' },
++        ],
++      },
++    },
++    {
++      title: 'Entregable E7 · Inventario de IA, alcance del SGIA y estrategia de prueba',
++      mins: 10,
++      body: [
++        'Este entregable produce cuatro piezas que deben poder mostrarse a la dirección y a un auditor sin traducir siglas sobre la marcha. Primero, el inventario de sistemas de IA realmente en uso o en piloto —incluidos copilotos, chatbots de proveedores y motores que nadie llama IA— con dueño interno, datos que toca y postura (desarrolla / provee / usa). Segundo, una propuesta de alcance del SGIA: qué sistemas, procesos y ubicaciones entran en esta primera versión, y qué queda fuera con justificación. Tercero, la evaluación de impacto del sistema de mayor riesgo del inventario, con el daño a personas expresado en una unidad concreta (pacientes afectados, glosas, horas de retrabajo), no en adjetivos. Cuarto, la estrategia de prueba y la puerta de calidad de ese mismo sistema: umbrales por corte, intervenibilidad y plan de vigilancia con dueño, más la Declaración de Aplicabilidad preliminar de los controles A.2–A.10 que aplican o se excluyen.',
++        'El criterio de aprobación tiene dos condiciones que suelen fallar. Una: el inventario no puede estar vacío ni reservado a «proyectos de innovación»; si la organización ya pega texto en un chatbot o ya tiene un ranking, eso entra. Dos: al menos un sistema del inventario debe quedar fuera del alcance de esta primera versión, con la justificación escrita — un alcance «toda la IA de la empresa» en el primer trimestre es el mismo error que un SGSI «toda la organización» en la Fase 5. Y el presupuesto o el esfuerzo de implementación se presenta en tres escenarios (mínimo viable, recomendado, ideal), cada uno con lo que deja sin cubrir: un solo número se recorta; tres escenarios obligan a decidir qué riesgo de IA queda sin gobierno.',
++      ],
++      keys: [
++        'El entregable exige inventario real de sistemas de IA (con dueño, datos y postura), alcance del SGIA, evaluación de impacto del sistema más crítico, y puerta de calidad + Declaración de Aplicabilidad preliminar.',
++        'Se aprueba solo si el inventario incluye lo que ya se usa aunque no se llame IA, y si al menos un sistema queda deliberadamente fuera del primer alcance, con justificación.',
++        'El esfuerzo se presenta en tres escenarios (mínimo, recomendado, ideal), cada uno con lo que deja sin cubrir.',
++      ],
++    },
++  ],
++  exam: [
++    {
++      q: '¿Qué es ISO/IEC 42001:2023?',
++      opts: [
++        'Una guía para entrenar modelos',
++        'La primera norma internacional certificable de un sistema de gestión de inteligencia artificial (SGIA)',
++        'Un reemplazo de ISO/IEC 27001',
++        'Una certificación individual de científicos de datos',
++      ],
++      a: 1,
++      why: ['No enseña a entrenar modelos.', 'Correcto.', 'No reemplaza el SGSI.', 'No es una certificación individual.'],
++    },
++    {
++      q: '¿Cuál es la diferencia central entre el SGSI y el SGIA?',
++      opts: [
++        'No hay diferencia',
++        'El SGSI protege información (C-I-D); el SGIA gobierna sistemas de IA, su ciclo de vida y su impacto',
++        'El SGIA solo cubre chatbots',
++        'El SGIA sustituye a la Ley 1581',
++      ],
++      a: 1,
++      why: ['Son normas distintas.', 'Correcto.', 'Cubre cualquier sistema de IA en el alcance.', 'No sustituye el régimen de datos personales.'],
++    },
++    {
++      q: '¿Cuántos controles de referencia tiene el Anexo A de ISO/IEC 42001 y cómo se organizan?',
++      opts: [
++        '93 controles en 4 temas, como 27001:2022',
++        '38 controles en nueve objetivos (A.2 a A.10)',
++        '114 controles en 14 dominios',
++        'Un único control obligatorio llamado «ética»',
++      ],
++      a: 1,
++      why: ['Esa es la estructura de 27001:2022, no de 42001.', 'Correcto.', 'Esa era la estructura de 27001:2013.', 'No existe tal control único.'],
++    },
++    {
++      q: '¿Qué artefacto de la cláusula 6 no se puede delegar en el proveedor del modelo?',
++      opts: [
++        'El logo de la política de IA',
++        'La evaluación de impacto del sistema de IA sobre individuos y, cuando aplica, la sociedad',
++        'El número de parámetros del modelo',
++        'La factura del proveedor',
++      ],
++      a: 1,
++      why: ['No es el artefacto central.', 'Correcto.', 'No es un requisito de gobierno.', 'No sustituye el impacto.'],
++    },
++    {
++      q: '¿Qué norma extiende ISO/IEC 25010 a la calidad de sistemas de IA?',
++      opts: ['ISO/IEC 27001:2022', 'ISO/IEC 25059:2023', 'ISO 19011:2018', 'Ley 1581 de 2012'],
++      a: 1,
++      why: ['Es el SGSI.', 'Correcto.', 'Es la guía de auditoría.', 'Es el régimen de datos personales.'],
++    },
++    {
++      q: '¿Por qué un 97 % de acierto global puede ser evidencia insuficiente?',
++      opts: [
++        'Porque la norma prohíbe porcentajes',
++        'Porque el error puede concentrarse en un corte que importa o en la decisión que el modelo dispara',
++        'Porque siempre se exige 100 % de acierto',
++        'Porque solo el proveedor puede calcularlo',
++      ],
++      a: 1,
++      why: ['No están prohibidos.', 'Correcto.', 'Los sistemas de IA son probabilísticos.', 'La organización debe medir sobre sus datos.'],
++    },
++    {
++      q: '¿Cuáles son los tres criterios extra de la puerta de calidad de un sistema de IA?',
++      opts: [
++        'Color, logo y fecha de compra',
++        'Umbrales por métrica y por corte, intervenibilidad humana, y plan de vigilancia post-despliegue con dueño',
++        'Accuracy global, número de parámetros y tiempo de entrenamiento',
++        'Un certificado del proveedor que diga «validado»',
++      ],
++      a: 1,
++      why: ['No son criterios de calidad.', 'Correcto.', 'No son los criterios de esta fase.', 'No basta como evidencia.'],
++    },
++    {
++      q: '¿Qué exige el entregable E7 sobre el primer alcance del SGIA?',
++      opts: [
++        'Que cubra toda la IA de la empresa desde el primer trimestre',
++        'Que al menos un sistema del inventario quede deliberadamente fuera, con justificación, y que el inventario incluya lo que ya se usa aunque no se llame IA',
++        'Que lo redacte el proveedor del modelo',
++        'Que no se presente presupuesto en escenarios',
++      ],
++      a: 1,
++      why: ['Es el error que el entregable evita, el mismo de un SGSI «toda la organización».', 'Correcto.', 'El dueño del alcance es interno.', 'El esfuerzo va en tres escenarios.'],
++    },
++  ],
++};
+diff --git a/backend/db/seed-data/aulas.json b/backend/db/seed-data/aulas.json
+index 9123a08..9a23cc6 100644
+--- a/backend/db/seed-data/aulas.json
++++ b/backend/db/seed-data/aulas.json
+@@ -2,7 +2,7 @@
+   "Ruta de Mando en Seguridad y QA": {
+     "source": "Plan de mentoria propio: De administrador a lider de Seguridad y QA (Sumimedical)",
+     "url": null,
+-    "note": "Curso propio del campus: plan de formacion y tutoria de 26 semanas para asumir el doble liderazgo de Seguridad de la Informacion y Aseguramiento de Calidad (QA), con dedicacion de 8 horas semanales. Cada fase combina los dos carriles y cierra con un entregable real de trabajo.",
++    "note": "Curso propio del campus: plan de formacion y tutoria de 26 semanas para asumir el doble liderazgo de Seguridad de la Informacion y Aseguramiento de Calidad (QA), con dedicacion de 8 horas semanales. Cada fase combina los dos carriles y cierra con un entregable real de trabajo. Una fase adicional (Unidad 8) cubre el gobierno de sistemas de inteligencia artificial segun ISO/IEC 42001, con el mismo esquema.",
+     "units": [
+       {
+         "n": "Unidad 0",
+@@ -81,6 +81,16 @@
+           { "title": "Los primeros 30 días en el cargo", "mins": 18 },
+           { "title": "Cómo funciona la tutoría y la biblioteca de certificaciones", "mins": 20 }
+         ]
++      },
++      {
++        "n": "Unidad 8",
++        "title": "Fase 6 · Gobierno de la IA — ISO/IEC 42001",
++        "hours": 2,
++        "lessons": [
++          { "title": "Carril A · El SGIA y la norma ISO/IEC 42001", "mins": 22 },
++          { "title": "Carril B · Calidad, pruebas y vigilancia de sistemas de IA", "mins": 20 },
++          { "title": "Entregable E7 · Inventario de IA, alcance del SGIA y estrategia de prueba", "mins": 10 }
++        ]
+       }
+     ]
+   },
+-- 
+2.43.0
+
