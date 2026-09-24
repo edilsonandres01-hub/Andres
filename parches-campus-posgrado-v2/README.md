@@ -11,6 +11,7 @@ Base sobre la que se generaron: `main` en `860cd00`, salvo `dashboard/` y
 
 | Lote | Estado | Base |
 |---|---|---|
+| `iso-42001/` | **vigente** | `bde8fb7` |
 | `preguntas-comprension/` | **vigente** | `bde8fb7` |
 | `actividad-leccion/` | **vigente** | `bde8fb7` |
 | `admin-usuarios/` | **vigente** | `6f20fc7` |
@@ -43,11 +44,29 @@ conservan solo como registro de la investigación. Producción ya arranca: los
 endpoints `/api/tfm`, `/api/exams/:id/status` y `/api/me/review-plan` responden 401
 (existen y piden sesión) en lugar de 404.
 
-**Sigue vigente:** `preguntas-comprension/` (opciones de las Preguntas de
+**Sigue vigente:** `iso-42001/` (Unidad 8 de Ruta de Mando: ISO/IEC 42001 con
+el mismo esquema de dos carriles, lectura guiada, entregable y examen),
+`preguntas-comprension/` (opciones de las Preguntas de
 comprensión y botón Comprobar respuesta), `actividad-leccion/` (textarea de
 Actividad que arrastraba el texto de la lección anterior), `plantillas/` (no
 está en `main`; los cuatro `notebookTemplateUrl` siguen a `null`) y
 `dashboard/` (generado sobre `632bf7a`).
+
+## `iso-42001/` — Unidad 8 de Ruta de Mando sobre ISO/IEC 42001
+
+Un parche sobre `bde8fb7`. Añade la Fase 6 (gobierno de la IA) al final del
+aula *Ruta de Mando en Seguridad y QA*, con Carril A (SGIA / 42001), Carril B
+(ISO/IEC 25059 y puerta de calidad de modelos), entregable E7 y examen de 8
+preguntas. Va al final para no mover las `stable_key` ya sembradas. Ver
+`iso-42001/APLICAR.md`.
+
+Independiente de los lotes de frontend.
+
+```bash
+git checkout -b cursor/iso-42001-modulo-21ab main
+git am /ruta/a/iso-42001/*.patch
+git push -u origin cursor/iso-42001-modulo-21ab
+```
 
 ## `preguntas-comprension/` — opciones seleccionables y botón Comprobar respuesta
 
