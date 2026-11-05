@@ -29,3 +29,6 @@ Thumbs.db
 _bootstrap*.py
 
 payload.json
+
+# Trading desk runtime
+trading-desk/runs/

@@ -1,3 +1,21 @@
+# Andres monorepo
+
+## Trading Desk (nuevo)
+
+Bot de trading del video de [@antonspain.ia](https://www.tiktok.com/@antonspain.ia/video/7701618162432806177):
+11 skills Claude (escáner, noticias, entrada, salida, Time Machine ×10.000, riesgo, paper broker).
+
+```bash
+python3 trading-desk/scripts/demo_reel.py   # demo offline TSLA del reel
+python3 trading-desk/web/app.py             # UI → http://127.0.0.1:8787
+cd day-trader-bot && python3 -m unittest discover -s tests -v
+```
+
+Detalles: [`trading-desk/README.md`](trading-desk/README.md) · skills MIT en [`day-trader-bot/`](day-trader-bot/).
+Paper por defecto. No es consejo financiero.
+
+---
+
 # QA Guardian v2.0.0
 
 Enterprise Diagnostic Engine — backend (FastAPI), frontend (React/Vite), Docker, Kubernetes y CI/CD.

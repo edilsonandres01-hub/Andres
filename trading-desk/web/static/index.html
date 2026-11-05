@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trading Desk · 11 skills</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <p class="chip hot">PAPER · sin órdenes reales</p>
+      <h1 class="brand">Trading <span>Desk</span></h1>
+      <p class="lede">
+        Las 11 skills del video de @antonspain.ia: Claude prepara la operación
+        (escáner, noticias, entrada, salida, Time Machine ×10.000) y tú decides.
+        Basado en day-trader-skill (MIT).
+      </p>
+      <div class="meta">
+        <span class="chip">saldo demo $500</span>
+        <span class="chip">Yahoo / SEC públicos</span>
+        <span class="chip">tu sí obligatorio</span>
+      </div>
+    </header>
+
+    <section>
+      <div class="grid" id="skills"></div>
+    </section>
+
+    <section class="panel" id="run">
+      <h2>Última corrida · TSLA reel</h2>
+      <p class="sub">Demo offline del 19 oct 2026 (fixtures). No es consejo financiero.</p>
+      <div class="stats" id="stats"></div>
+      <pre class="ticket" id="ticket">Cargando resumen…</pre>
+      <div class="actions">
+        <button type="button" id="reload">Actualizar</button>
+        <a class="btn secondary" href="/api/summary" target="_blank" rel="noreferrer">Ver JSON</a>
+      </div>
+    </section>
+
+    <p class="foot">
+      No es consejo financiero. El paper trading es el modo por defecto.
+      Una orden solo avanza si trader-risk da PASS y escribes “yes” al ticket exacto.
+      Upstream: Jakeschincariol/day-trader-skill · Video: antonspain.ia.
+    </p>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
